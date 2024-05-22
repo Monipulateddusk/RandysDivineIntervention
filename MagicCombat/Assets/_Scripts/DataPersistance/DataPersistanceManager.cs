@@ -11,6 +11,7 @@ public class DataPersistanceManager : MonoBehaviour
 {
     [Header("File Storage Config")]
     [SerializeField] string fileName;
+    [SerializeField] bool usingEncryption;
 
     GameData gameData;
     List<IDataPersistance> dataPersistanceObjects;
@@ -27,7 +28,7 @@ public class DataPersistanceManager : MonoBehaviour
     }
     private void Start()
     {
-        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName); // Application.persistentDataPath gives the OS's standard directory for persisting data in a Unity Game
+        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, usingEncryption); // Application.persistentDataPath gives the OS's standard directory for persisting data in a Unity Game
         this.dataPersistanceObjects = FindAllDataPersistanceObjects();
         LoadGame();
     }
