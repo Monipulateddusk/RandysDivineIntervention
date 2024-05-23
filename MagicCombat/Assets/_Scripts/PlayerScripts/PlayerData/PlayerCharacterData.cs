@@ -12,7 +12,9 @@ public class PlayerCharacter
         FIRE, ICE, WATER, EARTH, LIGHT, DARKNESS,
     }
 
-    [Range(0,100)] public int level, physAtk, magiAtk, physDef, magiDef, health, speed;
+    public string name;
+
+    [Range(0,100)] public uint level, physAtk, magiAtk, physDef, magiDef, health, speed;
 
     public Class classType;
     public MagicElement magicElement;
