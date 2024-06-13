@@ -70,7 +70,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
-  m_FillAmount: 1
+  m_FillAmount: 0.54545456
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
@@ -140,9 +140,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '16/16
-
-'
+  m_text: 6/11
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: fc05f7114b99e57409986dc7e314c009, type: 2}
   m_sharedMaterial: {fileID: 5005921171352628539, guid: fc05f7114b99e57409986dc7e314c009, type: 2}
@@ -296,7 +294,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!114 &2137909393590040589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -326,6 +324,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 830f38d43fb3d7643b73415f9c38a112, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  healthText: {fileID: 7387213794109180967}
+  healthBarImage: {fileID: 2320228016972094892}
+  curHealth: 6
+  maxHealth: 11
 --- !u!1 &5327995899457612127
 GameObject:
   m_ObjectHideFlags: 0

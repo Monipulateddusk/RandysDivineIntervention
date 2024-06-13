@@ -1,18 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
-
+using UnityEngine.UI;
 public class HealthBarController : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [SerializeField] TextMeshProUGUI healthText;
+    [SerializeField] Image healthBarImage;
 
-    // Update is called once per frame
-    void Update()
+    [SerializeField]uint curHealth, maxHealth;
+
+    private void OnValidate()
     {
-        
+        if (curHealth >= maxHealth)
+        {
+            curHealth = maxHealth;
+        }
+        UpdateUI();
+   
+    }
+    public void UpdateUI()
+    {
+        healthBarImage.fillAmount = (float)curHealth / (float)maxHealth;
+        healthText.text = curHealth.ToString() + "/" + maxHealth.ToString();
     }
 }
