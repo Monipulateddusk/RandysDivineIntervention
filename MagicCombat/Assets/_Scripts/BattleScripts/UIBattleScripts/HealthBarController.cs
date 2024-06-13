@@ -8,18 +8,12 @@ public class HealthBarController : MonoBehaviour
     [SerializeField] TextMeshProUGUI healthText;
     [SerializeField] Image healthBarImage;
 
-    [SerializeField]uint curHealth, maxHealth;
-
-    private void OnValidate()
-    {
-        if (curHealth >= maxHealth)
-        {
-            curHealth = maxHealth;
-        }
-        UpdateUI();
-   
-    }
-    public void UpdateUI()
+    /// <summary>
+    /// Called in other classes to update UI based on passed in values of HP for that Unit
+    /// </summary>
+    /// <param name="curHealth"></param>
+    /// <param name="maxHealth"></param>
+    public void UpdateUI(float curHealth, float maxHealth)
     {
         healthBarImage.fillAmount = (float)curHealth / (float)maxHealth;
         healthText.text = curHealth.ToString() + "/" + maxHealth.ToString();
