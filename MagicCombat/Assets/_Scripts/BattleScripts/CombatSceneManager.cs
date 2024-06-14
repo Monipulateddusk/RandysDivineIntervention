@@ -45,13 +45,13 @@ public class CombatSceneManager : MonoBehaviour
     private void SetupCombat()
     {
         // Instanciate enemies
-
-        GameObject prefab = Resources.Load("TempPrefabs/BlueEnemyGO") as GameObject;
-        enemyGameObjects.Add(Instantiate(prefab, enemyBattleStations[0]));
-        prefab = Resources.Load("TempPrefabs/EnemyGO") as GameObject;
-        enemyGameObjects.Add(Instantiate(prefab, enemyBattleStations[1]));
-        prefab = Resources.Load("TempPrefabs/RedEnemyGO") as GameObject;
-        enemyGameObjects.Add(Instantiate(prefab, enemyBattleStations[2]));
+        int i = 0;
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/"))
+        {
+            enemyGameObjects.Add(Instantiate(obj, enemyBattleStations[i]));
+            enemyGameObjects[i].AddComponent<Health>();
+            i++;
+        }
 
 
         // Instanciate active allies
