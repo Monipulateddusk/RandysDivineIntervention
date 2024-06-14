@@ -34,7 +34,7 @@ public class CombatSceneManager : MonoBehaviour
 
     [SerializeField] BattleState battleState;
 
-
+    [SerializeField] GameObject arrowGO;
     // UI
     [Header("UI Variables")]
     [SerializeField]TextMeshProUGUI turnText;
@@ -67,13 +67,20 @@ public class CombatSceneManager : MonoBehaviour
         // Once set up is done, proceed to the player's turn
         battleState = BattleState.PLAYER_1_TURN;
         UpdateTurnUI();
+        HandleCombat();
     }
 
     void UpdateTurnUI()
     {
         turnText.text = battleState.ToString();
     }
+    IEnumerator MoveArrowToTurnObject(Transform target)
+    {
+        arrowGO.transform.parent = target.transform;
+        yield return new WaitForSeconds(.1f);
+        arrowGO.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 
+    }
 
     private void HandleCombat()
     {
@@ -126,30 +133,36 @@ public class CombatSceneManager : MonoBehaviour
     private void HandlePlayer1Turn()
     {
         Debug.Log("This is the start of Player 1's turn");
+        StartCoroutine(MoveArrowToTurnObject(playerBattleStations[0]));
     }
 
     private void HandlePlayer2Turn()
     {
         Debug.Log("This is the start of Player 2's turn");
+        StartCoroutine(MoveArrowToTurnObject(playerBattleStations[1]));
     }
 
     private void HandleEnemy1Turn()
     {
         Debug.Log("This is the start of Enemy 1's turn");
+        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[0]));
     }
 
     private void HandleEnemy2Turn()
     {
         Debug.Log("This is the start of Enemy 2's turn");
+        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[1]));
     }
 
     private void HandleEnemy3Turn()
     {
         Debug.Log("This is the start of Enemy 3's turn");
+        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[2]));
     }
     private void HandleEnemy4Turn()
     {
         Debug.Log("This is the start of Enemy 4's turn");
+        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[3]));
     }
 
 }
