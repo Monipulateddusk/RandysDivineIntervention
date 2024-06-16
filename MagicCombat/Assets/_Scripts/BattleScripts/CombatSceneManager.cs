@@ -55,7 +55,7 @@ public class CombatSceneManager : MonoBehaviour
         foreach (GameObject obj in Resources.LoadAll("TempPrefabs/"))
         {
             enemyGameObjects.Add(Instantiate(obj, enemyBattleStations[i]));
-            enemyGameObjects[i].AddComponent<Health>();
+            //enemyGameObjects[i].AddComponent<Health>();
             i++;
         }
 
