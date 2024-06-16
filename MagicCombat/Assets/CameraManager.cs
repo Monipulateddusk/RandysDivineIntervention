@@ -25,8 +25,7 @@ public class CameraManager : MonoBehaviour
         }
 
     }
-    // We want to subscribe to this event with each battle station. Each battlestation will then call this when they are interacted with which will then fire off the cameraController's focus function
-    public event Action<Transform> battleStationInteracted;
+
 
     // Start is called before the first frame update
     void Start()
