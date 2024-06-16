@@ -1,12 +1,22 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class BaseUnit 
+/// <summary>
+/// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene
+/// </summary>
+
+
+[CreateAssetMenu(fileName = "EnemyUnit", menuName = "ScriptableObjects/Unit", order = 1)]
+public class BaseUnit : ScriptableObject
 {
-    public string name;
+    public new string name;
 
-    public int damage;
+    public int maxHP;
+    public int attack;
 
-    public int maxHP, currentHP;
+    public Color color;
+    public Sprite sprite;
 }
