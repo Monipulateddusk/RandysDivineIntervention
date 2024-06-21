@@ -17,3 +17,7 @@ MonoBehaviour:
   attack: 3
   color: {r: 0.023050921, g: 0.6981132, b: 0.05496035, a: 1}
   sprite: {fileID: 21300000, guid: 4e3929101b7d0894aa982cce9fd25b94, type: 3}
+  element: 0
+  moves:
+  - {fileID: 11400000, guid: 2320061fd71c4bd40a727c467e746aac, type: 2}
+  - {fileID: 11400000, guid: 7714929a2e2d0d649a38aad5286bdee9, type: 2}

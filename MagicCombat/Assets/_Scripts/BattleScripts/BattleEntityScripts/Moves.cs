@@ -10,7 +10,6 @@ public class AttackAction
 {
     public enum ActionType { DAMAGE, HEALING, STATUS_EFFECT, IMBUE_ENVIRONMENTS}
 
-
     public ActionType Type { get; private set; }
     public int Value { get; private set; }
     public StatusEffect StaEffect { get; private set; }
