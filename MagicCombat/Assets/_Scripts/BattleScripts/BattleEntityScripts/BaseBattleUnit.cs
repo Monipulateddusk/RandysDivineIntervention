@@ -46,5 +46,12 @@ public class BaseBattleUnit : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leeks
+    /// </summary>
+    private void OnDestroy()
+    {
+        OnUnitCreated = null;
+        OnAlterHealth = null;
+    }
 }

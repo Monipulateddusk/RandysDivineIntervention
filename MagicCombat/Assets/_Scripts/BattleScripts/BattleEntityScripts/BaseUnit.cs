@@ -5,10 +5,15 @@ using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
+/// Same order as 'EnvironmentalEffect' enum in Moves Class for easy integer conversion between the two
+/// </summary>
+public enum Element
+{
+    NULL, FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS
+}
+/// <summary>
 /// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene
 /// </summary>
-
-
 [CreateAssetMenu(fileName = "EnemyUnit", menuName = "ScriptableObjects/Unit", order = 1)]
 public class BaseUnit : ScriptableObject
 {
@@ -19,4 +24,7 @@ public class BaseUnit : ScriptableObject
 
     public Color color;
     public Sprite sprite;
+
+    public Element element;
+    public List<BattleMoveAction> moves = new List<BattleMoveAction>();
 }

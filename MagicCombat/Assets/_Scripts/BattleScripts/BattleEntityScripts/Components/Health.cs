@@ -61,6 +61,8 @@ public class Health : MonoBehaviour
                 break;
         }
         // After all changes, apply the UI
-        hBC.UpdateUI(health, unit.maxHP);
+        hBC.UpdateUI(health, unit.maxHP); // Ordinarally, I'd like to also attach this to the event OnAlterHealth but there
+                                          // isn't a clean way to do so while also passing the maxHP so having it be a function should be susficient
     }
+
 }

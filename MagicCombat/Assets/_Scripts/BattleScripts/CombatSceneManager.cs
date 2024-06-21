@@ -4,9 +4,12 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+/// <summary>
+/// Same order as 'Element' enum in BaseUnit Class for easy integer conversion between the two
+/// </summary>
 public enum EnvironmentalEffect
 {
-    IMBUE_FIRE, IMBUE_WATER, IMBUE_ICE, IMBUE_EARTH, IMBUE_LIGHT, IMBUE_DARKNESS,
+    NULL, IMBUE_FIRE, IMBUE_WATER, IMBUE_ICE, IMBUE_EARTH, IMBUE_LIGHT, IMBUE_DARKNESS,
 }
 
 /// <summary>
@@ -55,7 +58,6 @@ public class CombatSceneManager : MonoBehaviour
         foreach (GameObject obj in Resources.LoadAll("TempPrefabs/"))
         {
             enemyGameObjects.Add(Instantiate(obj, enemyBattleStations[i]));
-            //enemyGameObjects[i].AddComponent<Health>();
             i++;
         }
 
