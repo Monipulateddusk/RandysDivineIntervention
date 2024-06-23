@@ -132,6 +132,11 @@ public class CombatSceneManager : MonoBehaviour
         HandleCombat();
     }
 
+    /// <summary>
+    /// Turns will be handled by sending information about the scene to each battle entity. This will be handled just once and thus the function doesn't need to be an IEnumerator with a while loop
+    /// I then need to be able to handle information back from each input manager(?). Once that info is back, then we can invoke correct functions for losing/gaining health as well as call correct
+    /// anims in function. Basically, I need another function that may be public or called upon event firing that relays all important info about a move.
+    /// </summary>
     private void HandlePlayer1Turn()
     {
         Debug.Log("This is the start of Player 1's turn");
