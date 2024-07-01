@@ -11,10 +11,22 @@ public class BaseBattleUnit : MonoBehaviour
     // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
     public event Action<int, bool> OnAlterHealth;
 
+    [Header("Debugging")]
     [SerializeField] BaseUnit unitData;
 
+    [SerializeField]InputManager iMComponent;
+    [SerializeField] Health hComponent;
+    [SerializeField] SpriteComponent sComponent;
 
-    private void Start()
+    private void Awake()
+    {
+        // Attach the required component for a Unit. I wonder if there is a better way to do this
+        iMComponent = gameObject.AddComponent<InputManager>();
+        hComponent = gameObject.AddComponent<Health>();
+        sComponent = gameObject.AddComponent<SpriteComponent>();
+    }
+
+    private void OnEnable()
     {
         OnUnitCreated += AssignUnitData;
         OnUnitCreated?.Invoke(unitData);
@@ -45,6 +57,14 @@ public class BaseBattleUnit : MonoBehaviour
             Heal(1); 
         }
     }
+
+    #region Getters
+    public  BaseUnit GetBaseUnit() { return unitData; }
+    public InputManager GetInputManagerComponent() { return iMComponent; }
+    public Health GetHealthComponent() { return hComponent; }
+    public SpriteComponent GetSpriteComponent() {  return sComponent; }
+
+    #endregion
 
     /// <summary>
     /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leeks

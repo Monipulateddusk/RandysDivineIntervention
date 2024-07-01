@@ -4,15 +4,38 @@ using UnityEngine;
 
 public class InputManager : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField]List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
+    BaseBattleUnit unitSelf;
+
+    private void Awake()
     {
-        
+        unitSelf = GetComponent<BaseBattleUnit>();
+        unitSelf.OnUnitCreated += SetUpInputManager;
     }
 
-    // Update is called once per frame
-    void Update()
+    void SetUpInputManager(BaseUnit unitData)
     {
-        
+
+        // Ensure the list is clear and insert the moves the unit can use into the local list for use within the class
+        battleMoves.Clear();
+        battleMoves = unitData.moves;
     }
+
+    /// <summary>
+    /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
+    /// </summary>
+    public CombatReturnData Combat(CombatSceneData data)
+    { 
+        // Select a random move to perform
+        int rIndex = Random.Range(0, battleMoves.Count);
+
+        BattleMoveAction selectedMove = battleMoves[rIndex];
+
+        // Use the param of the function to select between targets
+        rIndex = Random.Range(0, data.possibleTargets.Count);
+        BaseBattleUnit target = data.possibleTargets[rIndex];
+
+        return new CombatReturnData(selectedMove, unitSelf, target);
+    }
+
 }

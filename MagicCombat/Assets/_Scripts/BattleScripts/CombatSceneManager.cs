@@ -18,17 +18,30 @@ public enum EnvironmentalEffect
 public class CombatSceneData
 {
     public List<EnvironmentalEffect> environmentalEffects;
-    public GameObject playerGO1, playerGO2;
-    public GameObject enemyGO1, enemyGO2, enemyGO3, enemyGO4;
+    public List<BaseBattleUnit> possibleTargets;
 }
 
+/// <summary>
+/// This will be passed back to the CombatSceneManager class to resolve the selected move to a specific target. 
+/// </summary>
+public class CombatReturnData
+{
+    public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit user, BaseBattleUnit target)
+    {
+        this.battleMoveAction = battleMoveAction;
+        this.target = target;
+        this.user = user;
+    }
 
+    public BattleMoveAction battleMoveAction;
+    public BaseBattleUnit target, user;
+}
 
 public class CombatSceneManager : MonoBehaviour
 {
     public enum BattleState {PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
-    [SerializeField] List<GameObject> enemyGameObjects = new List<GameObject>();
-    [SerializeField] List<GameObject> playerGameObjects = new List<GameObject>();
+    [SerializeField] List<BaseBattleUnit> enemyUnits = new List<BaseBattleUnit>();
+    [SerializeField] List<BaseBattleUnit> playerUnits = new List<BaseBattleUnit>();
 
     CombatSceneData combatSceneData = new CombatSceneData();
 
@@ -47,29 +60,34 @@ public class CombatSceneManager : MonoBehaviour
     private void Start()
     {
         battleState = BattleState.START_BATTLE;
-        HandleCombat();
+        HandleCombatTurns();
 
     }
 
     private void SetupCombat()
     {
-        // Instanciate enemies
+        // Instanciate enemies. Extracting and saving their BaseBattleUnit Component
         int i = 0;
-        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/"))
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies"))
         {
-            enemyGameObjects.Add(Instantiate(obj, enemyBattleStations[i]));
+            enemyUnits.Add(Instantiate(obj, enemyBattleStations[i]).GetComponent<BaseBattleUnit>());
             i++;
         }
 
 
         // Instanciate active allies
-
+        i = 0;
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players"))
+        {
+            playerUnits.Add(Instantiate(obj, playerBattleStations[i]).GetComponent<BaseBattleUnit>());
+            i++;
+        }
 
 
         // Once set up is done, proceed to the player's turn
         battleState = BattleState.PLAYER_1_TURN;
         UpdateTurnUI();
-        HandleCombat();
+        HandleCombatTurns();
     }
 
     void UpdateTurnUI()
@@ -84,7 +102,7 @@ public class CombatSceneManager : MonoBehaviour
 
     }
 
-    private void HandleCombat()
+    private void HandleCombatTurns()
     {
         switch (battleState)
         {
@@ -111,6 +129,29 @@ public class CombatSceneManager : MonoBehaviour
                 break;
         }
     }
+
+    private void ResolveCombat(CombatReturnData data)
+    {
+        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(data.user.GetBaseUnit(), data.target.GetBaseUnit());
+
+        // If there are multiple actions to handle, handle them seperatly
+        foreach (AttackAction action in attackResolutionInfo.actions)
+        {
+            switch (action.Type)
+            {
+                case AttackAction.ActionType.DAMAGE:
+                   // Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
+
+                    data.target.Damage(action.Value);
+
+                    break;
+                case AttackAction.ActionType.HEALING:
+                    break;
+            }
+   
+        }
+    }
+
     /// <summary>
     /// Is the way to loop through the turns in the correct order.
     /// </summary>
@@ -129,7 +170,7 @@ public class CombatSceneManager : MonoBehaviour
             battleState++;
         }
         UpdateTurnUI();
-        HandleCombat();
+        HandleCombatTurns();
     }
 
     /// <summary>
@@ -141,6 +182,18 @@ public class CombatSceneManager : MonoBehaviour
     {
         Debug.Log("This is the start of Player 1's turn");
         StartCoroutine(MoveArrowToTurnObject(playerBattleStations[0]));
+
+        // Fill out the combat data with the required info that this unit would require. I.e. Possible targets would only be the enemy units
+        combatSceneData.possibleTargets = enemyUnits;
+
+        // Call the Combat function from the InputManager class and send data about the scene to it
+        if(playerUnits[0] != null)
+        {
+            CombatReturnData cRD = playerUnits[0].GetInputManagerComponent().Combat(combatSceneData);
+            ResolveCombat(cRD);
+        }
+     
+
     }
 
     private void HandlePlayer2Turn()

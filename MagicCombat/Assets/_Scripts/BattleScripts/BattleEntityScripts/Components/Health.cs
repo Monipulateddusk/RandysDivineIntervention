@@ -10,10 +10,10 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
-   [SerializeField] HealthBarController hBC;
+    [SerializeField] HealthBarController hBC;
     BaseUnit unit;
     int health;
-    private void OnEnable()
+    private void Awake()
     {
         // Attach the health bar to anything that has the health component.
         GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
