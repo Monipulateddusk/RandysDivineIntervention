@@ -8,27 +8,22 @@ using UnityEngine;
 /// Needs to attach Health UI and manage that. Functions being public to allow any script to deal damage if needed
 /// </summary>
 
-public class Health : BaseComponent
+public class Health : BaseCombatComponent
 {
     [SerializeField] HealthBarController hBC;
     
     BaseUnit unit;
     int health;
 
-
-
-    protected override void Initialize<U>(U initParameter)
+    public override void Init(BaseBattleUnit bBU)
     {
-        if(initParameter is BaseBattleUnit unit)
-        {
-            bBU = unit;
-            bBU.OnUnitCreated += SetUpHealth;
-            bBU.OnAlterHealth += HandleHealthChanges;
+        base.Init(bBU);
+        bBU.OnUnitCreated += SetUpHealth;
+        bBU.OnAlterHealth += HandleHealthChanges;
 
-            // Attach the health bar to anything that has the health component.
-            GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
-            hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
-        }
+        // Attach the health bar to anything that has the health component.
+        GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
+        hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
     }
 
     void SetUpHealth(BaseUnit unitData)

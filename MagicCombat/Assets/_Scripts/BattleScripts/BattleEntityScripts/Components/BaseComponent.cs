@@ -2,9 +2,6 @@ using UnityEngine;
 
 public abstract class BaseComponent : MonoBehaviour
 {
-    [HideInInspector] public BaseBattleUnit bBU;
-
-
     /// <summary>
     /// Static method to create and initialize a component. Utilises generic syntax to be as flexible as possible
     /// </summary>
@@ -24,3 +21,20 @@ public abstract class BaseComponent : MonoBehaviour
     protected abstract void Initialize<U>(U initParameter);
 }
 
+public class BaseCombatComponent : BaseComponent
+{
+    [HideInInspector] public BaseBattleUnit bBU;
+    protected override void Initialize<U>(U initParameter)
+    {
+        if(initParameter is BaseBattleUnit unit)
+        {
+            Init(unit);
+        }
+    }
+
+    public virtual void Init(BaseBattleUnit bBU)
+    {
+        this.bBU = bBU;
+    }
+
+}

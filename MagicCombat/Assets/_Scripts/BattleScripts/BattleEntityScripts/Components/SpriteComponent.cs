@@ -5,21 +5,16 @@ using UnityEngine;
 /// <summary>
 /// This component handles the assignment of the sprite based on the BaseUnit data
 /// </summary>
-public class SpriteComponent : BaseComponent
+public class SpriteComponent : BaseCombatComponent
 {
     SpriteRenderer spriteRenderer;
 
-    protected override void Initialize<U>(U initParameter)
+    public override void Init(BaseBattleUnit bBU)
     {
-        if (initParameter is BaseBattleUnit unit)
-        {
-            bBU = unit;
-
-            spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-            bBU.OnUnitCreated += AssignSprite;
-        }
+        base.Init(bBU);
+        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        bBU.OnUnitCreated += AssignSprite;
     }
-
     void AssignSprite(BaseUnit unit)
     {
         Debug.Log("Assigning sprite data");

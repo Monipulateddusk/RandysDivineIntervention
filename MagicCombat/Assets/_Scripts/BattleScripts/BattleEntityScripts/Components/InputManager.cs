@@ -2,17 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : BaseComponent
+public class InputManager : BaseCombatComponent
 {
     [SerializeField]List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
 
-    protected override void Initialize<U>(U initParameter)
+    public override void Init(BaseBattleUnit bBU)
     {
-        if(initParameter is BaseBattleUnit unit)
-        {
-            bBU = unit;
-            bBU.OnUnitCreated += SetUpInputManager;
-        }
+        base.Init(bBU);
+        bBU.OnUnitCreated += SetUpInputManager;
     }
 
     void SetUpInputManager(BaseUnit unitData)
