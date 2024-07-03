@@ -19,15 +19,17 @@ public abstract class BaseInputManagerComponent : BaseCombatComponent
         battleMoves = unitData.moves;
     }
 
-    /// <summary>
-    /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
-    /// </summary>
     public abstract CombatReturnData Combat(CombatSceneData data);
 
 }
 
 public class RandomInputManagerComponent : BaseInputManagerComponent
 {
+    /// <summary>
+    /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public override CombatReturnData Combat(CombatSceneData data)
     {
         // Select a random move to perform
@@ -47,6 +49,12 @@ public class SequentialInputManagerComponent : BaseInputManagerComponent
 {
     int curMoveIndex = 0;
 
+    /// <summary>
+    /// This is a Sequential input manager. Therefore, moves will be selected in the order they are stored in the list.
+    /// This information would be conveyed to designers so they are aware how to order the moves to their liking
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns></returns>
     public override CombatReturnData Combat(CombatSceneData data)
     {
         // If the index exceeds the count on the list, set it to the start of the list (0).
