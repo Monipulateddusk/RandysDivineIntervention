@@ -8,6 +8,7 @@ public class HeavyAttack : BattleMoveAction
 {
     public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
     {
+        resolutionInfo = new AttackResolutionInfo();
         resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
         return resolutionInfo;
     }

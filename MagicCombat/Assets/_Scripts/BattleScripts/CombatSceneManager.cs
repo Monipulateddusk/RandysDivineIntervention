@@ -140,9 +140,11 @@ public class CombatSceneManager : MonoBehaviour
             switch (action.Type)
             {
                 case AttackAction.ActionType.DAMAGE:
-                   // Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
+                    // Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
 
+                    Debug.LogWarning("Damage amount is: " + action.Value);
                     data.target.Damage(action.Value);
+
 
                     break;
                 case AttackAction.ActionType.HEALING:
