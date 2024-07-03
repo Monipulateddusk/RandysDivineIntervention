@@ -7,15 +7,34 @@ public class InputManager : MonoBehaviour
     [SerializeField]List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
     BaseBattleUnit unitSelf;
 
+    /// <summary>
+    /// Creates the component on the gameObject and returns the created input manager for the invoking class.
+    /// </summary>
+    /// <param name="gameObject"></param>
+    /// <param name="unit"></param>
+    /// <returns></returns>
+    /// 
+    /// Desired this 'Factory' method as OpenAI calls it as I needed a way to declare the base battle unit before awake occoured, however, we can likely now use this system in my other components
+    public static InputManager CreateInstance(GameObject gameObject, BaseBattleUnit unit)
+    {
+        InputManager iM = gameObject.AddComponent<InputManager>();
+
+        iM.Initialize(unit);      
+
+        return iM;
+    }
+
+    void Initialize(BaseBattleUnit unit)
+    {
+        unitSelf = unit;
+        unitSelf.OnUnitCreated += SetUpInputManager;
+    }
     private void Awake()
     {
-        unitSelf = GetComponent<BaseBattleUnit>();
-        unitSelf.OnUnitCreated += SetUpInputManager;
     }
 
     void SetUpInputManager(BaseUnit unitData)
     {
-
         // Ensure the list is clear and insert the moves the unit can use into the local list for use within the class
         battleMoves.Clear();
         battleMoves = unitData.moves;
@@ -38,4 +57,5 @@ public class InputManager : MonoBehaviour
         return new CombatReturnData(selectedMove, unitSelf, target);
     }
 
+    public void SetBaseBattleUnit(BaseBattleUnit comp) { this.unitSelf = comp; }
 }

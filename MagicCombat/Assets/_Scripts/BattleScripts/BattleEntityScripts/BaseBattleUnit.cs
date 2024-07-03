@@ -21,7 +21,7 @@ public class BaseBattleUnit : MonoBehaviour
     private void Awake()
     {
         // Attach the required component for a Unit. I wonder if there is a better way to do this
-        iMComponent = gameObject.AddComponent<InputManager>();
+        iMComponent = InputManager.CreateInstance(gameObject, this);
         hComponent = gameObject.AddComponent<Health>();
         sComponent = gameObject.AddComponent<SpriteComponent>();
     }
