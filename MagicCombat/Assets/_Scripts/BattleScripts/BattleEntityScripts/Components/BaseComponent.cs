@@ -3,7 +3,16 @@ using UnityEngine;
 public abstract class BaseComponent : MonoBehaviour
 {
     [HideInInspector] public BaseBattleUnit bBU;
-    // Static method to create and initialize a component
+
+
+    /// <summary>
+    /// Static method to create and initialize a component. Utilises generic syntax to be as flexible as possible
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="U"></typeparam>
+    /// <param name="gameObject"></param>
+    /// <param name="initParameter"></param>
+    /// <returns></returns>
     public static T CreateInstance<T, U>(GameObject gameObject, U initParameter) where T : BaseComponent
     {
         T component = gameObject.AddComponent<T>();
