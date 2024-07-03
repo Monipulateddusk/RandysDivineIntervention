@@ -8,21 +8,27 @@ using UnityEngine;
 /// Needs to attach Health UI and manage that. Functions being public to allow any script to deal damage if needed
 /// </summary>
 
-public class Health : MonoBehaviour
+public class Health : BaseComponent
 {
     [SerializeField] HealthBarController hBC;
+    
     BaseUnit unit;
     int health;
-    private void Awake()
+
+
+
+    protected override void Initialize<U>(U initParameter)
     {
-        // Attach the health bar to anything that has the health component.
-        GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
-        hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
+        if(initParameter is BaseBattleUnit unit)
+        {
+            bBU = unit;
+            bBU.OnUnitCreated += SetUpHealth;
+            bBU.OnAlterHealth += HandleHealthChanges;
 
-        BaseBattleUnit bBU = GetComponent<BaseBattleUnit>();
-        bBU.OnUnitCreated += SetUpHealth;
-        bBU.OnAlterHealth += HandleHealthChanges;
-
+            // Attach the health bar to anything that has the health component.
+            GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
+            hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
+        }
     }
 
     void SetUpHealth(BaseUnit unitData)
@@ -64,5 +70,6 @@ public class Health : MonoBehaviour
         hBC.UpdateUI(health, unit.maxHP); // Ordinarally, I'd like to also attach this to the event OnAlterHealth but there
                                           // isn't a clean way to do so while also passing the maxHP so having it be a function should be susficient
     }
+
 
 }

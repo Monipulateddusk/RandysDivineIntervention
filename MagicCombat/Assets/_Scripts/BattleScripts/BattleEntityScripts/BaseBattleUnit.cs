@@ -20,10 +20,10 @@ public class BaseBattleUnit : MonoBehaviour
 
     private void Awake()
     {
-        // Attach the required component for a Unit. I wonder if there is a better way to do this
-        iMComponent = InputManager.CreateInstance(gameObject, this);
-        hComponent = gameObject.AddComponent<Health>();
-        sComponent = gameObject.AddComponent<SpriteComponent>();
+        // Attach the required component for a Unit.
+        iMComponent = BaseComponent.CreateInstance<InputManager, BaseBattleUnit>(gameObject, this);
+        hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
+        sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
     }
 
     private void OnEnable()
@@ -67,7 +67,7 @@ public class BaseBattleUnit : MonoBehaviour
     #endregion
 
     /// <summary>
-    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leeks
+    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
     /// </summary>
     private void OnDestroy()
     {
