@@ -140,9 +140,7 @@ public class CombatSceneManager : MonoBehaviour
             switch (action.Type)
             {
                 case AttackAction.ActionType.DAMAGE:
-                    // Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
-
-                    Debug.LogWarning("Damage amount is: " + action.Value);
+                    Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
                     data.target.Damage(action.Value);
 
 
@@ -176,55 +174,95 @@ public class CombatSceneManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Turns will be handled by sending information about the scene to each battle entity. This will be handled just once and thus the function doesn't need to be an IEnumerator with a while loop
-    /// I then need to be able to handle information back from each input manager(?). Once that info is back, then we can invoke correct functions for losing/gaining health as well as call correct
-    /// anims in function. Basically, I need another function that may be public or called upon event firing that relays all important info about a move.
+    /// Turns will be handled by sending information about the scene to each battle entity, recieving info from the combat about what attack and to what unit after which then resolving that combat. 
+    /// 
+    /// TO DO: Delays to invoke animation, movement around scene, death anims, etc
     /// </summary>
+    void ProcessCombatForUnit(BaseBattleUnit user, List<BaseBattleUnit> targets)
+    {
+        // Fill out the combat data with the required info that this unit would require. I.e. Possible targets for ally units would only be the enemy units
+        combatSceneData.possibleTargets = targets;
+
+        // Call the Combat function from the InputManager class and send data about the scene to it
+        if (user != null)
+        {
+            CombatReturnData cRD = user.GetInputManagerComponent().Combat(combatSceneData);
+            ResolveCombat(cRD);
+        }
+    }
+
+
     private void HandlePlayer1Turn()
     {
         Debug.Log("This is the start of Player 1's turn");
-        StartCoroutine(MoveArrowToTurnObject(playerBattleStations[0]));
 
-        // Fill out the combat data with the required info that this unit would require. I.e. Possible targets would only be the enemy units
-        combatSceneData.possibleTargets = enemyUnits;
-
-        // Call the Combat function from the InputManager class and send data about the scene to it
-        if(playerUnits[0] != null)
+        if (playerUnits.Count >= 1)
         {
-            CombatReturnData cRD = playerUnits[0].GetInputManagerComponent().Combat(combatSceneData);
-            ResolveCombat(cRD);
-        }
-     
+            StartCoroutine(MoveArrowToTurnObject(playerBattleStations[0]));
 
+            ProcessCombatForUnit(playerUnits[0], enemyUnits);
+        }
     }
 
     private void HandlePlayer2Turn()
     {
         Debug.Log("This is the start of Player 2's turn");
-        StartCoroutine(MoveArrowToTurnObject(playerBattleStations[1]));
+
+        if (playerUnits.Count >= 2)
+        {
+            StartCoroutine(MoveArrowToTurnObject(playerBattleStations[1]));
+
+            ProcessCombatForUnit(playerUnits[1], enemyUnits);
+        }
     }
 
     private void HandleEnemy1Turn()
     {
         Debug.Log("This is the start of Enemy 1's turn");
-        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[0]));
+
+        if (enemyUnits.Count >= 1)
+        {
+            StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[0]));
+
+            ProcessCombatForUnit(enemyUnits[0], playerUnits);
+        }
     }
 
     private void HandleEnemy2Turn()
     {
         Debug.Log("This is the start of Enemy 2's turn");
-        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[1]));
+
+        if (enemyUnits.Count >= 2)
+        {
+            StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[1]));
+
+            ProcessCombatForUnit(enemyUnits[1], playerUnits);
+        }
     }
 
     private void HandleEnemy3Turn()
     {
         Debug.Log("This is the start of Enemy 3's turn");
-        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[2]));
+
+        if (enemyUnits.Count >= 3)
+        {
+            StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[2]));
+
+            ProcessCombatForUnit(enemyUnits[2], playerUnits);
+        }
     }
     private void HandleEnemy4Turn()
     {
         Debug.Log("This is the start of Enemy 4's turn");
-        StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[3]));
+
+
+        if (enemyUnits.Count >= 4)
+        {
+            StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[3]));
+
+            ProcessCombatForUnit(enemyUnits[3], playerUnits);
+        }
+        
     }
 
 }
