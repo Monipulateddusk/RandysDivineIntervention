@@ -39,7 +39,5 @@ public class InputManager : BaseComponent
         return new CombatReturnData(selectedMove, bBU, target);
     }
 
-    public void SetBaseBattleUnit(BaseBattleUnit comp) { this.bBU = comp; }
-
 
 }
