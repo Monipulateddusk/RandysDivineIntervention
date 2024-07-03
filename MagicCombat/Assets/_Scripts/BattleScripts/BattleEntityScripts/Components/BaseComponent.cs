@@ -24,6 +24,8 @@ public abstract class BaseComponent : MonoBehaviour
 public class BaseCombatComponent : BaseComponent
 {
     [HideInInspector] public BaseBattleUnit bBU;
+
+    [HideInInspector] public BaseUnit baseUnit;
     protected override void Initialize<U>(U initParameter)
     {
         if(initParameter is BaseBattleUnit unit)

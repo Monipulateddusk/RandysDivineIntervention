@@ -10,9 +10,9 @@ using UnityEngine;
 
 public class Health : BaseCombatComponent
 {
+    [Header("Debugging")]
     [SerializeField] HealthBarController hBC;
     
-    BaseUnit unit;
     int health;
 
     public override void Init(BaseBattleUnit bBU)
@@ -28,9 +28,9 @@ public class Health : BaseCombatComponent
 
     void SetUpHealth(BaseUnit unitData)
     {
-        unit = unitData;
+        baseUnit = unitData;
         health = unitData.maxHP;
-        hBC.UpdateUI(health, unit.maxHP);
+        hBC.UpdateUI(health, baseUnit.maxHP);
     }
 
     /// <summary>
@@ -55,14 +55,14 @@ public class Health : BaseCombatComponent
             case true:
                 health += value;
                 // If health exceeds the max health of the unit, cap it at the max health
-                if(health > unit.maxHP)
+                if(health > baseUnit.maxHP)
                 {
-                    health = unit.maxHP;
+                    health = baseUnit.maxHP;
                 }
                 break;
         }
         // After all changes, apply the UI
-        hBC.UpdateUI(health, unit.maxHP); // Ordinarally, I'd like to also attach this to the event OnAlterHealth but there
+        hBC.UpdateUI(health, baseUnit.maxHP); // Ordinarally, I'd like to also attach this to the event OnAlterHealth but there
                                           // isn't a clean way to do so while also passing the maxHP so having it be a function should be susficient
     }
 
