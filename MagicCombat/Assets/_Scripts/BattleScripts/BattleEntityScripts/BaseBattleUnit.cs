@@ -14,14 +14,14 @@ public class BaseBattleUnit : MonoBehaviour
     [Header("Debugging")]
     [SerializeField] BaseUnit unitData;
 
-    [SerializeField]InputManager iMComponent;
+    [SerializeField] BaseInputManagerComponent iMComponent;
     [SerializeField] Health hComponent;
     [SerializeField] SpriteComponent sComponent;
 
     private void Awake()
     {
         // Attach the required component for a Unit.
-        iMComponent = BaseComponent.CreateInstance<InputManager, BaseBattleUnit>(gameObject, this);
+        iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
         hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
         sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
     }
@@ -60,7 +60,7 @@ public class BaseBattleUnit : MonoBehaviour
 
     #region Getters
     public  BaseUnit GetBaseUnit() { return unitData; }
-    public InputManager GetInputManagerComponent() { return iMComponent; }
+    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
     public Health GetHealthComponent() { return hComponent; }
     public SpriteComponent GetSpriteComponent() {  return sComponent; }
 

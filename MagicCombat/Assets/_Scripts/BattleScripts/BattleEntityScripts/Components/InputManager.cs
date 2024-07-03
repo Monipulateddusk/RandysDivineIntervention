@@ -2,9 +2,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputManager : BaseCombatComponent
+public abstract class BaseInputManagerComponent : BaseCombatComponent
 {
-    [SerializeField]List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
+    [HideInInspector] public List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
 
     public override void Init(BaseBattleUnit bBU)
     {
@@ -22,8 +22,14 @@ public class InputManager : BaseCombatComponent
     /// <summary>
     /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
     /// </summary>
-    public CombatReturnData Combat(CombatSceneData data)
-    { 
+    public abstract CombatReturnData Combat(CombatSceneData data);
+
+}
+
+public class RandomInputManagerComponent : BaseInputManagerComponent
+{
+    public override CombatReturnData Combat(CombatSceneData data)
+    {
         // Select a random move to perform
         int rIndex = Random.Range(0, battleMoves.Count);
 
@@ -35,6 +41,31 @@ public class InputManager : BaseCombatComponent
 
         return new CombatReturnData(selectedMove, bBU, target);
     }
+}
 
+public class SequentialInputManagerComponent : BaseInputManagerComponent
+{
+    int curMoveIndex = 0;
 
+    public override CombatReturnData Combat(CombatSceneData data)
+    {
+        // If the index exceeds the count on the list, set it to the start of the list (0).
+        // This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
+        if (curMoveIndex + 1 > battleMoves.Count)
+        {
+            curMoveIndex = 0;
+        }
+
+        BattleMoveAction selectedMove = battleMoves[curMoveIndex];
+
+        // Increment the index after everything is decided
+        curMoveIndex++;
+
+        // We will still randomly gen a target from the possible targets
+        // Use the param of the function to select between targets
+        int rIndex = Random.Range(0, data.possibleTargets.Count);
+        BaseBattleUnit target = data.possibleTargets[rIndex];
+
+        return new CombatReturnData(selectedMove, bBU, target);
+    }
 }
