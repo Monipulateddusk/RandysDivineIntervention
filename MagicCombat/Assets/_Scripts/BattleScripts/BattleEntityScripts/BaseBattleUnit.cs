@@ -17,6 +17,7 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] BaseInputManagerComponent iMComponent;
     [SerializeField] Health hComponent;
     [SerializeField] SpriteComponent sComponent;
+    [SerializeField] AnimationControllerComponent animationController;
 
     private void Awake()
     {
@@ -24,6 +25,7 @@ public class BaseBattleUnit : MonoBehaviour
         iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
         hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
         sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
+        animationController = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
     }
 
     private void OnEnable()

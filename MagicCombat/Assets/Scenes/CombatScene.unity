@@ -1425,8 +1425,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 739d39779dcc81243b683d328fcdf76f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyGameObjects: []
-  playerGameObjects: []
+  enemyUnits: []
+  playerUnits: []
   playerBattleStations:
   - {fileID: 1023346844}
   - {fileID: 63117241}
