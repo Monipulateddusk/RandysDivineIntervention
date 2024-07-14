@@ -11,10 +11,24 @@ public class BaseBattleUnit : MonoBehaviour
     // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
     public event Action<int, bool> OnAlterHealth;
 
+    [Header("Debugging")]
     [SerializeField] BaseUnit unitData;
 
+    [SerializeField] BaseInputManagerComponent iMComponent;
+    [SerializeField] Health hComponent;
+    [SerializeField] SpriteComponent sComponent;
+    [SerializeField] AnimationControllerComponent animationController;
 
-    private void Start()
+    private void Awake()
+    {
+        // Attach the required component for a Unit.
+        iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
+        hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
+        sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
+        animationController = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
+    }
+
+    private void OnEnable()
     {
         OnUnitCreated += AssignUnitData;
         OnUnitCreated?.Invoke(unitData);
@@ -46,8 +60,16 @@ public class BaseBattleUnit : MonoBehaviour
         }
     }
 
+    #region Getters
+    public  BaseUnit GetBaseUnit() { return unitData; }
+    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
+    public Health GetHealthComponent() { return hComponent; }
+    public SpriteComponent GetSpriteComponent() {  return sComponent; }
+
+    #endregion
+
     /// <summary>
-    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leeks
+    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
     /// </summary>
     private void OnDestroy()
     {

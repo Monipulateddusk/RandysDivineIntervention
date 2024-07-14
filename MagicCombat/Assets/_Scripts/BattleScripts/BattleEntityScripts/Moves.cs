@@ -27,6 +27,7 @@ public class AttackAction
 [System.Serializable]
 public class AttackResolutionInfo
 {
+    public string moveName;
     public List<AttackAction> actions { get; private set; }
 
     public AttackResolutionInfo()

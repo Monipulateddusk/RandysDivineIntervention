@@ -9,6 +9,8 @@ public class LightAttack : BattleMoveAction
 {
     public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
     {
+        resolutionInfo = new AttackResolutionInfo();
+        resolutionInfo.moveName = "LightAttack";
         int damage = userInfo.attack / 3;
         resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
         resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));

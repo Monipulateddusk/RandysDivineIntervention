@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -7,7 +8,9 @@ using UnityEngine;
 public class HeavyAttack : BattleMoveAction
 {
     public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
-    {
+    { 
+        resolutionInfo = new AttackResolutionInfo();
+        resolutionInfo.moveName = "HeavyAttack";
         resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
         return resolutionInfo;
     }
