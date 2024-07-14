@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
@@ -27,4 +27,6 @@ public class BaseUnit : ScriptableObject
 
     public Element element;
     public List<BattleMoveAction> moves = new List<BattleMoveAction>();
+
+    public AnimatorController unitAnimator;
 }

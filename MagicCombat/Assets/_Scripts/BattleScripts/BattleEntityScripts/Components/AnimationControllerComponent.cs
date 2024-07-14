@@ -12,11 +12,14 @@ using UnityEngine;
 public class AnimationControllerComponent : BaseCombatComponent
 {
     List<int> attackValues = new List<int>();
+    int attackIndex = 0;
+
     [SerializeField]Animator animator;
     public override void Init(BaseBattleUnit bBU)
     {
         base.Init(bBU);
         animator = GetComponent<Animator>();
+        animator.runtimeAnimatorController = bBU.GetBaseUnit().unitAnimator;
     }
 
     public void SetAttackValues(BattleMoveAction move)
@@ -28,8 +31,26 @@ public class AnimationControllerComponent : BaseCombatComponent
         }
     }
 
+    /// <summary>
+    /// Called by the animation event in the animations of the unit's attack. Sends in the information of how much damage each part of the attack will do to the target,
+    /// allowing the health bar to be updated in realtime instead of at the start of the turn
+    /// </summary>
+    /// <returns></returns>
     public int AttackAnim()
     {
-        return 0;
+        // Get the damage of that part of the attack
+        int damage = attackValues[attackIndex];
+
+        // Increment the index and set it to 0 if it exceeds the list's value
+        attackIndex++;
+        if(attackIndex >= attackValues.Count)
+        {
+            attackIndex = 0;
+        }
+        Debug.Log("Damage dealt is: " + damage);
+        
+        return damage;
     }
+
+    public Animator GetAnimator() { return animator; }  
 }
