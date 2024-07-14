@@ -9,11 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e5a70537c79c94749958ff40d998d76f, type: 3}
-  m_Name: LightBlueSlime
+  m_Script: {fileID: 11500000, guid: 9d354fe8b61ec994eb1afe16afa424e8, type: 3}
+  m_Name: LightAttack
   m_EditorClassIdentifier: 
-  name: Light Blue Slime
-  maxHP: 10
-  attack: 3
-  color: {r: 0, g: 1, b: 0.9478698, a: 1}
-  sprite: {fileID: 21300000, guid: 4e3929101b7d0894aa982cce9fd25b94, type: 3}

@@ -8,28 +8,29 @@ using UnityEngine;
 /// Needs to attach Health UI and manage that. Functions being public to allow any script to deal damage if needed
 /// </summary>
 
-public class Health : MonoBehaviour
+public class Health : BaseCombatComponent
 {
-   [SerializeField] HealthBarController hBC;
-    BaseUnit unit;
+    [Header("Debugging")]
+    [SerializeField] HealthBarController hBC;
+    
     int health;
-    private void OnEnable()
-    {
-        // Attach the health bar to anything that has the health component.
-        GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
-        hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
 
-        BaseBattleUnit bBU = GetComponent<BaseBattleUnit>();
+    public override void Init(BaseBattleUnit bBU)
+    {
+        base.Init(bBU);
         bBU.OnUnitCreated += SetUpHealth;
         bBU.OnAlterHealth += HandleHealthChanges;
 
+        // Attach the health bar to anything that has the health component.
+        GameObject uIChild = (GameObject)Resources.Load("UI/HealthBarUI");
+        hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
     }
 
     void SetUpHealth(BaseUnit unitData)
     {
-        unit = unitData;
+        baseUnit = unitData;
         health = unitData.maxHP;
-        hBC.UpdateUI(health, unit.maxHP);
+        hBC.UpdateUI(health, baseUnit.maxHP);
     }
 
     /// <summary>
@@ -54,13 +55,16 @@ public class Health : MonoBehaviour
             case true:
                 health += value;
                 // If health exceeds the max health of the unit, cap it at the max health
-                if(health > unit.maxHP)
+                if(health > baseUnit.maxHP)
                 {
-                    health = unit.maxHP;
+                    health = baseUnit.maxHP;
                 }
                 break;
         }
         // After all changes, apply the UI
-        hBC.UpdateUI(health, unit.maxHP);
+        hBC.UpdateUI(health, baseUnit.maxHP); // Ordinarally, I'd like to also attach this to the event OnAlterHealth but there
+                                          // isn't a clean way to do so while also passing the maxHP so having it be a function should be susficient
     }
+
+
 }
