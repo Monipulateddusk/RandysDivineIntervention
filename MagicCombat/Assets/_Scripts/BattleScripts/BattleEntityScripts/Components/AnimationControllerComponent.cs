@@ -11,8 +11,7 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class AnimationControllerComponent : BaseCombatComponent
 {
-    List<int> attackValues = new List<int>();
-    int attackIndex = 0;
+    [SerializeField]List<AttackAction> attacks = new List<AttackAction>();
 
     [SerializeField]Animator animator;
     public override void Init(BaseBattleUnit bBU)
@@ -22,13 +21,10 @@ public class AnimationControllerComponent : BaseCombatComponent
         animator.runtimeAnimatorController = bBU.GetBaseUnit().unitAnimator;
     }
 
-    public void SetAttackValues(BattleMoveAction move)
+    public void SetAttackValues(AttackResolutionInfo moveInfo)
     {
-        attackValues.Clear();
-        foreach (AttackAction action in move.resolutionInfo.actions)
-        {
-            attackValues.Add(action.Value);
-        }
+        attacks.Clear();
+        attacks = moveInfo.actions;
     }
 
     /// <summary>
@@ -36,20 +32,14 @@ public class AnimationControllerComponent : BaseCombatComponent
     /// allowing the health bar to be updated in realtime instead of at the start of the turn
     /// </summary>
     /// <returns></returns>
-    public int AttackAnim()
+    public void AttackAnim()
     {
         // Get the damage of that part of the attack
-        int damage = attackValues[attackIndex];
+        AttackAction action = attacks[0];
+        attacks.RemoveAt(0);
 
-        // Increment the index and set it to 0 if it exceeds the list's value
-        attackIndex++;
-        if(attackIndex >= attackValues.Count)
-        {
-            attackIndex = 0;
-        }
-        Debug.Log("Damage dealt is: " + damage);
-        
-        return damage;
+        // Call function in combat component to relay info to target
+        bBU.GetCombatComponent().ProcessAttack(action);
     }
 
     public Animator GetAnimator() { return animator; }  

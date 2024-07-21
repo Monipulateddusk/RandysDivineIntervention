@@ -26,6 +26,7 @@ public class CombatSceneData
 /// </summary>
 public class CombatReturnData
 {
+    public CombatReturnData() { }
     public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit user, BaseBattleUnit target)
     {
         this.battleMoveAction = battleMoveAction;
@@ -39,11 +40,12 @@ public class CombatReturnData
 
 public class CombatSceneManager : MonoBehaviour
 {
-    public enum BattleState {PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
+    public enum BattleState { PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
     [SerializeField] List<BaseBattleUnit> enemyUnits = new List<BaseBattleUnit>();
     [SerializeField] List<BaseBattleUnit> playerUnits = new List<BaseBattleUnit>();
 
     CombatSceneData combatSceneData = new CombatSceneData();
+    CombatReturnData turnInformation = new CombatReturnData();
 
     [SerializeField] Transform[] playerBattleStations;
     [SerializeField] Transform[] enemyBattleStations;
@@ -53,7 +55,7 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField] GameObject arrowGO;
     // UI
     [Header("UI Variables")]
-    [SerializeField]TextMeshProUGUI turnText;
+    [SerializeField] TextMeshProUGUI turnText;
 
 
 
@@ -134,22 +136,8 @@ public class CombatSceneManager : MonoBehaviour
     {
         AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(data.user.GetBaseUnit(), data.target.GetBaseUnit());
 
-        // If there are multiple actions to handle, handle them seperatly
-        foreach (AttackAction action in attackResolutionInfo.actions)
-        {
-            switch (action.Type)
-            {
-                case AttackAction.ActionType.DAMAGE:
-                    Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
-                    data.target.Damage(action.Value);
-
-
-                    break;
-                case AttackAction.ActionType.HEALING:
-                    break;
-            }
-   
-        }
+        // Call the combat component for the user passing in info on the target.
+        data.user.GetCombatComponent().StartCombat(attackResolutionInfo, data);
     }
 
     /// <summary>
@@ -186,8 +174,8 @@ public class CombatSceneManager : MonoBehaviour
         // Call the Combat function from the InputManager class and send data about the scene to it
         if (user != null)
         {
-            CombatReturnData cRD = user.GetInputManagerComponent().Combat(combatSceneData);
-            ResolveCombat(cRD);
+            turnInformation = user.GetInputManagerComponent().Combat(combatSceneData);
+            ResolveCombat(turnInformation);
         }
     }
 
