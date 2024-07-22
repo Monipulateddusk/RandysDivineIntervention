@@ -11,7 +11,7 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class AnimationControllerComponent : BaseCombatComponent
 {
-    [SerializeField]List<AttackAction> attacks = new List<AttackAction>();
+    [SerializeField]List<AttackAction> attacks = new();
 
     [SerializeField]Animator animator;
     public override void Init(BaseBattleUnit bBU)
@@ -40,6 +40,14 @@ public class AnimationControllerComponent : BaseCombatComponent
 
         // Call function in combat component to relay info to target
         bBU.GetCombatComponent().ProcessAttack(action);
+    }
+
+    /// <summary>
+    /// Called by animation event to determine when an animation is complete. Invoke combatComponent script to enter the next phase of combat
+    /// </summary>
+    public void EndCombatAnim()
+    {
+        bBU.GetCombatComponent().EndAttack();
     }
 
     public Animator GetAnimator() { return animator; }  

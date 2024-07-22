@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -41,11 +42,11 @@ public class CombatReturnData
 public class CombatSceneManager : MonoBehaviour
 {
     public enum BattleState { PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
-    [SerializeField] List<BaseBattleUnit> enemyUnits = new List<BaseBattleUnit>();
-    [SerializeField] List<BaseBattleUnit> playerUnits = new List<BaseBattleUnit>();
+    [SerializeField] List<BaseBattleUnit> enemyUnits = new();
+    [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
-    CombatSceneData combatSceneData = new CombatSceneData();
-    CombatReturnData turnInformation = new CombatReturnData();
+    readonly CombatSceneData combatSceneData = new();
+    CombatReturnData turnInformation = new();
 
     [SerializeField] Transform[] playerBattleStations;
     [SerializeField] Transform[] enemyBattleStations;
@@ -70,7 +71,7 @@ public class CombatSceneManager : MonoBehaviour
     {
         // Instanciate enemies. Extracting and saving their BaseBattleUnit Component
         int i = 0;
-        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies"))
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies").Cast<GameObject>())
         {
             enemyUnits.Add(Instantiate(obj, enemyBattleStations[i]).GetComponent<BaseBattleUnit>());
             i++;
@@ -79,7 +80,7 @@ public class CombatSceneManager : MonoBehaviour
 
         // Instanciate active allies
         i = 0;
-        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players"))
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players").Cast<GameObject>())
         {
             playerUnits.Add(Instantiate(obj, playerBattleStations[i]).GetComponent<BaseBattleUnit>());
             i++;
@@ -138,10 +139,11 @@ public class CombatSceneManager : MonoBehaviour
 
         // Call the combat component for the user passing in info on the target.
         data.user.GetCombatComponent().StartCombat(attackResolutionInfo, data);
+        data.user.GetCombatComponent().OnEndCombat += EndTurn;
     }
 
     /// <summary>
-    /// Is the way to loop through the turns in the correct order.
+    /// Is the way to loop through the turns in the correct order. This will be the function that will be subscribed to the finishing of movement for the units
     /// </summary>
     public void EndTurn()
     {
