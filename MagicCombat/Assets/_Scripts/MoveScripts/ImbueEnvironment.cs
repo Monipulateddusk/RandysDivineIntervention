@@ -8,8 +8,10 @@ public class ImbueEnvrionment : BattleMoveAction
 {
     public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
     {
-        resolutionInfo = new AttackResolutionInfo();
-        resolutionInfo.moveName = "ImbueEnvironment";
+        resolutionInfo = new AttackResolutionInfo
+        {
+            moveName = "ImbueEnvironment"
+        };
         resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element));
         return resolutionInfo;
     }
