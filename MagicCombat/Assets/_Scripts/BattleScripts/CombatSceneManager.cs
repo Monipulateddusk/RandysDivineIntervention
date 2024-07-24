@@ -41,7 +41,7 @@ public class CombatReturnData
 
 public class CombatSceneManager : MonoBehaviour
 {
-    public enum BattleState { PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
+    public enum BattleState { PRECOMBAT, PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
     [SerializeField] List<BaseBattleUnit> enemyUnits = new();
     [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
@@ -87,8 +87,8 @@ public class CombatSceneManager : MonoBehaviour
         }
 
 
-        // Once set up is done, proceed to the player's turn
-        battleState = BattleState.PLAYER_1_TURN;
+        // Once set up is done, proceed to the next phase
+        battleState  = BattleState.PRECOMBAT;
         UpdateTurnUI();
         HandleCombatTurns();
     }
@@ -111,6 +111,9 @@ public class CombatSceneManager : MonoBehaviour
         {
             case BattleState.START_BATTLE:
                 SetupCombat();
+                break;
+            case BattleState.PRECOMBAT:
+
                 break;
             case BattleState.PLAYER_1_TURN:
                 HandlePlayer1Turn();
@@ -184,7 +187,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandlePlayer1Turn()
     {
-        Debug.Log("This is the start of Player 1's turn");
+        //Debug.Log("This is the start of Player 1's turn");
 
         if (playerUnits.Count >= 1)
         {
@@ -196,7 +199,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandlePlayer2Turn()
     {
-        Debug.Log("This is the start of Player 2's turn");
+        //Debug.Log("This is the start of Player 2's turn");
 
         if (playerUnits.Count >= 2)
         {
@@ -208,7 +211,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy1Turn()
     {
-        Debug.Log("This is the start of Enemy 1's turn");
+        //Debug.Log("This is the start of Enemy 1's turn");
 
         if (enemyUnits.Count >= 1)
         {
@@ -220,7 +223,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy2Turn()
     {
-        Debug.Log("This is the start of Enemy 2's turn");
+        //Debug.Log("This is the start of Enemy 2's turn");
 
         if (enemyUnits.Count >= 2)
         {
@@ -232,7 +235,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy3Turn()
     {
-        Debug.Log("This is the start of Enemy 3's turn");
+        //Debug.Log("This is the start of Enemy 3's turn");
 
         if (enemyUnits.Count >= 3)
         {
@@ -243,7 +246,7 @@ public class CombatSceneManager : MonoBehaviour
     }
     private void HandleEnemy4Turn()
     {
-        Debug.Log("This is the start of Enemy 4's turn");
+        //Debug.Log("This is the start of Enemy 4's turn");
 
 
         if (enemyUnits.Count >= 4)

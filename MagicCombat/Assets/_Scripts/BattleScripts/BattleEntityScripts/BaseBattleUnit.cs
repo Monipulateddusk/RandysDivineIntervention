@@ -38,7 +38,7 @@ public class BaseBattleUnit : MonoBehaviour
 
     void AssignUnitData(BaseUnit unit)
     {
-        Debug.Log("Assigning Unit Data");
+        //Debug.Log("Assigning Unit Data");
     }
 
     public void Damage(int damageAmount)

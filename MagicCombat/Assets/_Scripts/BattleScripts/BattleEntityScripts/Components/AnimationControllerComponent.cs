@@ -45,7 +45,7 @@ public class AnimationControllerComponent : BaseCombatComponent
     /// <summary>
     /// Called by animation event to determine when an animation is complete. Invoke combatComponent script to enter the next phase of combat
     /// </summary>
-    public void EndCombatAnim()
+    public void EndAttackAnim()
     {
         bBU.GetCombatComponent().EndAttack();
     }

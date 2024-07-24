@@ -28,7 +28,7 @@ public class CombatComponent : BaseCombatComponent
         switch (attackAction.Type)
         {
             case AttackAction.ActionType.DAMAGE:
-                Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
+                //Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
                 combatReturnData.target.Damage(attackAction.Value);
 
                 break;

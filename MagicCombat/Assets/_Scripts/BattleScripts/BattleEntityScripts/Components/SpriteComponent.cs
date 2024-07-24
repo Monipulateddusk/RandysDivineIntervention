@@ -17,7 +17,7 @@ public class SpriteComponent : BaseCombatComponent
     }
     void AssignSprite(BaseUnit unit)
     {
-        Debug.Log("Assigning sprite data");
+        //Debug.Log("Assigning sprite data");
         spriteRenderer.sprite = unit.sprite;
         spriteRenderer.color = unit.color;
     }
