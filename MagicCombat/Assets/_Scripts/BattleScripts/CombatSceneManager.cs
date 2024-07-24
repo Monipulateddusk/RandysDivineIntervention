@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -26,6 +27,7 @@ public class CombatSceneData
 /// </summary>
 public class CombatReturnData
 {
+    public CombatReturnData() { }
     public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit user, BaseBattleUnit target)
     {
         this.battleMoveAction = battleMoveAction;
@@ -39,11 +41,12 @@ public class CombatReturnData
 
 public class CombatSceneManager : MonoBehaviour
 {
-    public enum BattleState {PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
-    [SerializeField] List<BaseBattleUnit> enemyUnits = new List<BaseBattleUnit>();
-    [SerializeField] List<BaseBattleUnit> playerUnits = new List<BaseBattleUnit>();
+    public enum BattleState { PRECOMBAT, PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
+    [SerializeField] List<BaseBattleUnit> enemyUnits = new();
+    [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
-    CombatSceneData combatSceneData = new CombatSceneData();
+    readonly CombatSceneData combatSceneData = new();
+    CombatReturnData turnInformation = new();
 
     [SerializeField] Transform[] playerBattleStations;
     [SerializeField] Transform[] enemyBattleStations;
@@ -53,7 +56,7 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField] GameObject arrowGO;
     // UI
     [Header("UI Variables")]
-    [SerializeField]TextMeshProUGUI turnText;
+    [SerializeField] TextMeshProUGUI turnText;
 
 
 
@@ -68,7 +71,7 @@ public class CombatSceneManager : MonoBehaviour
     {
         // Instanciate enemies. Extracting and saving their BaseBattleUnit Component
         int i = 0;
-        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies"))
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies").Cast<GameObject>())
         {
             enemyUnits.Add(Instantiate(obj, enemyBattleStations[i]).GetComponent<BaseBattleUnit>());
             i++;
@@ -77,15 +80,15 @@ public class CombatSceneManager : MonoBehaviour
 
         // Instanciate active allies
         i = 0;
-        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players"))
+        foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players").Cast<GameObject>())
         {
             playerUnits.Add(Instantiate(obj, playerBattleStations[i]).GetComponent<BaseBattleUnit>());
             i++;
         }
 
 
-        // Once set up is done, proceed to the player's turn
-        battleState = BattleState.PLAYER_1_TURN;
+        // Once set up is done, proceed to the next phase
+        battleState  = BattleState.PRECOMBAT;
         UpdateTurnUI();
         HandleCombatTurns();
     }
@@ -108,6 +111,9 @@ public class CombatSceneManager : MonoBehaviour
         {
             case BattleState.START_BATTLE:
                 SetupCombat();
+                break;
+            case BattleState.PRECOMBAT:
+
                 break;
             case BattleState.PLAYER_1_TURN:
                 HandlePlayer1Turn();
@@ -134,26 +140,13 @@ public class CombatSceneManager : MonoBehaviour
     {
         AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(data.user.GetBaseUnit(), data.target.GetBaseUnit());
 
-        // If there are multiple actions to handle, handle them seperatly
-        foreach (AttackAction action in attackResolutionInfo.actions)
-        {
-            switch (action.Type)
-            {
-                case AttackAction.ActionType.DAMAGE:
-                    Debug.LogWarning("Dealing Damage to " + data.target + " by: " + action.Value);
-                    data.target.Damage(action.Value);
-
-
-                    break;
-                case AttackAction.ActionType.HEALING:
-                    break;
-            }
-   
-        }
+        // Call the combat component for the user passing in info on the target.
+        data.user.GetCombatComponent().StartCombat(attackResolutionInfo, data);
+        data.user.GetCombatComponent().OnEndCombat += EndTurn;
     }
 
     /// <summary>
-    /// Is the way to loop through the turns in the correct order.
+    /// Is the way to loop through the turns in the correct order. This will be the function that will be subscribed to the finishing of movement for the units
     /// </summary>
     public void EndTurn()
     {
@@ -186,15 +179,15 @@ public class CombatSceneManager : MonoBehaviour
         // Call the Combat function from the InputManager class and send data about the scene to it
         if (user != null)
         {
-            CombatReturnData cRD = user.GetInputManagerComponent().Combat(combatSceneData);
-            ResolveCombat(cRD);
+            turnInformation = user.GetInputManagerComponent().Combat(combatSceneData);
+            ResolveCombat(turnInformation);
         }
     }
 
 
     private void HandlePlayer1Turn()
     {
-        Debug.Log("This is the start of Player 1's turn");
+        //Debug.Log("This is the start of Player 1's turn");
 
         if (playerUnits.Count >= 1)
         {
@@ -206,7 +199,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandlePlayer2Turn()
     {
-        Debug.Log("This is the start of Player 2's turn");
+        //Debug.Log("This is the start of Player 2's turn");
 
         if (playerUnits.Count >= 2)
         {
@@ -218,7 +211,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy1Turn()
     {
-        Debug.Log("This is the start of Enemy 1's turn");
+        //Debug.Log("This is the start of Enemy 1's turn");
 
         if (enemyUnits.Count >= 1)
         {
@@ -230,7 +223,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy2Turn()
     {
-        Debug.Log("This is the start of Enemy 2's turn");
+        //Debug.Log("This is the start of Enemy 2's turn");
 
         if (enemyUnits.Count >= 2)
         {
@@ -242,7 +235,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void HandleEnemy3Turn()
     {
-        Debug.Log("This is the start of Enemy 3's turn");
+        //Debug.Log("This is the start of Enemy 3's turn");
 
         if (enemyUnits.Count >= 3)
         {
@@ -253,7 +246,7 @@ public class CombatSceneManager : MonoBehaviour
     }
     private void HandleEnemy4Turn()
     {
-        Debug.Log("This is the start of Enemy 4's turn");
+        //Debug.Log("This is the start of Enemy 4's turn");
 
 
         if (enemyUnits.Count >= 4)

@@ -17,7 +17,8 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] BaseInputManagerComponent iMComponent;
     [SerializeField] Health hComponent;
     [SerializeField] SpriteComponent sComponent;
-    [SerializeField] AnimationControllerComponent animationController;
+    [SerializeField] AnimationControllerComponent aCComponent;
+    [SerializeField] CombatComponent cComponent;
 
     private void Awake()
     {
@@ -25,7 +26,8 @@ public class BaseBattleUnit : MonoBehaviour
         iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
         hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
         sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
-        animationController = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
+        aCComponent = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
+        cComponent = BaseComponent.CreateInstance<CombatComponent, BaseBattleUnit>(gameObject, this);
     }
 
     private void OnEnable()
@@ -36,7 +38,7 @@ public class BaseBattleUnit : MonoBehaviour
 
     void AssignUnitData(BaseUnit unit)
     {
-        Debug.Log("Assigning Unit Data");
+        //Debug.Log("Assigning Unit Data");
     }
 
     public void Damage(int damageAmount)
@@ -65,6 +67,8 @@ public class BaseBattleUnit : MonoBehaviour
     public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
     public Health GetHealthComponent() { return hComponent; }
     public SpriteComponent GetSpriteComponent() {  return sComponent; }
+    public AnimationControllerComponent  GetAnimationControllerComponent() { return aCComponent; }
+    public CombatComponent GetCombatComponent() { return cComponent; }
 
     #endregion
 
