@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class CombatComponent : BaseCombatComponent
@@ -33,6 +34,10 @@ public class CombatComponent : BaseCombatComponent
 
                 break;
             case AttackAction.ActionType.HEALING:
+                combatReturnData.target.Heal(attackAction.Value);
+                break;
+            case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
+
                 break;
         }
 
