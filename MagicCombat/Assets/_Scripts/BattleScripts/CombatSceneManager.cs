@@ -6,19 +6,11 @@ using TMPro;
 using UnityEngine;
 
 /// <summary>
-/// Same order as 'Element' enum in BaseUnit Class for easy integer conversion between the two
-/// </summary>
-public enum EnvironmentalEffect
-{
-    NULL, IMBUE_FIRE, IMBUE_WATER, IMBUE_ICE, IMBUE_EARTH, IMBUE_LIGHT, IMBUE_DARKNESS,
-}
-
-/// <summary>
 /// Passed to each AI so they can correctly use the information (if needed to target players and understand the current turn effects)
 /// </summary>
 public class CombatSceneData
 {
-    public List<EnvironmentalEffect> environmentalEffects;
+    public List<EnvironmentalElement> environmentalEffects;
     public List<BaseBattleUnit> possibleTargets;
 }
 
@@ -138,7 +130,7 @@ public class CombatSceneManager : MonoBehaviour
 
     private void ResolveCombat(CombatReturnData data)
     {
-        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(data.user.GetBaseUnit(), data.target.GetBaseUnit());
+        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(userInfo:data.user.GetBaseUnit(), targetInfo: data.target.GetBaseUnit());
 
         // Call the combat component for the user passing in info on the target.
         data.user.GetCombatComponent().StartCombat(attackResolutionInfo, data);

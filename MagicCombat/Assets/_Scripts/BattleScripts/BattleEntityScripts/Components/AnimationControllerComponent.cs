@@ -24,7 +24,7 @@ public class AnimationControllerComponent : BaseCombatComponent
     public void SetAttackValues(AttackResolutionInfo moveInfo)
     {
         attacks.Clear();
-        attacks = moveInfo.actions;
+        attacks = moveInfo.Actions;
     }
 
     /// <summary>

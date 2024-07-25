@@ -1,4 +1,4 @@
-using Unity.VisualScripting;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -7,13 +7,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "HeavyAttack", menuName = "Moves/HeavyAttack")]
 public class HeavyAttack : BattleMoveAction
 {
-    public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
+    public override AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
     {
         resolutionInfo = new AttackResolutionInfo
         {
             moveName = "HeavyAttack"
         };
-        resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
+        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
         return resolutionInfo;
     }
 }

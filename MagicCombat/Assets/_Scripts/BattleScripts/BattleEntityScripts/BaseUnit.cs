@@ -26,7 +26,7 @@ public class BaseUnit : ScriptableObject
     public Sprite sprite;
 
     public Element element;
-    public List<BattleMoveAction> moves = new List<BattleMoveAction>();
+    public List<BattleMoveAction> moves = new();
 
     public AnimatorController unitAnimator;
 }

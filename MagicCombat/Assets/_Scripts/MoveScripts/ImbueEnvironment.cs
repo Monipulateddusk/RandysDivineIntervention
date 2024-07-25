@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -6,13 +7,13 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "ImbueEnvironment", menuName = "Moves/ImbueEnvironment")]
 public class ImbueEnvrionment : BattleMoveAction
 {
-    public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
+    public override AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
     {
         resolutionInfo = new AttackResolutionInfo
         {
             moveName = "ImbueEnvironment"
         };
-        resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element));
+        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element));
         return resolutionInfo;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 
@@ -7,16 +8,16 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "LightAttack", menuName = "Moves/LightAttack")]
 public class LightAttack : BattleMoveAction
 {
-    public override AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo)
+    public override AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
     {
         resolutionInfo = new AttackResolutionInfo
         {
             moveName = "LightAttack"
         };
         int damage = userInfo.attack / 3;
-        resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
-        resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
-        resolutionInfo.actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, damage));
+        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
+        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
+        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, damage));
 
         return resolutionInfo;
     }

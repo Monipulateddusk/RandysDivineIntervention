@@ -28,17 +28,17 @@ public class AttackAction
 public class AttackResolutionInfo
 {
     public string moveName;
-    public List<AttackAction> actions { get; private set; }
+    public List<AttackAction> Actions { get; private set; }
 
     public AttackResolutionInfo()
     {
-        actions = new List<AttackAction>();
+        Actions = new List<AttackAction>();
     }
 }
 [System.Serializable]
 public abstract class BattleMoveAction : ScriptableObject
 {
-    public AttackResolutionInfo resolutionInfo = new AttackResolutionInfo();
-    public abstract AttackResolutionInfo DoMove(BaseUnit userInfo, BaseUnit targetInfo);
+    public AttackResolutionInfo resolutionInfo = new();
+    public abstract AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null);
 }
 
