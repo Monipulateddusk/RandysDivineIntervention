@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7b9b3a10863d160448290b715c0b78f3, type: 3}
-  m_Name: Fire
+  m_Name: Earth
   m_EditorClassIdentifier: 
   environmentalElements: 01000000020000000300000004000000
   moves:
-  - {fileID: 11400000, guid: 724b57b66d31f3f4fb7410e0cc79077f, type: 2}
-  - {fileID: 11400000, guid: 14bf27f3eaf3f5444b54d65395a0b185, type: 2}
-  - {fileID: 11400000, guid: 2cad316ecbf8af245905835f76e6c7b9, type: 2}
   - {fileID: 11400000, guid: ee7f59ab004f0d047a043fda5cc9f515, type: 2}
+  - {fileID: 11400000, guid: 9138536d6ae5a2d4f93d47018f9f7cfc, type: 2}
+  - {fileID: 11400000, guid: ef57f31285972854999c6e0f9fb32844, type: 2}
+  - {fileID: 11400000, guid: 9519bb03c1827ef4ca3a154520e4974f, type: 2}

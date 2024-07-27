@@ -12,10 +12,10 @@ public class AttackAction
 
     public ActionType Type { get; private set; }
     public int Value { get; private set; }
-    public StatusEffect StaEffect { get; private set; }
+    public string StaEffect { get; private set; }
     public Element ElementEffect{  get; private set; } 
 
-    public AttackAction(ActionType type, int value = 0, StatusEffect staEffect = 0, Element elementEff = 0)
+    public AttackAction(ActionType type, int value = 0, string staEffect = "", Element elementEff = 0)
     {
         Type = type;
         Value = value;

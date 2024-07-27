@@ -13,5 +13,42 @@ public enum EnvironmentalElement
 
 public class CombatEnvironmentController : MonoBehaviour
 {
-    
+    [Header("Inspector variables")]
+    [SerializeField] List<EnvironmentalEffect> effects = new();
+
+
+    Dictionary<EnvironmentalElement, EnvironmentalEffect> effectsDict;
+    // Keep track of what the allies and the enemies are doing to display what effect is active
+    EnvironmentalEffect allyEnvirEffect, enemyEnvirEffect;
+
+    public void AddEnvironmentalEffect(EnvironmentalEffect effect, bool isAlly)
+    {
+        // If there is no environmental effect active, make it so. If not, process the environmental move
+        switch (isAlly)
+        {
+            case true:
+
+                if(allyEnvirEffect != null)
+                {
+                    allyEnvirEffect = effect;
+                }
+                else
+                {
+
+                }
+
+                break;
+
+            case false:
+
+
+            break;
+        }
+
+    }
+
+    void ProcessElementalMove(EnvironmentalEffect curEffect, EnvironmentalEffect combinedEffect, List<BaseUnit> users, List<BaseUnit> targets)
+    {
+        // BattleMoveAction action = curEffect.ConvertToMove(combinedEffect);
+    }
 }
