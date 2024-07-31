@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b9b3a10863d160448290b715c0b78f3, type: 3}
   m_Name: Water
   m_EditorClassIdentifier: 
-  environmentalElements: 01000000020000000300000004000000
+  environmentalElements:
+  - {fileID: 11400000, guid: 66dccfa1b44ff234891aaf2c78738c53, type: 2}
+  - {fileID: 11400000}
+  - {fileID: 11400000, guid: adcb19aa337254d49832ce589a26c471, type: 2}
+  - {fileID: 11400000, guid: 89ed524e1ea7b9e4384abb0ebaa80fee, type: 2}
   moves:
   - {fileID: 11400000, guid: 14bf27f3eaf3f5444b54d65395a0b185, type: 2}
   - {fileID: 11400000, guid: 62169abfb4906364585718cfd85683d5, type: 2}

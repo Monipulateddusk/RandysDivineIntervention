@@ -12,7 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b9b3a10863d160448290b715c0b78f3, type: 3}
   m_Name: Ice
   m_EditorClassIdentifier: 
-  environmentalElements: 01000000020000000300000004000000
+  environmentalElements:
+  - {fileID: 11400000, guid: 66dccfa1b44ff234891aaf2c78738c53, type: 2}
+  - {fileID: 11400000, guid: 5c4c7a67d98cb7844a1b933a46757083, type: 2}
+  - {fileID: 11400000}
+  - {fileID: 11400000, guid: 89ed524e1ea7b9e4384abb0ebaa80fee, type: 2}
   moves:
   - {fileID: 11400000, guid: 2cad316ecbf8af245905835f76e6c7b9, type: 2}
   - {fileID: 11400000, guid: 6113403b82c495b458e388d8cee67a09, type: 2}
