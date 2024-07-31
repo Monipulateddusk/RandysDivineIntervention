@@ -37,7 +37,7 @@ public class CombatComponent : BaseCombatComponent
                 combatReturnData.target.Heal(attackAction.Value);
                 break;
             case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-
+                CombatEnvironmentController.Instance.AddEnvironmentalEffect()
                 break;
         }
 

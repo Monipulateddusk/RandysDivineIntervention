@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 public enum Element
 {
-    NULL, FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS
+    FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS, NULL,
 }
 /// <summary>
 /// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene
