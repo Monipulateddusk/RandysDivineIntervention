@@ -52,9 +52,9 @@ public class CombatEnvironmentController : MonoBehaviour
     /// <summary>
     /// Called by exterior classes to use their Element Enum when imbuing the environment for elemental attacks
     /// </summary>
-    public void AddEnvironmentalElement()
+    public void AddEnvironmentalElement(Element element)
     {
-
+        EnvironmentalEffect effect = effectDict[element];
     }
 
     public void AddEnvironmentalEffect(EnvironmentalEffect effect, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool isAlly)

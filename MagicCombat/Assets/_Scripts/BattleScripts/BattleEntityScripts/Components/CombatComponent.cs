@@ -37,7 +37,6 @@ public class CombatComponent : BaseCombatComponent
                 combatReturnData.target.Heal(attackAction.Value);
                 break;
             case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                CombatEnvironmentController.Instance.AddEnvironmentalEffect()
                 break;
         }
 
@@ -49,26 +48,13 @@ public class CombatComponent : BaseCombatComponent
 
         // Clear the event and subscribe to it
         OnFinishedMovement = null;
+        OnEndCombat = null;
         OnFinishedMovement += Combat;
 
+
+        // Move the user to the target ( this is where we'd evaluate if the move necessitates movement )
         MoveUserToTarget(data.target.gameObject.transform.position);
     }
-
-    /// <summary>
-    /// Called externally from animationControllerComponent when an animation attack is over. Tells this component to move the unit back to their battle station.
-    /// </summary>
-    public void EndAttack()
-    {
-        // Clear the event trigger for movement in preparation for the CombatSceneManager event subscription
-        OnFinishedMovement = null;
-
-        OnEndCombatSubscriptionChange();
-
-        MoveUserToTarget(battleStationLocation);
-    }
-
-
-
     void Combat()
     {
         // Allocate the animation data and then play correlating animation to the move name
@@ -77,12 +63,27 @@ public class CombatComponent : BaseCombatComponent
 
     }
 
-    // Passes on the event subscription allocated to the OnEndCombat and attaches that subscription to the OnFinishedMovement event
-    // so that the end turn function is called when the Unit moves back to their battlestation
-    void OnEndCombatSubscriptionChange()
+
+    /// <summary>
+    /// Called externally from animationControllerComponent when an animation attack is over. Tells this component to move the unit back to their battle station.
+    /// </summary>
+    public void EndAttack()
     {
-        OnFinishedMovement = OnEndCombat;
-        OnEndCombat = null;
+        // Clear the event trigger for movement in preparation for the CombatSceneManager event subscription
+        OnFinishedMovement = null;
+        OnFinishedMovement = OnEndCombatMovement;
+
+        MoveUserToTarget(battleStationLocation);
+
+    }
+
+    /// <summary>
+    /// This function is called by the event OnFinishedMovement; specifically the second movement when the user moves back from the target to their battlestation
+    /// Invokes the OnEndCombat event (which ends the turn)
+    /// </summary>
+    void OnEndCombatMovement()
+    {
+        OnEndCombat?.Invoke();
     }
 
     void MoveUserToTarget(Vector3 target)
