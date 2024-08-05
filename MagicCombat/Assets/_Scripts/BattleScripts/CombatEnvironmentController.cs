@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Build;
 using UnityEngine;
 
 /// <summary>
@@ -115,50 +116,12 @@ public class CombatEnvironmentController : MonoBehaviour
         // Once a move is determined and set to be executed, set the current effect of either the player or enemy
         curEffect = null;
 
-        // Execute the move
-        ExecuteEnvirMove(info, users, targets);
-    }
-
-    /// <summary>
-    /// This function will be delegated else where. Having two seperate systems to execute moves is not good and is the beginnings of spaghetti code.
-    /// Another class as a static to handle this will be better in the future
-    /// </summary>
-    /// <param name="info"></param>
-    /// <param name="users"></param>
-    /// <param name="targets"></param>
-    void ExecuteEnvirMove(AttackResolutionInfo info, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
-    {
-        Debug.LogWarning("EXECUTING MOVE: " + info.moveName);
-        foreach(var action in info.Actions)
+        // Execute the move by calling the ProcessAttack function in CombatAttackHandler as many times as there are Actions in the attack
+        foreach(AttackAction a in info.Actions)
         {
-            switch(action.Type)
-            {
-                case AttackAction.ActionType.DAMAGE:
-                    foreach(var target in targets)
-                    {
-                        target.Damage(action.Value);
-                    }
-
-                    break;
-
-                case AttackAction.ActionType.HEALING:
-                    foreach (var user in users)
-                    {
-                        user.Heal(action.Value);
-                    }
-
-
-                    break;
-
-                case AttackAction.ActionType.STATUS_EFFECT:
-                    Debug.Log("Imbuing target with: " + action.StaEffect);
-                    break;
-
-                case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-
-                    break;
-            
-            }
+            // Convert into CombatReturnData
+            CombatReturnData data = new CombatReturnData(action, users, targets);
+            CombatAttackHandler.Instance.ProcessAttack(data);
         }
     }
 
