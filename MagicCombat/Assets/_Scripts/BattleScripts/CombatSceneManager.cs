@@ -20,15 +20,24 @@ public class CombatSceneData
 public class CombatReturnData
 {
     public CombatReturnData() { }
-    public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit user, BaseBattleUnit target)
+    public CombatReturnData(BattleMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
         this.battleMoveAction = battleMoveAction;
-        this.target = target;
-        this.user = user;
+        targets = t;
+        users = u;
+    }
+    public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit u, BaseBattleUnit t)
+    {
+        this.battleMoveAction = battleMoveAction;
+        targets.Add(t);
+        users.Add(u);
     }
 
     public BattleMoveAction battleMoveAction;
-    public BaseBattleUnit target, user;
+    public List<BaseBattleUnit> targets = new List<BaseBattleUnit>();
+    public List<BaseBattleUnit> users = new List<BaseBattleUnit>();
+
+    public void AddEntryToList(BaseBattleUnit entry, List<BaseBattleUnit> list) { list.Add(entry); }
 }
 
 public class CombatSceneManager : MonoBehaviour
@@ -38,7 +47,6 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
     readonly CombatSceneData combatSceneData = new();
-    CombatReturnData turnInformation = new();
 
     [SerializeField] Transform[] playerBattleStations;
     [SerializeField] Transform[] enemyBattleStations;
@@ -129,12 +137,13 @@ public class CombatSceneManager : MonoBehaviour
     }
 
     private void ResolveCombat(CombatReturnData data)
-    {
-        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(userInfo:data.user.GetBaseUnit(), targetInfo: data.target.GetBaseUnit());
+    { 
+        // We are declaring the 0 index of the list as in this implementation, the list will never have more entries inside it
+        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(userInfo: data.users[0].GetBaseUnit(), targetInfo: data.targets[0].GetBaseUnit());
 
-        // Call the combat component for the user passing in info on the target.
-        data.user.GetCombatComponent().StartCombat(attackResolutionInfo, data);
-        data.user.GetCombatComponent().OnEndCombat += EndTurn;
+        // Call the combat component for the user passing in info on the target. 
+        data.users[0].GetCombatComponent().StartCombat(attackResolutionInfo, data);
+        data.users[0].GetCombatComponent().OnEndCombat += EndTurn;
     }
 
     /// <summary>
@@ -171,8 +180,8 @@ public class CombatSceneManager : MonoBehaviour
         // Call the Combat function from the InputManager class and send data about the scene to it
         if (user != null)
         {
-            turnInformation = user.GetInputManagerComponent().Combat(combatSceneData);
-            ResolveCombat(turnInformation);
+            CombatReturnData data = user.GetInputManagerComponent().Combat(combatSceneData);
+            ResolveCombat(data);
         }
     }
 

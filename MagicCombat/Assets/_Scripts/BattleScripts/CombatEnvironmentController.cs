@@ -14,7 +14,7 @@ public enum EnvironmentalElement
 
 public class CombatEnvironmentController : MonoBehaviour
 {
-    private static CombatEnvironmentController _instance;
+    [SerializeField]private static CombatEnvironmentController _instance;
     public static CombatEnvironmentController Instance
     {
         get
@@ -38,6 +38,9 @@ public class CombatEnvironmentController : MonoBehaviour
 
     private void Awake()
     {
+        // Declare the instance
+        _instance = this;
+
         // Populate the dictionary
         effectDict = new Dictionary<Element, EnvironmentalEffect>();
 

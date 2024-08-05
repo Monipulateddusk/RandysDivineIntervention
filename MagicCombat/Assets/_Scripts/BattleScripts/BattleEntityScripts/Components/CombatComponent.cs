@@ -12,6 +12,7 @@ public class CombatComponent : BaseCombatComponent
     // This event is called on two occasions; firstly when the unit has moved from their starting location to their target, and when they finish moving back to their starting location
     public event Action OnFinishedMovement;
 
+    // Data filled in at the start of combat on the unit's turn, this is where this information will be, no where else
     [SerializeField] AttackResolutionInfo currentAttackInfo;
     [SerializeField] CombatReturnData combatReturnData;
     Vector3 battleStationLocation;
@@ -24,22 +25,9 @@ public class CombatComponent : BaseCombatComponent
     /// <summary>
     /// Called externally from animationControllerComponent when an attack is animated to process the attack.
     /// </summary>
-    public void ProcessAttack(AttackAction attackAction)
+    public void ProcessAttack()
     {
-        switch (attackAction.Type)
-        {
-            case AttackAction.ActionType.DAMAGE:
-                //Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
-                combatReturnData.target.Damage(attackAction.Value);
-
-                break;
-            case AttackAction.ActionType.HEALING:
-                combatReturnData.target.Heal(attackAction.Value);
-                break;
-            case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                break;
-        }
-
+        CombatAttackHandler.Instance.ProcessAttack(combatReturnData);
     }
     public void StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {
@@ -53,14 +41,12 @@ public class CombatComponent : BaseCombatComponent
 
 
         // Move the user to the target ( this is where we'd evaluate if the move necessitates movement )
-        MoveUserToTarget(data.target.gameObject.transform.position);
+        MoveUserToTarget(data.targets[0].gameObject.transform.position);
     }
     void Combat()
     {
-        // Allocate the animation data and then play correlating animation to the move name
-        bBU.GetAnimationControllerComponent().SetAttackValues(currentAttackInfo);
+        // Play correlating animation to the move name
         bBU.GetAnimationControllerComponent().GetAnimator().Play(currentAttackInfo.moveName);
-
     }
 
 
@@ -115,4 +101,10 @@ public class CombatComponent : BaseCombatComponent
         // Invoke an event saying we are finished moving
         OnFinishedMovement?.Invoke();
     }
+
+    /// <summary>
+    /// Allows other components to access the resolution data. This is so other classes can work along side the combat compoent to read the moves data such as the target or the move actions
+    /// </summary>
+    /// <returns></returns>
+    public CombatReturnData GetCombatReturnData() { return combatReturnData; }
 }

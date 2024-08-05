@@ -8,14 +8,14 @@ public enum StatusEffect {
 [System.Serializable]
 public class AttackAction
 {
-    public enum ActionType { DAMAGE, HEALING, STATUS_EFFECT, IMBUE_ENVIRONMENTS}
+    public enum ActionType { DAMAGE, HEALING, STATUS_EFFECT, IMBUE_ENVIRONMENTS }
 
     public ActionType Type { get; private set; }
     public int Value { get; private set; }
     public string StaEffect { get; private set; }
-    public Element ElementEffect{  get; private set; } 
+    public Element ElementEffect { get; private set; }
 
-    public AttackAction(ActionType type, int value = 0, string staEffect = "", Element elementEff = 0)
+    public AttackAction(ActionType type,int value = 0, string staEffect = "", Element elementEff = 0)
     {
         Type = type;
         Value = value;
@@ -34,6 +34,7 @@ public class AttackResolutionInfo
     {
         Actions = new List<AttackAction>();
     }
+    public void RemoveAtIndex(int index) {  Actions.RemoveAt(index); }
 }
 [System.Serializable]
 public abstract class BattleMoveAction : ScriptableObject

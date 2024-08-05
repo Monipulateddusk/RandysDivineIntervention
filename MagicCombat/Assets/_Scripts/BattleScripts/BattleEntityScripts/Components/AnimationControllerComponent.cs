@@ -11,20 +11,12 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class AnimationControllerComponent : BaseCombatComponent
 {
-    [SerializeField]List<AttackAction> attacks = new();
-
     [SerializeField]Animator animator;
     public override void Init(BaseBattleUnit bBU)
     {
         base.Init(bBU);
         animator = GetComponent<Animator>();
         animator.runtimeAnimatorController = bBU.GetBaseUnit().unitAnimator;
-    }
-
-    public void SetAttackValues(AttackResolutionInfo moveInfo)
-    {
-        attacks.Clear();
-        attacks = moveInfo.Actions;
     }
 
     /// <summary>
@@ -34,12 +26,8 @@ public class AnimationControllerComponent : BaseCombatComponent
     /// <returns></returns>
     public void AttackAnim()
     {
-        // Get the damage of that part of the attack
-        AttackAction action = attacks[0];
-        attacks.RemoveAt(0);
-
         // Call function in combat component to relay info to target
-        bBU.GetCombatComponent().ProcessAttack(action);
+        bBU.GetCombatComponent().ProcessAttack();
     }
 
     /// <summary>
