@@ -50,7 +50,7 @@ public class CombatAttackHandler : MonoBehaviour
 
                     // Call the CombatEnvironmentController to keep track of the environment condition
                 case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-
+                    CombatEnvironmentController.Instance.AddEnvironmentalElement(attackAction.ElementEffect);
                     break;
 
 
