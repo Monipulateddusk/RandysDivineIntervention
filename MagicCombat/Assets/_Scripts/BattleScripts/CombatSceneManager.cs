@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using TurnBased;
 using UnityEngine;
 
 /// <summary>
@@ -20,22 +21,22 @@ public class CombatSceneData
 public class CombatReturnData
 {
     public CombatReturnData() { }
-    public CombatReturnData(BattleMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
+    public CombatReturnData(IBattleMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
         this.battleMoveAction = battleMoveAction;
         targets = t;
         users = u;
     }
-    public CombatReturnData(BattleMoveAction battleMoveAction, BaseBattleUnit u, BaseBattleUnit t)
+    public CombatReturnData(IBattleMoveAction battleMoveAction, BaseBattleUnit u, BaseBattleUnit t)
     {
         this.battleMoveAction = battleMoveAction;
         targets.Add(t);
         users.Add(u);
     }
 
-    public BattleMoveAction battleMoveAction;
-    public List<BaseBattleUnit> targets = new List<BaseBattleUnit>();
-    public List<BaseBattleUnit> users = new List<BaseBattleUnit>();
+    public IBattleMoveAction battleMoveAction;
+    public List<BaseBattleUnit> targets = new();
+    public List<BaseBattleUnit> users = new();
 
     public void AddEntryToList(BaseBattleUnit entry, List<BaseBattleUnit> list) { list.Add(entry); }
 }

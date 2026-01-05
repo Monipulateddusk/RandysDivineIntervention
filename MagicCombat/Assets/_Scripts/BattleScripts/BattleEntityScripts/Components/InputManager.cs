@@ -1,11 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
+using TurnBased;
 using UnityEngine;
 
 public abstract class BaseInputManagerComponent : BaseCombatComponent
 {
-    [HideInInspector] public List<BattleMoveAction> battleMoves = new List<BattleMoveAction>();
+    [HideInInspector] public List<IBattleMoveAction> battleMoves = new();
 
     public override void Init(BaseBattleUnit bBU)
     {
@@ -36,7 +36,7 @@ public class RandomInputManagerComponent : BaseInputManagerComponent
         // Select a random move to perform
         int rIndex = Random.Range(0, battleMoves.Count);
 
-        BattleMoveAction selectedMove = battleMoves[rIndex];
+        IBattleMoveAction selectedMove = battleMoves[rIndex];
 
         // Use the param of the function to select between targets
         rIndex = Random.Range(0, data.possibleTargets.Count);
@@ -65,7 +65,7 @@ public class SequentialInputManagerComponent : BaseInputManagerComponent
             curMoveIndex = 0;
         }
 
-        BattleMoveAction selectedMove = battleMoves[curMoveIndex];
+        IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
 
         // Increment the index after everything is decided
         curMoveIndex++;

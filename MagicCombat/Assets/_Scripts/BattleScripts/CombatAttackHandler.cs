@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TurnBased;
 using UnityEngine;
 
 /// <summary>
@@ -20,7 +21,7 @@ public class CombatAttackHandler : MonoBehaviour
         }
     }
 
-    List<BaseBattleUnit> users, targets;
+    private List<BaseBattleUnit> users, targets;
 
     private void Awake()
     {

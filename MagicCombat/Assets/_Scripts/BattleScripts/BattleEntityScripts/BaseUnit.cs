@@ -1,6 +1,5 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
+using TurnBased;
 using UnityEditor.Animations;
 using UnityEngine;
 
@@ -26,7 +25,7 @@ public class BaseUnit : ScriptableObject
     public Sprite sprite;
 
     public Element element;
-    public List<BattleMoveAction> moves = new();
+    public List<IBattleMoveAction> moves = new();
 
     public AnimatorController unitAnimator;
 }
