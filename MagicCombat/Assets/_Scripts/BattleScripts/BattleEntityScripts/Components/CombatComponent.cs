@@ -28,7 +28,7 @@ public class CombatComponent : BaseCombatComponent
     /// </summary>
     public void ProcessAttack()
     {
-        CombatAttackHandler.Instance.ProcessAttack(combatReturnData);
+        CombatAttackHandler.Instance.ProcessAttack(currentAttackInfo, combatReturnData);
     }
     public void StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {

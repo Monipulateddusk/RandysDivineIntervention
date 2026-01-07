@@ -25,6 +25,7 @@ public class BaseUnit : ScriptableObject
     public Sprite sprite;
 
     public Element element;
+    [SerializeReference, SubclassSelector]
     public List<IBattleMoveAction> moves = new();
 
     public AnimatorController unitAnimator;

@@ -32,10 +32,10 @@ public class CombatAttackHandler : MonoBehaviour
     /// Is called by units when doing moves but also by the environment moves handler
     /// </summary>
     /// <param name="attackAction"></param>
-    public void ProcessAttack(CombatReturnData attackInfo)
+    public void ProcessAttack(AttackResolutionInfo currentAttackInfo, CombatReturnData attackInfo)
     {
-        AttackResolutionInfo info = attackInfo.battleMoveAction.resolutionInfo;
-        AttackAction attackAction = info.Actions[0];
+
+        AttackAction attackAction = currentAttackInfo.Actions[0];
         foreach (BaseBattleUnit t in attackInfo.targets)
         {
             switch (attackAction.Type)
@@ -62,7 +62,7 @@ public class CombatAttackHandler : MonoBehaviour
             }
         }
         // Remove the move when it is done. If we have a multi-part move, with different attack values, this is how it should be done
-        info.Actions.Remove(attackAction);
+        currentAttackInfo.Actions.Remove(attackAction);
     }
 
 
