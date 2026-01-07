@@ -88,7 +88,6 @@ namespace TurnBased
     /// <summary>
     /// An attack that imbues the environment with the user's element. Used for the joint attacks proc-ing
     /// </summary>
-    [System.Serializable]
     public class ImbueEnvrionment : IBattleMoveAction
     {
         public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)

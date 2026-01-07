@@ -1391,7 +1391,6 @@ GameObject:
   - component: {fileID: 962761349}
   - component: {fileID: 962761350}
   - component: {fileID: 962761351}
-  - component: {fileID: 962761352}
   m_Layer: 0
   m_Name: CombatSceneManager
   m_TagString: Untagged
@@ -1453,22 +1452,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   effects:
-  - {fileID: 11400000, guid: 66dccfa1b44ff234891aaf2c78738c53, type: 2}
-  - {fileID: 11400000, guid: 5c4c7a67d98cb7844a1b933a46757083, type: 2}
-  - {fileID: 11400000, guid: adcb19aa337254d49832ce589a26c471, type: 2}
-  - {fileID: 11400000, guid: 89ed524e1ea7b9e4384abb0ebaa80fee, type: 2}
---- !u!114 &962761352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 962761348}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db95fc0b4c75d0849a00753893875847, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &977685680
 GameObject:
   m_ObjectHideFlags: 0

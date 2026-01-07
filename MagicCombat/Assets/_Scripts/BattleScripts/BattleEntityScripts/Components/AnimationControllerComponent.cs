@@ -19,6 +19,11 @@ public class AnimationControllerComponent : BaseCombatComponent
         animator.runtimeAnimatorController = bBU.GetBaseUnit().unitAnimator;
     }
 
+    private void OnDestroy()
+    {
+        animator = null;
+    }
+
     /// <summary>
     /// Called by the animation event in the animations of the unit's attack. Sends in the information of how much damage each part of the attack will do to the target,
     /// allowing the health bar to be updated in realtime instead of at the start of the turn

@@ -122,7 +122,7 @@ public class CombatEnvironmentController : MonoBehaviour
         {
             // Convert into CombatReturnData
             CombatReturnData data = new(action, users, targets);
-            CombatAttackHandler.Instance.ProcessAttack(info, data);
+            CombatAttackHandler.ProcessAttack(info, data);
         }
     }
 

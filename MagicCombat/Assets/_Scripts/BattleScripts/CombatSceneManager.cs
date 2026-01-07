@@ -55,7 +55,7 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField] BattleState battleState;
 
     [SerializeField] GameObject arrowGO;
-    // UI
+
     [Header("UI Variables")]
     [SerializeField] TextMeshProUGUI turnText;
 

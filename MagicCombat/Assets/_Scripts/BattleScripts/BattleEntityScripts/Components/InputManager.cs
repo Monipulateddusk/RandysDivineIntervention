@@ -13,6 +13,11 @@ public abstract class BaseInputManagerComponent : BaseCombatComponent
         bBU.OnUnitCreated += SetUpInputManager;
     }
 
+    private void OnDestroy()
+    {
+        battleMoves = null;
+    }
+
     void SetUpInputManager(BaseUnit unitData)
     {
         // Ensure the list is clear and insert the moves the unit can use into the local list for use within the class
