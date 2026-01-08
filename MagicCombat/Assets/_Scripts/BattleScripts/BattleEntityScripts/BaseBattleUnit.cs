@@ -4,29 +4,28 @@ using UnityEngine;
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
-    // This event handles creation of the object. While this class handles the logistics of data, other classes handle the visual elements and thus need BaseUnit data to assign values correctly.
-    public event Action<BaseUnit> OnUnitCreated;
 
     // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
     public event Action<int, bool> OnAlterHealth;
 
     [Header("Debugging")]
-    [SerializeField] BaseUnit unitData;
-
-    [SerializeField] BaseInputManagerComponent iMComponent;
-    [SerializeField] HealthComponent hComponent;
-    [SerializeField] SpriteComponent sComponent;
-    [SerializeField] CombatComponent cComponent;
-
+    [SerializeField] UnitData unitData;
     [SerializeField] Animator unitAnimator;
-    [SerializeField] SpriteRenderer spriteRenderer;
+    [SerializeField] SpriteRenderer unitSpriteRenderer;
+
+    /*  Custom Components for the Unit. Using Dependency Injection  */
+    BaseInputManagerComponent unitInputManagerComponent;
+    HealthComponent unitHealthComponent;
+    SpriteComponent unitSpriteComponent;
+    CombatComponent unitCombatComponent;
+
 
     private void Awake()
     {
         /*  Get Unity Components and Attach them    */
         if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
         {
-            this.spriteRenderer = spriteRenderer;
+            this.unitSpriteRenderer = spriteRenderer;
             this.unitAnimator = animator;
             this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
         }
@@ -37,25 +36,16 @@ public class BaseBattleUnit : MonoBehaviour
         }
 
         /*  Gain a referance to the required components for a Unit.   */
-        iMComponent = new SequentialInputManagerComponent(this, unitData);
-        hComponent = new HealthComponent(this, unitData);
-        sComponent = new SpriteComponent(this, unitData, spriteRenderer);
-        cComponent = new CombatComponent(this, unitData, gameObject.transform);
+        unitInputManagerComponent = new SequentialInputManagerComponent(this, unitData);
+        unitHealthComponent = new HealthComponent(this, unitData);
+        unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
+        unitCombatComponent = new CombatComponent(this, unitData, gameObject.transform);
 
 
     }
 
-    private void OnEnable()
-    {
-        OnUnitCreated?.Invoke(unitData);
-    }
-
-    /// <summary>
-    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
-    /// </summary>
     private void OnDestroy()
     {
-        OnUnitCreated = null;
         OnAlterHealth = null;
     }
 
@@ -88,7 +78,7 @@ public class BaseBattleUnit : MonoBehaviour
     /// </summary>
     public void PlayCombatAttackAnimation()
     {
-        unitAnimator.Play(cComponent.GetCurrentAttackInformation().moveName);
+        unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
     }
 
 
@@ -114,11 +104,11 @@ public class BaseBattleUnit : MonoBehaviour
 
     #region Getter Methods for Components
 
-    public BaseUnit GetBaseUnit() { return unitData; }
-    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
-    public HealthComponent GetHealthComponent() { return hComponent; }
-    public SpriteComponent GetSpriteComponent() {  return sComponent; }
-    public CombatComponent GetCombatComponent() { return cComponent; }
+    public UnitData GetBaseUnit() { return unitData; }
+    public BaseInputManagerComponent GetInputManagerComponent() { return unitInputManagerComponent; }
+    public HealthComponent GetHealthComponent() { return unitHealthComponent; }
+    public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
+    public CombatComponent GetCombatComponent() { return unitCombatComponent; }
 
     #endregion
 }

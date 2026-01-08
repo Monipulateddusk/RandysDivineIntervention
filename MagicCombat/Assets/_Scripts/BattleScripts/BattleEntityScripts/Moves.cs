@@ -45,7 +45,7 @@ namespace TurnBased
 
     public interface IBattleMoveAction
     {
-        public abstract AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null);
+        public abstract AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
     }
 
     /// <summary>
@@ -54,7 +54,7 @@ namespace TurnBased
     [System.Serializable]
     public class HeavyAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -70,7 +70,7 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -90,7 +90,7 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -109,7 +109,7 @@ namespace TurnBased
 /// </summary>
 public class EM_Frostburn : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -126,7 +126,7 @@ public class EM_Frostburn : IBattleMoveAction
 /// </summary>
 public class EM_Fissure : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -155,7 +155,7 @@ public class EM_Fissure : IBattleMoveAction
 /// </summary>
 public class EM_IceAge : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -185,7 +185,7 @@ public class EM_IceAge : IBattleMoveAction
 /// </summary>
 public class EM_Steam : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -216,7 +216,7 @@ public class EM_Steam : IBattleMoveAction
 /// </summary>
 public class EM_FrostLock : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -236,7 +236,7 @@ public class EM_FrostLock : IBattleMoveAction
 /// </summary>
 public class EM_Tsunami : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -266,7 +266,7 @@ public class EM_Tsunami : IBattleMoveAction
 /// </summary>
 public class EM_Wellspring : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -285,7 +285,7 @@ public class EM_Wellspring : IBattleMoveAction
 /// </summary>
 public class EM_HailCloak : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -305,7 +305,7 @@ public class EM_HailCloak : IBattleMoveAction
 /// </summary>
 public class EM_Volcano : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -335,7 +335,7 @@ public class EM_Volcano : IBattleMoveAction
 /// </summary>
 public class ImbueEnvrionment : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new()
         {
@@ -351,7 +351,7 @@ public class ImbueEnvrionment : IBattleMoveAction
 /// </summary>
 public class EM_Inferno : IBattleMoveAction
 {
-    public AttackResolutionInfo DoMove(List<BaseUnit> usersInfo = null, BaseUnit userInfo = null, List<BaseUnit> targetsInfo = null, BaseUnit targetInfo = null)
+    public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
         AttackResolutionInfo resolutionInfo = new() 
         {

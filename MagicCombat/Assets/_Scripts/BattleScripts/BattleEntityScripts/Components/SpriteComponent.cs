@@ -2,9 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// This component handles the assignment of the sprite based on the BaseUnit data
-/// </summary>
 public class SpriteComponent : BaseComponent
 {
 
@@ -15,7 +12,7 @@ public class SpriteComponent : BaseComponent
         spriteRenderer = null;
     }
 
-    public SpriteComponent(BaseBattleUnit battleUnit, BaseUnit unitData, SpriteRenderer spriteRenderer)
+    public SpriteComponent(BaseBattleUnit battleUnit, UnitData unitData, SpriteRenderer spriteRenderer)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;

@@ -1,9 +1,5 @@
 using UnityEngine;
 
-/// <summary>
-/// Needs to attach Health UI and manage that. Functions being public to allow any script to deal damage if needed
-/// </summary>
-
 public class HealthComponent : BaseComponent
 {
 
@@ -18,7 +14,7 @@ public class HealthComponent : BaseComponent
         health = 0;
     }
 
-    public HealthComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
+    public HealthComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;

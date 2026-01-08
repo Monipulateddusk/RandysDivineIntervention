@@ -15,7 +15,7 @@ public abstract class BaseInputManagerComponent : BaseComponent
         battleMoves = null;
     }
 
-    public BaseInputManagerComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
+    public BaseInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
@@ -38,7 +38,7 @@ public class RandomInputManagerComponent : BaseInputManagerComponent
         battleMoves = null;
     }
 
-    public RandomInputManagerComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
+    public RandomInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
@@ -79,7 +79,7 @@ public class SequentialInputManagerComponent : BaseInputManagerComponent
         battleMoves = null;
     }
 
-    public SequentialInputManagerComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
+    public SequentialInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;

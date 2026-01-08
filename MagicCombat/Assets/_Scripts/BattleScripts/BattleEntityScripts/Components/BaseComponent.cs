@@ -4,7 +4,7 @@ public abstract class BaseComponent
 {
     /*  Referance to the Parent Object  */
     protected BaseBattleUnit battleUnit;
-    protected BaseUnit unitData;
+    protected UnitData unitData;
 
     public BaseComponent()
     {
@@ -12,7 +12,7 @@ public abstract class BaseComponent
         unitData = null;
     }
 
-    public BaseComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
+    public BaseComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;

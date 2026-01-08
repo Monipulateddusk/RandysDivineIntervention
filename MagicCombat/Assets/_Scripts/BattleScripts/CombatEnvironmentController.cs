@@ -109,8 +109,8 @@ public class CombatEnvironmentController : MonoBehaviour
         IBattleMoveAction action = curEffect.ConvertToMove(combinedEffect);
 
         // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
-        List<BaseUnit> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
-        List<BaseUnit> baseUnitsTargets = targets.Select(user => user.GetBaseUnit()).ToList();
+        List<UnitData> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
+        List<UnitData> baseUnitsTargets = targets.Select(user => user.GetBaseUnit()).ToList();
 
         AttackResolutionInfo info = action.DoMove(usersInfo: baseUnitsUsers, targetsInfo: baseUnitsTargets);
 

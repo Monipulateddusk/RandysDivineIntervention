@@ -26,7 +26,7 @@ public class CombatComponent : BaseComponent
         unitTransform = null;
     }
 
-    public CombatComponent(BaseBattleUnit battleUnit, BaseUnit unitData, Transform unitTransf)
+    public CombatComponent(BaseBattleUnit battleUnit, UnitData unitData, Transform unitTransf)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
