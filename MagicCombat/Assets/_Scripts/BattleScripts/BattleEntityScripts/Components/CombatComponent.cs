@@ -53,7 +53,7 @@ public class CombatComponent : BaseComponent
         currentAttackInfo = info;
         combatReturnData = data;
 
-        // Clear the event and subscribe to it
+        // Clear the event at the start of the Turn
         OnEndAttackingCombat = null;
 
         // Move the user to the target ( this is where we'd evaluate if the move necessitates movement )
@@ -62,7 +62,7 @@ public class CombatComponent : BaseComponent
     }
 
     /// <summary>
-    /// Called externally from animationControllerComponent when an animation attack is over. Tells this component to move the unit back to their battle station.
+    /// ANIMATION EVENT: Called when an Attack's Animation is over. Move the unit back to the battle station.
     /// </summary>
     public async Task OnEndAttackAnimation()
     {
@@ -91,7 +91,7 @@ public class CombatComponent : BaseComponent
         }
 
         // Snap the Unit's position to the Target
-        unitTransform.position = targetPos;
+        if (unitTransform != null) { unitTransform.position = targetPos; }    
     }
 
     public AttackResolutionInfo GetCurrentAttackInformation() {  return currentAttackInfo; }
