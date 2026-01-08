@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TurnBased;
 using UnityEditor.Build;
 using UnityEngine;
 
@@ -105,7 +106,7 @@ public class CombatEnvironmentController : MonoBehaviour
     void ProcessElementalMove(ref EnvironmentalEffect curEffect, EnvironmentalEffect combinedEffect, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
     {
         // Find out what move the elements combine into and do that move to get the info needed to resolve it
-        BattleMoveAction action = curEffect.ConvertToMove(combinedEffect);
+        IBattleMoveAction action = curEffect.ConvertToMove(combinedEffect);
 
         // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
         List<BaseUnit> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
@@ -120,8 +121,8 @@ public class CombatEnvironmentController : MonoBehaviour
         foreach(AttackAction a in info.Actions)
         {
             // Convert into CombatReturnData
-            CombatReturnData data = new CombatReturnData(action, users, targets);
-            CombatAttackHandler.Instance.ProcessAttack(data);
+            CombatReturnData data = new(action, users, targets);
+            CombatAttackHandler.ProcessAttack(info, data);
         }
     }
 

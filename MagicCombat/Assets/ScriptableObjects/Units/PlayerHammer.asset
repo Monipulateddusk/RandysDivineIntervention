@@ -19,6 +19,15 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
   element: 0
   moves:
-  - {fileID: 11400000, guid: 2320061fd71c4bd40a727c467e746aac, type: 2}
-  - {fileID: 11400000, guid: 7714929a2e2d0d649a38aad5286bdee9, type: 2}
+  - rid: 5544377716436893702
+  - rid: 5544377716436893703
   unitAnimator: {fileID: 9100000, guid: 212fd75ee11e56848afcb4a2c3d4fc0c, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: 5544377716436893702
+      type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
+    - rid: 5544377716436893703
+      type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 

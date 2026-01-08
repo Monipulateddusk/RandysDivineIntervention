@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TurnBased;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -22,12 +23,18 @@ public class CombatComponent : BaseCombatComponent
         battleStationLocation = transform.position;
     }
 
+    private void OnDestroy()
+    {
+        currentAttackInfo = null;
+        combatReturnData = null;
+    }
+
     /// <summary>
     /// Called externally from animationControllerComponent when an attack is animated to process the attack.
     /// </summary>
     public void ProcessAttack()
     {
-        CombatAttackHandler.Instance.ProcessAttack(combatReturnData);
+        CombatAttackHandler.ProcessAttack(currentAttackInfo, combatReturnData);
     }
     public void StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {
@@ -37,13 +44,13 @@ public class CombatComponent : BaseCombatComponent
         // Clear the event and subscribe to it
         OnFinishedMovement = null;
         OnEndCombat = null;
-        OnFinishedMovement += Combat;
+        OnFinishedMovement += AnimateCombat;
 
 
         // Move the user to the target ( this is where we'd evaluate if the move necessitates movement )
         MoveUserToTarget(data.targets[0].gameObject.transform.position);
     }
-    void Combat()
+    void AnimateCombat()
     {
         // Play correlating animation to the move name
         bBU.GetAnimationControllerComponent().GetAnimator().Play(currentAttackInfo.moveName);

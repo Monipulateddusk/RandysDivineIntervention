@@ -26,6 +26,11 @@ public class Health : BaseCombatComponent
         hBC = Instantiate(uIChild, gameObject.transform).GetComponent<HealthBarController>();
     }
 
+    private void OnDestroy()
+    {
+        hBC = null; 
+    }
+
     void SetUpHealth(BaseUnit unitData)
     {
         baseUnit = unitData;
