@@ -3,26 +3,26 @@ using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
 
-public abstract class BaseInputManagerComponent : BaseCombatComponent
+public abstract class BaseInputManagerComponent : BaseComponent
 {
-    [HideInInspector] public List<IBattleMoveAction> battleMoves = new();
 
-    public override void Init(BaseBattleUnit bBU)
-    {
-        base.Init(bBU);
-        bBU.OnUnitCreated += SetUpInputManager;
-    }
+    public List<IBattleMoveAction> battleMoves = new();
 
-    private void OnDestroy()
+    public BaseInputManagerComponent()
     {
+        battleUnit = null;
+        unitData = null;
         battleMoves = null;
     }
 
-    void SetUpInputManager(BaseUnit unitData)
+    public BaseInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
-        // Ensure the list is clear and insert the moves the unit can use into the local list for use within the class
-        battleMoves.Clear();
-        battleMoves = unitData.moves;
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
+
+        /*  Set up the List of the Moves the Unit is capable of     */
+        this.battleMoves = new();
+        this.battleMoves = unitData.moves;
     }
 
     public abstract CombatReturnData Combat(CombatSceneData data);
@@ -31,6 +31,23 @@ public abstract class BaseInputManagerComponent : BaseCombatComponent
 
 public class RandomInputManagerComponent : BaseInputManagerComponent
 {
+    RandomInputManagerComponent()
+    {
+        battleUnit = null;
+        unitData = null;
+        battleMoves = null;
+    }
+
+    public RandomInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    {
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
+
+        /*  Set up the List of the Moves the Unit is capable of     */
+        this.battleMoves = new();
+        this.battleMoves = unitData.moves;
+    }
+
     /// <summary>
     /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
     /// </summary>
@@ -47,13 +64,30 @@ public class RandomInputManagerComponent : BaseInputManagerComponent
         rIndex = Random.Range(0, data.possibleTargets.Count);
         BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        return new CombatReturnData(selectedMove, bBU, target);
+        return new CombatReturnData(selectedMove, battleUnit, target);
     }
 }
 
 public class SequentialInputManagerComponent : BaseInputManagerComponent
 {
     int curMoveIndex = 0;
+
+    SequentialInputManagerComponent()
+    {
+        battleUnit = null;
+        unitData = null;
+        battleMoves = null;
+    }
+
+    public SequentialInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    {
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
+
+        /*  Set up the List of the Moves the Unit is capable of     */
+        this.battleMoves = new();
+        this.battleMoves = unitData.moves;
+    }
 
     /// <summary>
     /// This is a Sequential input manager. Therefore, moves will be selected in the order they are stored in the list.
@@ -80,6 +114,6 @@ public class SequentialInputManagerComponent : BaseInputManagerComponent
         int rIndex = Random.Range(0, data.possibleTargets.Count);
         BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        return new CombatReturnData(selectedMove, bBU, target);
+        return new CombatReturnData(selectedMove, battleUnit, target);
     }
 }
