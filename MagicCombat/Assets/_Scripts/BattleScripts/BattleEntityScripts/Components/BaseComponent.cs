@@ -1,42 +1,20 @@
 using UnityEngine;
 
-public abstract class BaseComponent : MonoBehaviour
+public abstract class BaseComponent 
 {
-    /// <summary>
-    /// Static method to create and initialize a component. Utilises generic syntax to be as flexible as possible
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <typeparam name="U"></typeparam>
-    /// <param name="gameObject"></param>
-    /// <param name="initParameter"></param>
-    /// <returns></returns>
-    public static T CreateInstance<T, U>(GameObject gameObject, U initParameter) where T : BaseComponent
+    /*  Referance to the Parent Object  */
+    protected BaseBattleUnit battleUnit;
+    protected BaseUnit unitData;
+
+    public BaseComponent()
     {
-        T component = gameObject.AddComponent<T>();
-        component.Initialize(initParameter);
-        return component;
+        battleUnit = null;
+        unitData = null;
     }
 
-    // Abstract method to initialize the component
-    protected abstract void Initialize<U>(U initParameter);
-}
-
-public class BaseCombatComponent : BaseComponent
-{
-    [HideInInspector] public BaseBattleUnit bBU;
-
-    [HideInInspector] public BaseUnit baseUnit;
-    protected override void Initialize<U>(U initParameter)
+    public BaseComponent(BaseBattleUnit battleUnit, BaseUnit unitData)
     {
-        if(initParameter is BaseBattleUnit unit)
-        {
-            Init(unit);
-        }
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
     }
-
-    public virtual void Init(BaseBattleUnit bBU)
-    {
-        this.bBU = bBU;
-    }
-
 }

@@ -137,14 +137,14 @@ public class CombatSceneManager : MonoBehaviour
         }
     }
 
-    private void ResolveCombat(CombatReturnData data)
+    private async void ResolveCombat(CombatReturnData data)
     { 
         // We are declaring the 0 index of the list as in this implementation, the list will never have more entries inside it
         AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(userInfo: data.users[0].GetBaseUnit(), targetInfo: data.targets[0].GetBaseUnit());
 
         // Call the combat component for the user passing in info on the target. 
-        data.users[0].GetCombatComponent().StartCombat(attackResolutionInfo, data);
-        data.users[0].GetCombatComponent().OnEndCombat += EndTurn;
+        await data.users[0].GetCombatComponent().StartCombat(attackResolutionInfo, data);
+        data.users[0].GetCombatComponent().OnEndAttackingCombat += EndTurn;
     }
 
     /// <summary>

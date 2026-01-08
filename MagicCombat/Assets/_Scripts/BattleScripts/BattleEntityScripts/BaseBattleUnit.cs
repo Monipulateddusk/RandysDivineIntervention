@@ -1,8 +1,7 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
     // This event handles creation of the object. While this class handles the logistics of data, other classes handle the visual elements and thus need BaseUnit data to assign values correctly.
@@ -15,30 +14,49 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] BaseUnit unitData;
 
     [SerializeField] BaseInputManagerComponent iMComponent;
-    [SerializeField] Health hComponent;
+    [SerializeField] HealthComponent hComponent;
     [SerializeField] SpriteComponent sComponent;
-    [SerializeField] AnimationControllerComponent aCComponent;
     [SerializeField] CombatComponent cComponent;
+
+    [SerializeField] Animator unitAnimator;
+    [SerializeField] SpriteRenderer spriteRenderer;
 
     private void Awake()
     {
-        // Attach the required component for a Unit.
-        iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
-        hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
-        sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
-        aCComponent = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
-        cComponent = BaseComponent.CreateInstance<CombatComponent, BaseBattleUnit>(gameObject, this);
+        /*  Get Unity Components and Attach them    */
+        if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
+        {
+            this.spriteRenderer = spriteRenderer;
+            this.unitAnimator = animator;
+            this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
+        }
+        else
+        {
+            Debug.LogError("UNABLE TO RETRIEVE UNITY COMPONENTS ON: " + gameObject.name);
+            Debug.Break();
+        }
+
+        /*  Gain a referance to the required components for a Unit.   */
+        iMComponent = new SequentialInputManagerComponent(this, unitData);
+        hComponent = new HealthComponent(this, unitData);
+        sComponent = new SpriteComponent(this, unitData, spriteRenderer);
+        cComponent = new CombatComponent(this, unitData, gameObject.transform);
+
+
     }
 
     private void OnEnable()
     {
-        OnUnitCreated += AssignUnitData;
         OnUnitCreated?.Invoke(unitData);
     }
 
-    void AssignUnitData(BaseUnit unit)
+    /// <summary>
+    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
+    /// </summary>
+    private void OnDestroy()
     {
-        //Debug.Log("Assigning Unit Data");
+        OnUnitCreated = null;
+        OnAlterHealth = null;
     }
 
     public void Damage(int damageAmount)
@@ -52,32 +70,55 @@ public class BaseBattleUnit : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyUp(KeyCode.D))
+        if (Input.GetKeyUp(KeyCode.D))
         {
             Damage(1);
         }
-        if(Input.GetKeyUp(KeyCode.H))
-        { 
-            Heal(1); 
+        if (Input.GetKeyUp(KeyCode.H))
+        {
+            Heal(1);
         }
     }
 
-    #region Getters
-    public  BaseUnit GetBaseUnit() { return unitData; }
-    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
-    public Health GetHealthComponent() { return hComponent; }
-    public SpriteComponent GetSpriteComponent() {  return sComponent; }
-    public AnimationControllerComponent  GetAnimationControllerComponent() { return aCComponent; }
-    public CombatComponent GetCombatComponent() { return cComponent; }
+    #region Animation Methods
+    
+
+    /// <summary>
+    /// Play the Animation within the Animation Node correlating to the Attack Name
+    /// </summary>
+    public void PlayCombatAttackAnimation()
+    {
+        unitAnimator.Play(cComponent.GetCurrentAttackInformation().moveName);
+    }
+
+
+    /// <summary>
+    /// ANIMATION EVENT: Called when an Attack Animation Event triggers to do the Attack Action. Process that part of the Attack
+    /// </summary>
+    public void OnAttackActionAnimationTrigger()
+    {
+        GetCombatComponent().ProcessAttack();
+    }
+
+
+    /// <summary>
+    /// ANIMATION EVENT: Called when the End Attack Animation Event is triggered. 
+    /// </summary>
+    public async void OnAttackAnimationEnd()
+    {
+        await GetCombatComponent().OnEndAttackAnimation();
+    }
+
 
     #endregion
 
-    /// <summary>
-    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
-    /// </summary>
-    private void OnDestroy()
-    {
-        OnUnitCreated = null;
-        OnAlterHealth = null;
-    }
+    #region Getter Methods for Components
+
+    public BaseUnit GetBaseUnit() { return unitData; }
+    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
+    public HealthComponent GetHealthComponent() { return hComponent; }
+    public SpriteComponent GetSpriteComponent() {  return sComponent; }
+    public CombatComponent GetCombatComponent() { return cComponent; }
+
+    #endregion
 }
