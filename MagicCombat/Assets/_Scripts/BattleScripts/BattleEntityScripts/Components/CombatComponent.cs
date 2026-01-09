@@ -5,10 +5,8 @@ using UnityEngine;
 
 public class CombatComponent : BaseComponent
 {
-
+    /*  Transform of the Unit   */
     Transform unitTransform;
-
-    /*  Starting Position of the Unit   */
     Vector3 battleStationLocation;
 
     /*  Event: Invoked when Attacking is done   */

@@ -11,7 +11,7 @@ using UnityEngine;
 /// </summary>
 public class CombatSceneData
 {
-    public List<EnvironmentalElement> environmentalEffects;
+    public List<Element> environmentalEffects;
     public List<BaseBattleUnit> possibleTargets;
 }
 
@@ -24,17 +24,20 @@ public class CombatReturnData
     public CombatReturnData(IBattleMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
         this.battleMoveAction = battleMoveAction;
+        this.battleElementalMoveAction = null;
         targets = t;
         users = u;
     }
-    public CombatReturnData(IBattleMoveAction battleMoveAction, BaseBattleUnit u, BaseBattleUnit t)
+    public CombatReturnData(IElementalMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
-        this.battleMoveAction = battleMoveAction;
-        targets.Add(t);
-        users.Add(u);
+        this.battleMoveAction = null;
+        this.battleElementalMoveAction = battleMoveAction;
+        targets = t;
+        users = u;
     }
 
     public IBattleMoveAction battleMoveAction;
+    public IElementalMoveAction battleElementalMoveAction;
     public List<BaseBattleUnit> targets = new();
     public List<BaseBattleUnit> users = new();
 

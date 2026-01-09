@@ -4,11 +4,11 @@ using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
-/// Same order as 'EnvironmentalEffect' enum in Moves Class for easy integer conversion between the two
+/// The Element the User possesses. Able to Imbue the Environment
 /// </summary>
 public enum Element
 {
-    FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS, NULL,
+    NULL,FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS,
 }
 /// <summary>
 /// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene

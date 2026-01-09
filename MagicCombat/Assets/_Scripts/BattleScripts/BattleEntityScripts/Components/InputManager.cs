@@ -1,12 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TurnBased;
 using UnityEngine;
 
 public abstract class BaseInputManagerComponent : BaseComponent
 {
 
-    public List<IBattleMoveAction> battleMoves = new();
+    protected List<IBattleMoveAction> battleMoves = new();
 
     public BaseInputManagerComponent()
     {
@@ -27,6 +28,7 @@ public abstract class BaseInputManagerComponent : BaseComponent
 
     public abstract CombatReturnData Combat(CombatSceneData data);
 
+    public List<IBattleMoveAction> GetBattleMoves() { return battleMoves; }
 }
 
 public class RandomInputManagerComponent : BaseInputManagerComponent
@@ -64,7 +66,12 @@ public class RandomInputManagerComponent : BaseInputManagerComponent
         rIndex = Random.Range(0, data.possibleTargets.Count);
         BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        return new CombatReturnData(selectedMove, battleUnit, target);
+        List<BaseBattleUnit> users = new()
+        {
+            battleUnit
+        }, targets = new();
+        targets.Add(target);
+        return new CombatReturnData(selectedMove, users, targets);
     }
 }
 
@@ -114,6 +121,14 @@ public class SequentialInputManagerComponent : BaseInputManagerComponent
         int rIndex = Random.Range(0, data.possibleTargets.Count);
         BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        return new CombatReturnData(selectedMove, battleUnit, target);
+
+        List<BaseBattleUnit> users = new()
+        {
+            battleUnit
+        }, targets = new()
+        {
+            target
+        };
+        return new CombatReturnData(selectedMove, users, targets);
     }
 }
