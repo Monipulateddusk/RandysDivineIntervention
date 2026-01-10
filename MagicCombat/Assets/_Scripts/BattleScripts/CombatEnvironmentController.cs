@@ -3,7 +3,19 @@ using System.Linq;
 using TurnBased;
 using UnityEngine;
 
-public class CombatEnvironmentController : MonoBehaviour
+public struct ImbuedEnvironmentElement
+{
+    public bool isAllied;
+    public Element imbuedEnvironmentElement;
+
+    public ImbuedEnvironmentElement(bool isAllied, Element element)
+    {
+        this.isAllied = isAllied;
+        this.imbuedEnvironmentElement = element;
+    }
+}
+
+public class CombatEnvironmentController
 {
     /*  Elemental Look-Up Table     */
     /*  Same size as the Element Enum. Units are able to imbue the Environment with their Element to do an attack if their Ally participates.   */
@@ -18,78 +30,37 @@ public class CombatEnvironmentController : MonoBehaviour
         {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
     };
 
-    [SerializeField] private static CombatEnvironmentController _instance;
-    public static CombatEnvironmentController Instance
+    List<ImbuedEnvironmentElement> environmentEffects;
+
+    CombatEnvironmentController()
     {
-        get
+        environmentEffects = new();
+
+    }
+
+
+    public void AddEnvironmentalEffect(Element effect, bool isAlly, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    {
+        environmentEffects.Add(new ImbuedEnvironmentElement(isAlly, effect));
+
+        /*  As we loop through the environment list, add to a Queue for each effect within the list that belongs to either the Enemy or Ally (Based on the isAlly perameter). */
+        var elmEffects = new Queue<ImbuedEnvironmentElement>(environmentEffects.Where(iEE => iEE.isAllied == isAlly));
+
+        if(elmEffects.Count >= 2)
         {
-            if( _instance == null)
+            for (int i = 0; i < elmEffects.Count; i++)
             {
-                Debug.LogError("CombatEnvironmentController is null");
+                environmentEffects.Remove(elmEffects.ToList()[i]);
             }
-            return _instance;
-        }
-    }
 
-    [Header("Inspector variables")]
-    [SerializeField] List<Element> effects = new();
+            Element elementA = elmEffects.Dequeue().imbuedEnvironmentElement;
+            Element elementB = elmEffects.Dequeue().imbuedEnvironmentElement;
 
 
-    [SerializeField] SerializableDictionary<string, int> keyValuePairs = new();
-
-   
-
-    // Keep track of what the allies and the enemies are doing to display what effect is active
-    Element allyEnvirEffect, enemyEnvirEffect;
+            ProcessElementalMove(elementA, elementB, users, targets);
 
 
-    private void Awake()
-    {
-
-        // Declare the instance
-        _instance = this;
-
-    }
-
-    /// <summary>
-    /// Called by exterior classes to use their Element Enum when imbuing the environment for elemental attacks
-    /// </summary>
-    public void AddEnvironmentalElement(Element element)
-    {
-
-    }
-
-    public void AddEnvironmentalEffect(Element effect, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool isAlly)
-    {
-        // If there is no environmental effect active, make it so. If not, process the environmental move
-        switch (isAlly)
-        {
-            case true:
-
-                if(allyEnvirEffect != Element.NULL)
-                {
-                    allyEnvirEffect = effect;
-                }
-                else
-                {
-                    ProcessElementalMove(allyEnvirEffect, effect, users, targets);
-                }
-
-                break;
-
-            case false:
-                if(enemyEnvirEffect != Element.NULL)
-                {
-                    enemyEnvirEffect = effect;
-                }
-                else
-                {
-                    ProcessElementalMove(enemyEnvirEffect, effect, users, targets);
-                }
-
-            break;
-        }
-
+        }    
     }
 
     /// <summary>
@@ -100,10 +71,15 @@ public class CombatEnvironmentController : MonoBehaviour
     /// <param name="combinedEffect"></param>
     /// <param name="users"></param>
     /// <param name="targets"></param>
-    void ProcessElementalMove(Element elementValueA, Element elementValueB, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    public void ProcessElementalMove(Element elementValueA, Element elementValueB, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
     {
         // Find out what move the elements combine into and do that move to get the info needed to resolve it
         IElementalMoveAction action = ProcessElementalCombination(elementValueA, elementValueB);
+
+        if (action == null)
+        {
+            Debug.LogError("ELEMENTAL COMBINATION ERROR: NOT VALID!!!");
+        }
 
         // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
         List <UnitData> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
@@ -126,6 +102,11 @@ public class CombatEnvironmentController : MonoBehaviour
 
     IElementalMoveAction ProcessElementalCombination(Element elementValueA, Element elementValueB)
     {
-        return ElementalMoveLookUpTable[(int)elementValueA, (int)elementValueB];
+        if ((uint)elementValueA < (uint)ElementalMoveLookUpTable.GetLength(0) &&
+            (uint)elementValueB < (uint)ElementalMoveLookUpTable.GetLength(1))
+        {
+            return ElementalMoveLookUpTable[(uint)elementValueA, (uint)elementValueB];
+        }
+        return null;
     }
 }

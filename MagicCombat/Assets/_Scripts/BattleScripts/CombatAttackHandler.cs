@@ -1,4 +1,6 @@
+using System;
 using TurnBased;
+
 
 /// <summary>
 /// This class will be globally accessable to units so they can feed information 
@@ -26,9 +28,9 @@ public static class CombatAttackHandler
                     t.Heal(attackAction.Value);
                     break;
 
-                    // Call the CombatEnvironmentController to keep track of the environment condition
+                    // Call the CombatEnvironmentHandler to keep track of the environment condition
                 case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                    CombatEnvironmentController.Instance.AddEnvironmentalElement(attackAction.ElementEffect);
+                    
                     break;
 
 
