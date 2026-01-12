@@ -26,7 +26,7 @@ public class EM_Inferno : IElementalMoveAction
         {
             if (unit.element == Element.FIRE)
             {
-                totalAttackValue = +unit.attack;
+                totalAttackValue += unit.attack;
             }
         }
 
@@ -55,7 +55,7 @@ public class EM_Steam : IElementalMoveAction
         {
             if (unit.element == Element.WATER)
             {
-                totalAttackValue = +unit.attack;
+                totalAttackValue += unit.attack;
             }
         }
 

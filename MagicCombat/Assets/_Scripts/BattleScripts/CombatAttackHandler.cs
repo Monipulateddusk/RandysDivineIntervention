@@ -7,11 +7,7 @@ using TurnBased;
 /// </summary>
 public static class CombatAttackHandler
 {
-    /// <summary>
-    /// Is called by units when doing moves but also by the environment moves handler
-    /// </summary>
-    /// <param name="attackAction"></param>
-    public static void ProcessAttack(AttackResolutionInfo currentAttackInfo, CombatReturnData attackInfo)
+    public static void ProcessAttack(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, CombatReturnData attackInfo)
     {
 
         AttackAction attackAction = currentAttackInfo.Actions[0];
@@ -20,7 +16,6 @@ public static class CombatAttackHandler
             switch (attackAction.Type)
             {
                 case AttackAction.ActionType.DAMAGE:
-                    //Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
                     t.Damage(attackAction.Value);
 
                     break;
@@ -30,7 +25,7 @@ public static class CombatAttackHandler
 
                     // Call the CombatEnvironmentHandler to keep track of the environment condition
                 case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                    
+                    environmentController.AddEnvironmentalEffect(attackAction.ElementEffect, attackInfo.teamSource, attackInfo.users, attackInfo.targets);
                     break;
 
 

@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 
+public enum UnitTeam { ALLY, ENEMY};
+
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
@@ -12,6 +14,7 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] UnitData unitData;
     [SerializeField] Animator unitAnimator;
     [SerializeField] SpriteRenderer unitSpriteRenderer;
+    [SerializeField] UnitTeam team;
 
     /*  Custom Components for the Unit. Using Dependency Injection  */
     BaseInputManagerComponent unitInputManagerComponent;
@@ -19,6 +22,7 @@ public class BaseBattleUnit : MonoBehaviour
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
 
+    protected ICombatMediator concreteMediator;
 
     private void Awake()
     {
@@ -70,15 +74,23 @@ public class BaseBattleUnit : MonoBehaviour
         }
     }
 
+    public void NotifyMediator(string ev)
+    {
+        concreteMediator?.Notify(this, ev);
+    }
+
     #region Animation Methods
-    
+
 
     /// <summary>
     /// Play the Animation within the Animation Node correlating to the Attack Name
     /// </summary>
     public void PlayCombatAttackAnimation()
     {
-        unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
+        if (unitAnimator != null)
+        {
+            unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
+        }
     }
 
 
@@ -87,7 +99,7 @@ public class BaseBattleUnit : MonoBehaviour
     /// </summary>
     public void OnAttackActionAnimationTrigger()
     {
-        GetCombatComponent().ProcessAttack();
+        NotifyMediator("Attack");
     }
 
 
@@ -102,13 +114,16 @@ public class BaseBattleUnit : MonoBehaviour
 
     #endregion
 
-    #region Getter Methods for Components
+    #region Getter/Setter Methods
 
     public UnitData GetBaseUnit() { return unitData; }
     public BaseInputManagerComponent GetInputManagerComponent() { return unitInputManagerComponent; }
     public HealthComponent GetHealthComponent() { return unitHealthComponent; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
+    public void SetTeam(UnitTeam team) { this.team = team; }
+    public UnitTeam GetTeam() { return team; }
+    public void SetMediator(ICombatMediator mediator) { concreteMediator = mediator; }
 
     #endregion
 }

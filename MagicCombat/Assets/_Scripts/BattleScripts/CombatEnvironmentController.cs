@@ -5,12 +5,12 @@ using UnityEngine;
 
 public struct ImbuedEnvironmentElement
 {
-    public bool isAllied;
+    public UnitTeam team;
     public Element imbuedEnvironmentElement;
 
-    public ImbuedEnvironmentElement(bool isAllied, Element element)
+    public ImbuedEnvironmentElement(UnitTeam team, Element element)
     {
-        this.isAllied = isAllied;
+        this.team = team;
         this.imbuedEnvironmentElement = element;
     }
 }
@@ -30,26 +30,27 @@ public class CombatEnvironmentController
         {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
     };
 
-    List<ImbuedEnvironmentElement> environmentEffects;
+    private readonly List<ImbuedEnvironmentElement> environmentEffects;
 
-    CombatEnvironmentController()
+    public CombatEnvironmentController()
     {
         environmentEffects = new();
-
     }
 
-
-    public void AddEnvironmentalEffect(Element effect, bool isAlly, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    public void AddEnvironmentalEffect(Element effect, UnitTeam team, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
     {
-        environmentEffects.Add(new ImbuedEnvironmentElement(isAlly, effect));
+        Debug.Log("Imbuing effect: " + effect.ToString());
+        environmentEffects.Add(new ImbuedEnvironmentElement(team, effect));
 
         /*  As we loop through the environment list, add to a Queue for each effect within the list that belongs to either the Enemy or Ally (Based on the isAlly perameter). */
-        var elmEffects = new Queue<ImbuedEnvironmentElement>(environmentEffects.Where(iEE => iEE.isAllied == isAlly));
+        var elmEffects = new Queue<ImbuedEnvironmentElement>(environmentEffects.Where(iEE => iEE.team == team));
 
         if(elmEffects.Count >= 2)
         {
+            /*  Once a move is determined and set to be executed, Clear the elemental list of the team specified by isAlly.  */
             for (int i = 0; i < elmEffects.Count; i++)
             {
+                Debug.Log("Removing effect: " + elmEffects.ToList()[i].imbuedEnvironmentElement.ToString());
                 environmentEffects.Remove(elmEffects.ToList()[i]);
             }
 
@@ -57,10 +58,8 @@ public class CombatEnvironmentController
             Element elementB = elmEffects.Dequeue().imbuedEnvironmentElement;
 
 
-            ProcessElementalMove(elementA, elementB, users, targets);
-
-
-        }    
+            ProcessElementalMove(elementA, elementB, team, users, targets);
+        }
     }
 
     /// <summary>
@@ -71,7 +70,7 @@ public class CombatEnvironmentController
     /// <param name="combinedEffect"></param>
     /// <param name="users"></param>
     /// <param name="targets"></param>
-    public void ProcessElementalMove(Element elementValueA, Element elementValueB, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    public void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
     {
         // Find out what move the elements combine into and do that move to get the info needed to resolve it
         IElementalMoveAction action = ProcessElementalCombination(elementValueA, elementValueB);
@@ -82,21 +81,25 @@ public class CombatEnvironmentController
         }
 
         // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
-        List <UnitData> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
-        List<UnitData> baseUnitsTargets = targets.Select(user => user.GetBaseUnit()).ToList();
+        List<UnitData> baseUnitsUsers = new();
+        List<UnitData> baseUnitsTargets = new();
+
+        foreach (BaseBattleUnit unit in users)
+        {
+            baseUnitsUsers.Add(unit.GetBaseUnit());
+        }
+        foreach (BaseBattleUnit unit in targets)
+        {
+            baseUnitsTargets.Add(unit.GetBaseUnit());
+        }
+
 
         AttackResolutionInfo info = action.DoElementalMove(usersInfo: baseUnitsUsers, targetsInfo: baseUnitsTargets);
 
-        // Once a move is determined and set to be executed, clear the elemental list of either the Ally or Enemy depending
-   
+        Debug.Log("PROCESSING MOVE: " + info.moveName);
 
-        // Execute the move by calling the ProcessAttack function in CombatAttackHandler as many times as there are Actions in the attack
-        foreach(AttackAction a in info.Actions)
-        {
-            // Convert into CombatReturnData
-            CombatReturnData data = new(action, users, targets);
-            CombatAttackHandler.ProcessAttack(info, data);
-        }
+        CombatReturnData data = new(action, team, users, targets);
+        CombatAttackHandler.ProcessAttack(this, info, data);
     }
 
 

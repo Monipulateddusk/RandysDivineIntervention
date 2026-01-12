@@ -39,13 +39,6 @@ public class CombatComponent : BaseComponent
         unitTransform = null;
     }
 
-    /// <summary>
-    /// Called externally from animationControllerComponent when an attack is animated to process the attack.
-    /// </summary>
-    public void ProcessAttack()
-    {
-        CombatAttackHandler.ProcessAttack(currentAttackInfo, combatReturnData);
-    }
     public async Task StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {
         currentAttackInfo = info;

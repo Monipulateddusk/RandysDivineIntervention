@@ -21,21 +21,24 @@ public class CombatSceneData
 public class CombatReturnData
 {
     public CombatReturnData() { }
-    public CombatReturnData(IBattleMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
+    public CombatReturnData(IBattleMoveAction battleMoveAction, UnitTeam source, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
         this.battleMoveAction = battleMoveAction;
         this.battleElementalMoveAction = null;
+        this.teamSource = source;
         targets = t;
         users = u;
     }
-    public CombatReturnData(IElementalMoveAction battleMoveAction, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
+    public CombatReturnData(IElementalMoveAction battleMoveAction, UnitTeam source, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
     {
         this.battleMoveAction = null;
         this.battleElementalMoveAction = battleMoveAction;
+        this.teamSource = source;
         targets = t;
         users = u;
     }
 
+    public UnitTeam teamSource;
     public IBattleMoveAction battleMoveAction;
     public IElementalMoveAction battleElementalMoveAction;
     public List<BaseBattleUnit> targets = new();
@@ -46,11 +49,26 @@ public class CombatReturnData
 
 public class CombatSceneManager : MonoBehaviour
 {
+    private static CombatSceneManager instance;
+
+    public static CombatSceneManager Instance
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = new GameObject("CombatSceneManager").AddComponent<CombatSceneManager>();
+            }
+            return instance;
+        }
+    }
+
     public enum BattleState { PRECOMBAT, PLAYER_1_TURN, PLAYER_2_TURN, ENEMY_1_TURN, ENEMY_2_TURN, ENEMY_3_TURN, ENEMY_4_TURN, START_BATTLE, WON, LOST };
     [SerializeField] List<BaseBattleUnit> enemyUnits = new();
     [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
     readonly CombatSceneData combatSceneData = new();
+    CombatEnvironmentController combatEnvironmentController = new();
 
     [SerializeField] Transform[] playerBattleStations;
     [SerializeField] Transform[] enemyBattleStations;
@@ -62,10 +80,25 @@ public class CombatSceneManager : MonoBehaviour
     [Header("UI Variables")]
     [SerializeField] TextMeshProUGUI turnText;
 
+    CombatMediator combatMediator;
 
+    private void Awake()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            DestroyImmediate(this.gameObject);
+        }
+    }
 
     private void Start()
     {
+        combatMediator = new CombatMediator(combatEnvironmentController);
+
+
         battleState = BattleState.START_BATTLE;
         HandleCombatTurns();
 
@@ -77,7 +110,10 @@ public class CombatSceneManager : MonoBehaviour
         int i = 0;
         foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies").Cast<GameObject>())
         {
-            enemyUnits.Add(Instantiate(obj, enemyBattleStations[i]).GetComponent<BaseBattleUnit>());
+            BaseBattleUnit enemyUnit = Instantiate(obj, enemyBattleStations[i]).GetComponent<BaseBattleUnit>();
+            enemyUnit.SetMediator(combatMediator);
+            enemyUnit.SetTeam(UnitTeam.ENEMY);
+            enemyUnits.Add(enemyUnit);
             i++;
         }
 
@@ -86,7 +122,11 @@ public class CombatSceneManager : MonoBehaviour
         i = 0;
         foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players").Cast<GameObject>())
         {
-            playerUnits.Add(Instantiate(obj, playerBattleStations[i]).GetComponent<BaseBattleUnit>());
+            BaseBattleUnit allyUnit = Instantiate(obj, playerBattleStations[i]).GetComponent<BaseBattleUnit>();
+            allyUnit.SetMediator(combatMediator);
+            allyUnit.SetTeam(UnitTeam.ALLY);
+            playerUnits.Add(allyUnit);
+
             i++;
         }
 
