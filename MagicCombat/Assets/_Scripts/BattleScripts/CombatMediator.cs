@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using TurnBased;
-using UnityEngine;
 
 /*  Mediator for handling Attack processing Timing. Concrete Mediator owned by CombatSceneManager and Notified by Unity Animation Events or by directly calling the Method. */
 public interface ICombatMediator
@@ -11,7 +8,7 @@ public interface ICombatMediator
 
 public class CombatMediator : ICombatMediator
 {
-    private CombatEnvironmentController environmentController;
+    private readonly CombatEnvironmentController environmentController;
     public CombatMediator(CombatEnvironmentController envController)
     {
         environmentController = envController;

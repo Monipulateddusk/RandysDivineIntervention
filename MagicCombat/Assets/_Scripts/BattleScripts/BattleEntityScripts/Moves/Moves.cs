@@ -1,7 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using TurnBased;
-using UnityEngine;
 
 namespace TurnBased
 {
@@ -51,7 +48,6 @@ namespace TurnBased
     /// <summary>
     /// An attack that does the user's full damage stat to the target
     /// </summary>
-    [System.Serializable]
     public class HeavyAttack : IBattleMoveAction
     {
         public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)

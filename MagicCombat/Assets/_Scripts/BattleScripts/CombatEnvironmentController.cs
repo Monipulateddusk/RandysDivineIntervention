@@ -80,7 +80,6 @@ public class CombatEnvironmentController
             Debug.LogError("ELEMENTAL COMBINATION ERROR: NOT VALID!!!");
         }
 
-        // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
         List<UnitData> baseUnitsUsers = new();
         List<UnitData> baseUnitsTargets = new();
 
@@ -99,7 +98,12 @@ public class CombatEnvironmentController
         Debug.Log("PROCESSING MOVE: " + info.moveName);
 
         CombatReturnData data = new(action, team, users, targets);
-        CombatAttackHandler.ProcessAttack(this, info, data);
+
+        int actionsCount = info.Actions.Count;
+        for (int i = 0; i < actionsCount; i++)
+        {
+            CombatAttackHandler.ProcessAttack(this, info, data);
+        }
     }
 
 

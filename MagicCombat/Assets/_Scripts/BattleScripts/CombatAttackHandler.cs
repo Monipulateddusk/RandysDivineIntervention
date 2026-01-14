@@ -9,35 +9,35 @@ public static class CombatAttackHandler
 {
     public static void ProcessAttack(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, CombatReturnData attackInfo)
     {
-
-        AttackAction attackAction = currentAttackInfo.Actions[0];
-        foreach (BaseBattleUnit t in attackInfo.targets)
+        if (currentAttackInfo.Actions.Count > 0)
         {
-            switch (attackAction.Type)
+            AttackAction attackAction = currentAttackInfo.Actions[0];
+            foreach (BaseBattleUnit t in attackInfo.targets)
             {
-                case AttackAction.ActionType.DAMAGE:
-                    t.Damage(attackAction.Value);
+                switch (attackAction.Type)
+                {
+                    case AttackAction.ActionType.DAMAGE:
+                        t.Damage(attackAction.Value);
 
-                    break;
-                case AttackAction.ActionType.HEALING:
-                    t.Heal(attackAction.Value);
-                    break;
+                        break;
+                    case AttackAction.ActionType.HEALING:
+                        t.Heal(attackAction.Value);
+                        break;
 
                     // Call the CombatEnvironmentHandler to keep track of the environment condition
-                case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                    environmentController.AddEnvironmentalEffect(attackAction.ElementEffect, attackInfo.teamSource, attackInfo.users, attackInfo.targets);
-                    break;
+                    case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
+                        environmentController.AddEnvironmentalEffect(attackAction.ElementEffect, attackInfo.teamSource, attackInfo.users, attackInfo.targets);
+                        break;
 
 
                     // Call the status handler passing in the attack action information so that class knows what targets are going to get what status
-                case AttackAction.ActionType.STATUS_EFFECT:
+                    case AttackAction.ActionType.STATUS_EFFECT:
 
-                    break;
+                        break;
+                }
             }
+            // Remove the move when it is done. If we have a multi-part move, with different attack values, this is how it should be done
+            currentAttackInfo.Actions.Remove(attackAction);
         }
-        // Remove the move when it is done. If we have a multi-part move, with different attack values, this is how it should be done
-        currentAttackInfo.Actions.Remove(attackAction);
     }
-
-
 }

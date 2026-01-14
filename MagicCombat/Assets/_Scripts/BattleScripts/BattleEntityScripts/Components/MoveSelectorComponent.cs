@@ -2,19 +2,19 @@ using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
 
-public abstract class BaseInputManagerComponent : BaseComponent
+public abstract class BaseMoveSelectorComponent : BaseComponent
 {
 
     protected List<IBattleMoveAction> battleMoves = new();
 
-    public BaseInputManagerComponent()
+    public BaseMoveSelectorComponent()
     {
         battleUnit = null;
         unitData = null;
         battleMoves = null;
     }
 
-    public BaseInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    public BaseMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
@@ -29,16 +29,9 @@ public abstract class BaseInputManagerComponent : BaseComponent
     public List<IBattleMoveAction> GetBattleMoves() { return battleMoves; }
 }
 
-public class RandomInputManagerComponent : BaseInputManagerComponent
+public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
 {
-    RandomInputManagerComponent()
-    {
-        battleUnit = null;
-        unitData = null;
-        battleMoves = null;
-    }
-
-    public RandomInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    public RandomMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
@@ -76,18 +69,11 @@ public class RandomInputManagerComponent : BaseInputManagerComponent
     }
 }
 
-public class SequentialInputManagerComponent : BaseInputManagerComponent
+public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
 {
     int curMoveIndex = 0;
 
-    SequentialInputManagerComponent()
-    {
-        battleUnit = null;
-        unitData = null;
-        battleMoves = null;
-    }
-
-    public SequentialInputManagerComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    public SequentialMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
