@@ -97,7 +97,7 @@ public class CombatEnvironmentController
 
         Debug.Log("PROCESSING MOVE: " + info.moveName);
 
-        CombatReturnData data = new(action, team, users, targets);
+        CombatReturnData data = new(action, team, users.FirstOrDefault(), users, targets);
 
         int actionsCount = info.Actions.Count;
         for (int i = 0; i < actionsCount; i++)

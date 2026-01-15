@@ -8,16 +8,6 @@ namespace TurnBased
         NULL,
     }
 
-    public enum MoveTarget
-    {
-        Self,
-        SingleEnemy,
-        SingleAlly,
-        AllEnemies,
-        AllAllies,
-        Area
-    }
-
     [System.Serializable]
     public class AttackAction
     {
@@ -54,8 +44,9 @@ namespace TurnBased
     public interface IBattleMoveAction
     {
         public abstract AttackResolutionInfo ExecuteMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
-        MoveTarget GetMoveTargetType();
-        int GetMaxTargets();
+        public MoveTarget GetMoveTargetType();
+        public int GetMaxTargets();
+        public bool DoesSourceUnitMove();
     }
 
     /// <summary>
@@ -75,6 +66,7 @@ namespace TurnBased
 
         public int GetMaxTargets() => 1;
         public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
+        public bool DoesSourceUnitMove() => true;   
     }
 
     /// <summary>
@@ -98,6 +90,7 @@ namespace TurnBased
 
         public int GetMaxTargets() => 1;
         public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
+        public bool DoesSourceUnitMove() => true;
     }
 
     /// <summary>
@@ -119,5 +112,6 @@ namespace TurnBased
 
         public int GetMaxTargets() => 0;
         public MoveTarget GetMoveTargetType() => MoveTarget.Area;
+        public bool DoesSourceUnitMove() => false;
     }
 }

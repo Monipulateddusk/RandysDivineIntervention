@@ -37,28 +37,38 @@ public class CombatSceneData
 public class CombatReturnData
 {
     public CombatReturnData() { }
-    public CombatReturnData(IBattleMoveAction battleMoveAction, UnitTeam source, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
+    public CombatReturnData(IBattleMoveAction battleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
     {
         this.battleMoveAction = battleMoveAction;
         this.battleElementalMoveAction = null;
+
         this.teamSource = source;
-        targets = t;
-        users = u;
+        this.sourceUnit = unitSource;
+        this.users = users;
+        this.targets = targets;
+
+        this.requiresMovement = requiresMovement;
     }
-    public CombatReturnData(IElementalMoveAction battleMoveAction, UnitTeam source, List<BaseBattleUnit> u, List<BaseBattleUnit> t)
+    public CombatReturnData(IElementalMoveAction elementalBattleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
     {
         this.battleMoveAction = null;
-        this.battleElementalMoveAction = battleMoveAction;
-        this.teamSource = source;
-        targets = t;
-        users = u;
-    }
+        this.battleElementalMoveAction = elementalBattleMoveAction;
 
+        this.teamSource = source;
+        this.sourceUnit = unitSource;
+        this.users = users;
+        this.targets = targets;
+
+        this.requiresMovement = requiresMovement;
+    }
+    public BaseBattleUnit sourceUnit;
+    public List<BaseBattleUnit> users = new();
+    public List<BaseBattleUnit> targets = new();
     public UnitTeam teamSource;
     public IBattleMoveAction battleMoveAction;
     public IElementalMoveAction battleElementalMoveAction;
-    public List<BaseBattleUnit> targets = new();
-    public List<BaseBattleUnit> users = new();
+    public bool requiresMovement;
+
 
     public void AddEntryToList(BaseBattleUnit entry, List<BaseBattleUnit> list) { list.Add(entry); }
 }
@@ -196,20 +206,29 @@ public class CombatSceneManager : MonoBehaviour
         }
     }
 
-    private async Task ResolveCombat(MoveSelectionData data)
+    private async Task ResolveCombat(MoveSelectionData moveSelectionData, UnitTargettingnData unitTargettingnData)
     {
         // We are declaring the 0 index of the list as in this implementation, the list will never have more entries inside it
-        List<UnitData> alliesData = data.Allies.Select(u => u.GetBaseUnit()).ToList();
-        List<UnitData> targetData = data.Targets.Select(u => u.GetBaseUnit()).ToList();
+        List<UnitData> alliesData = moveSelectionData.Allies.Select(u => u.GetBaseUnit()).ToList();
+        List<UnitData> targetData = moveSelectionData.Targets.Select(u => u.GetBaseUnit()).ToList();
 
-        AttackResolutionInfo attackResolutionInfo = data.SelectedMove.ExecuteMove(usersInfo: alliesData, userInfo: data.SourceUnit.GetBaseUnit(),targetsInfo: targetData, targetInfo: data.Targets[0].GetBaseUnit());
+        AttackResolutionInfo attackResolutionInfo = moveSelectionData.SelectedMove.ExecuteMove(usersInfo: alliesData, userInfo: moveSelectionData.SourceUnit.GetBaseUnit(),targetsInfo: targetData, targetInfo: moveSelectionData.Targets.FirstOrDefault().GetBaseUnit());
 
         // Call the combat component for the user passing in info on the target. 
-        data.SourceUnit.GetCombatComponent().OnEndAttackingCombat += EndTurn;
+        moveSelectionData.SourceUnit.GetCombatComponent().OnEndAttackingCombat += EndTurn;
 
 
-        // IMPORTANT:: WE ARE RETURNING A NULL COMBAT RETURN DATA WHILE WE WORK ON CREATING UNIT SELECTION!!!!
-        await data.SourceUnit.GetCombatComponent().StartCombat(attackResolutionInfo, new CombatReturnData());
+        // Create CombatReturnData with what we know from the other stages
+        CombatReturnData combatReturnData = new CombatReturnData()
+        {
+            sourceUnit = moveSelectionData.SourceUnit,
+            users = moveSelectionData.Allies,
+            targets = unitTargettingnData.Targets,
+            teamSource = moveSelectionData.SourceTeam,
+            battleMoveAction = moveSelectionData.SelectedMove,
+            requiresMovement = moveSelectionData.SelectedMove.DoesSourceUnitMove()
+        };
+        await moveSelectionData.SourceUnit.GetCombatComponent().StartCombat(attackResolutionInfo, combatReturnData);
 
     }
 
@@ -248,9 +267,11 @@ public class CombatSceneManager : MonoBehaviour
         // Call the Combat function from the InputManager class and send data about the scene to it
         if (user != null)
         {
-            MoveSelectionData data = user.GetMoveSelectorComponent().SelectMove(combatSceneData);
-            
-            _ = ResolveCombat(data);
+            MoveSelectionData moveSelectionData = user.GetMoveSelectorComponent().SelectMove(combatSceneData);
+            UnitTargettingnData unitSelectionData = user.GetUnitTargettingComponent().SelectTargets(moveSelectionData);
+
+
+            _ = ResolveCombat(moveSelectionData, unitSelectionData);
         }
     }
 
