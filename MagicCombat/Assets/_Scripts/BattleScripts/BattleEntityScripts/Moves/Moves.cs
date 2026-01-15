@@ -7,6 +7,17 @@ namespace TurnBased
     {
         NULL,
     }
+
+    public enum MoveTarget
+    {
+        Self,
+        SingleEnemy,
+        SingleAlly,
+        AllEnemies,
+        AllAllies,
+        Area
+    }
+
     [System.Serializable]
     public class AttackAction
     {
@@ -42,7 +53,9 @@ namespace TurnBased
 
     public interface IBattleMoveAction
     {
-        public abstract AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
+        public abstract AttackResolutionInfo ExecuteMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
+        MoveTarget GetMoveTargetType();
+        int GetMaxTargets();
     }
 
     /// <summary>
@@ -50,7 +63,7 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -59,6 +72,9 @@ namespace TurnBased
             resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 1;
+        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
     }
 
     /// <summary>
@@ -66,7 +82,7 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -79,6 +95,9 @@ namespace TurnBased
 
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 1;
+        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
     }
 
     /// <summary>
@@ -86,7 +105,7 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -97,5 +116,8 @@ namespace TurnBased
             resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element));
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 0;
+        public MoveTarget GetMoveTargetType() => MoveTarget.Area;
     }
 }

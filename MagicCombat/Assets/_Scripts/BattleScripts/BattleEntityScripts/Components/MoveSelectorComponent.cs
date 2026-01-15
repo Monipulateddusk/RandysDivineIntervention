@@ -2,6 +2,26 @@ using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
 
+
+public class MoveSelectionData
+{
+    public BaseBattleUnit SourceUnit;
+    public UnitTeam SourceTeam;
+    public IBattleMoveAction SelectedMove;
+
+    public List<BaseBattleUnit> Allies;
+    public List<BaseBattleUnit> Targets;
+
+    public MoveSelectionData(BaseBattleUnit sourceUnit, UnitTeam sourceTeam, IBattleMoveAction selectedMove, List<BaseBattleUnit> allies, List<BaseBattleUnit> targets)
+    {
+        this.SourceUnit = sourceUnit;
+        this.SourceTeam = sourceTeam;
+        this.SelectedMove = selectedMove;
+        this.Allies = allies;
+        this.Targets = targets;
+    }
+}
+
 public abstract class BaseMoveSelectorComponent : BaseComponent
 {
 
@@ -24,7 +44,7 @@ public abstract class BaseMoveSelectorComponent : BaseComponent
         this.battleMoves = unitData.moves;
     }
 
-    public abstract CombatReturnData Combat(CombatSceneData data);
+    public abstract MoveSelectionData SelectMove(CombatSceneData data);
 
     public List<IBattleMoveAction> GetBattleMoves() { return battleMoves; }
 }
@@ -46,26 +66,15 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override CombatReturnData Combat(CombatSceneData data)
+    public override MoveSelectionData SelectMove(CombatSceneData data)
     {
         // Select a random move to perform
         int rIndex = Random.Range(0, battleMoves.Count);
 
         IBattleMoveAction selectedMove = battleMoves[rIndex];
 
-        // Use the param of the function to select between targets
-        rIndex = Random.Range(0, data.possibleTargets.Count);
-        BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        List<BaseBattleUnit> users = new()
-        {
-            battleUnit
-        }, 
-        targets = new()
-        {
-            target
-        };
-        return new CombatReturnData(selectedMove, battleUnit.GetTeam(), users, targets);
+        return new MoveSelectionData(battleUnit, battleUnit.GetTeam(), selectedMove, data.allies, data.targets);
     }
 }
 
@@ -89,7 +98,7 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override CombatReturnData Combat(CombatSceneData data)
+    public override MoveSelectionData SelectMove(CombatSceneData data)
     {
         // If the index exceeds the count on the list, set it to the start of the list (0).
         // This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
@@ -103,19 +112,7 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         // Increment the index after everything is decided
         curMoveIndex++;
 
-        // We will still randomly gen a target from the possible targets
-        // Use the param of the function to select between targets
-        int rIndex = Random.Range(0, data.possibleTargets.Count);
-        BaseBattleUnit target = data.possibleTargets[rIndex];
 
-
-        List<BaseBattleUnit> users = new()
-        {
-            battleUnit
-        }, targets = new()
-        {
-            target
-        };
-        return new CombatReturnData(selectedMove, battleUnit.GetTeam(), users, targets);
+        return new MoveSelectionData(battleUnit, battleUnit.GetTeam(), selectedMove, data.allies, data.targets);
     }
 }

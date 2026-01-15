@@ -17,7 +17,7 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] UnitTeam team;
 
     /*  Custom Components for the Unit. Using Dependency Injection  */
-    BaseMoveSelectorComponent unitInputManagerComponent;
+    BaseMoveSelectorComponent unitMoveSelectorComponent;
     HealthComponent unitHealthComponent;
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
@@ -40,7 +40,7 @@ public class BaseBattleUnit : MonoBehaviour
         }
 
         /*  Gain a referance to the required components for a Unit.   */
-        unitInputManagerComponent = new SequentialMoveSelectorComponent(this, unitData);
+        unitMoveSelectorComponent = new SequentialMoveSelectorComponent(this, unitData);
         unitHealthComponent = new HealthComponent(this, unitData);
         unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
         unitCombatComponent = new CombatComponent(this, unitData, gameObject.transform);
@@ -117,7 +117,7 @@ public class BaseBattleUnit : MonoBehaviour
     #region Getter/Setter Methods
 
     public UnitData GetBaseUnit() { return unitData; }
-    public BaseMoveSelectorComponent GetInputManagerComponent() { return unitInputManagerComponent; }
+    public BaseMoveSelectorComponent GetMoveSelectorComponent() { return unitMoveSelectorComponent; }
     public HealthComponent GetHealthComponent() { return unitHealthComponent; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }

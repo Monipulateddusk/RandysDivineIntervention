@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using TMPro;
 using TurnBased;
 using UnityEngine;
@@ -12,7 +13,22 @@ using UnityEngine;
 public class CombatSceneData
 {
     public List<Element> environmentalEffects;
-    public List<BaseBattleUnit> possibleTargets;
+    public List<BaseBattleUnit> targets;
+    public List<BaseBattleUnit> allies;
+
+    public CombatSceneData()
+    {
+        environmentalEffects = new List<Element>();
+        targets = new List<BaseBattleUnit>();
+        allies = new List<BaseBattleUnit>();
+    }
+
+    public CombatSceneData(List<Element> environmentalEffects, List<BaseBattleUnit> targets, List<BaseBattleUnit> allies)
+    {
+        this.environmentalEffects = environmentalEffects;
+        this.targets = targets;
+        this.allies = allies;
+    }
 }
 
 /// <summary>
@@ -67,7 +83,7 @@ public class CombatSceneManager : MonoBehaviour
     [SerializeField] List<BaseBattleUnit> enemyUnits = new();
     [SerializeField] List<BaseBattleUnit> playerUnits = new();
 
-    readonly CombatSceneData combatSceneData = new();
+    readonly CombatSceneData combatSceneData = new CombatSceneData();
     CombatEnvironmentController combatEnvironmentController = new();
 
     [SerializeField] Transform[] playerBattleStations;
@@ -180,14 +196,21 @@ public class CombatSceneManager : MonoBehaviour
         }
     }
 
-    private async void ResolveCombat(CombatReturnData data)
-    { 
+    private async Task ResolveCombat(MoveSelectionData data)
+    {
         // We are declaring the 0 index of the list as in this implementation, the list will never have more entries inside it
-        AttackResolutionInfo attackResolutionInfo = data.battleMoveAction.DoMove(userInfo: data.users[0].GetBaseUnit(), targetInfo: data.targets[0].GetBaseUnit());
+        List<UnitData> alliesData = data.Allies.Select(u => u.GetBaseUnit()).ToList();
+        List<UnitData> targetData = data.Targets.Select(u => u.GetBaseUnit()).ToList();
+
+        AttackResolutionInfo attackResolutionInfo = data.SelectedMove.ExecuteMove(usersInfo: alliesData, userInfo: data.SourceUnit.GetBaseUnit(),targetsInfo: targetData, targetInfo: data.Targets[0].GetBaseUnit());
 
         // Call the combat component for the user passing in info on the target. 
-        await data.users[0].GetCombatComponent().StartCombat(attackResolutionInfo, data);
-        data.users[0].GetCombatComponent().OnEndAttackingCombat += EndTurn;
+        data.SourceUnit.GetCombatComponent().OnEndAttackingCombat += EndTurn;
+
+
+        // IMPORTANT:: WE ARE RETURNING A NULL COMBAT RETURN DATA WHILE WE WORK ON CREATING UNIT SELECTION!!!!
+        await data.SourceUnit.GetCombatComponent().StartCombat(attackResolutionInfo, new CombatReturnData());
+
     }
 
     /// <summary>
@@ -216,16 +239,18 @@ public class CombatSceneManager : MonoBehaviour
     /// 
     /// TO DO: Delays to invoke animation, movement around scene, death anims, etc
     /// </summary>
-    void ProcessCombatForUnit(BaseBattleUnit user, List<BaseBattleUnit> targets)
+    void ProcessCombatForUnit(BaseBattleUnit user, List<BaseBattleUnit> allies, List<BaseBattleUnit> targets)
     {
         // Fill out the combat data with the required info that this unit would require. I.e. Possible targets for ally units would only be the enemy units
-        combatSceneData.possibleTargets = targets;
+        combatSceneData.targets = targets;
+        combatSceneData.allies = allies;
 
         // Call the Combat function from the InputManager class and send data about the scene to it
         if (user != null)
         {
-            CombatReturnData data = user.GetInputManagerComponent().Combat(combatSceneData);
-            ResolveCombat(data);
+            MoveSelectionData data = user.GetMoveSelectorComponent().SelectMove(combatSceneData);
+            
+            _ = ResolveCombat(data);
         }
     }
 
@@ -238,7 +263,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(playerBattleStations[0]));
 
-            ProcessCombatForUnit(playerUnits[0], enemyUnits);
+            ProcessCombatForUnit(playerUnits[0], playerUnits, enemyUnits);
         }
     }
 
@@ -250,7 +275,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(playerBattleStations[1]));
 
-            ProcessCombatForUnit(playerUnits[1], enemyUnits);
+            ProcessCombatForUnit(playerUnits[1], playerUnits, enemyUnits);
         }
     }
 
@@ -262,7 +287,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[0]));
 
-            ProcessCombatForUnit(enemyUnits[0], playerUnits);
+            ProcessCombatForUnit(enemyUnits[0], enemyUnits, playerUnits);
         }
     }
 
@@ -274,7 +299,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[1]));
 
-            ProcessCombatForUnit(enemyUnits[1], playerUnits);
+            ProcessCombatForUnit(enemyUnits[1], enemyUnits, playerUnits);
         }
     }
 
@@ -286,7 +311,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[2]));
 
-            ProcessCombatForUnit(enemyUnits[2], playerUnits);
+            ProcessCombatForUnit(enemyUnits[2], enemyUnits, playerUnits);
         }
     }
     private void HandleEnemy4Turn()
@@ -298,7 +323,7 @@ public class CombatSceneManager : MonoBehaviour
         {
             StartCoroutine(MoveArrowToTurnObject(enemyBattleStations[3]));
 
-            ProcessCombatForUnit(enemyUnits[3], playerUnits);
+            ProcessCombatForUnit(enemyUnits[2], enemyUnits, playerUnits);
         }
         
     }
