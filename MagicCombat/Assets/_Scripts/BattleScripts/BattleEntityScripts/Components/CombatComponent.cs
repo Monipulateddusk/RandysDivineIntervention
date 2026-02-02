@@ -35,7 +35,6 @@ public class CombatComponent : BaseComponent
     ~CombatComponent()
     {
         currentAttackInfo = null;
-        combatReturnData = null;
         unitTransform = null;
     }
 

@@ -97,13 +97,8 @@ public class CombatEnvironmentController
 
         Debug.Log("PROCESSING MOVE: " + info.moveName);
 
-        CombatReturnData data = new(action, team, users.FirstOrDefault(), users, targets);
+        //CombatAttackHandler.ProcessAttackStep(this, info, users.FirstOrDefault().GetUnitIntentData());
 
-        int actionsCount = info.Actions.Count;
-        for (int i = 0; i < actionsCount; i++)
-        {
-            CombatAttackHandler.ProcessAttack(this, info, data);
-        }
     }
 
 
@@ -116,4 +111,6 @@ public class CombatEnvironmentController
         }
         return null;
     }
+
+    public List<ImbuedEnvironmentElement> GetImbuedEnvironmentElements() { return environmentEffects; }
 }

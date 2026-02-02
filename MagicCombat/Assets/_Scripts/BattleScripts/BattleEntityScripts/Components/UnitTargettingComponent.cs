@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using static UnityEngine.GraphicsBuffer;
 
 public enum MoveTarget
 {
@@ -12,15 +11,15 @@ public enum MoveTarget
 }
 
 
-public class UnitTargettingnData
+public class UnitTargettingData
 {
 
     public List<BaseBattleUnit> Targets;
-    public UnitTargettingnData()
+    public UnitTargettingData()
     {
         Targets = new();
     }
-    public UnitTargettingnData(List<BaseBattleUnit> targets)
+    public UnitTargettingData(List<BaseBattleUnit> targets)
     {
         this.Targets = targets;
     }
@@ -28,7 +27,7 @@ public class UnitTargettingnData
 
 public class BaseUnitTargettingComponent : BaseComponent
 {
-    protected UnitTargettingnData returnData = new();
+    protected UnitTargettingData returnData = new();
 
     public BaseUnitTargettingComponent(BaseBattleUnit battleUnit, UnitData unitData)
     {
@@ -36,7 +35,7 @@ public class BaseUnitTargettingComponent : BaseComponent
         this.unitData = unitData;
     }
 
-    public virtual UnitTargettingnData SelectTargets(MoveSelectionData moveData)
+    public virtual UnitTargettingData SelectTargets(MoveSelectionData moveData)
     {
         returnData.Targets.Clear();
         switch (moveData.SelectedMove.GetMoveTargetType())

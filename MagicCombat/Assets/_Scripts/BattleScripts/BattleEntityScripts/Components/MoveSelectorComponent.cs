@@ -3,7 +3,7 @@ using TurnBased;
 using UnityEngine;
 
 
-public class MoveSelectionData
+public struct MoveSelectionData
 {
     public BaseBattleUnit SourceUnit;
     public UnitTeam SourceTeam;
@@ -46,7 +46,7 @@ public abstract class BaseMoveSelectorComponent : BaseComponent
 
     public abstract MoveSelectionData SelectMove(CombatSceneData data);
 
-    public List<IBattleMoveAction> GetBattleMoves() { return battleMoves; }
+    public List<IBattleMoveAction> GetBattleMoves() => battleMoves; 
 }
 
 public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
@@ -74,7 +74,11 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
         IBattleMoveAction selectedMove = battleMoves[rIndex];
 
 
-        return new MoveSelectionData(battleUnit, battleUnit.GetTeam(), selectedMove, data.allies, data.targets);
+        return new MoveSelectionData(
+            battleUnit, battleUnit.GetTeam(), 
+            selectedMove, 
+            data.allies, 
+            data.targets);
     }
 }
 
