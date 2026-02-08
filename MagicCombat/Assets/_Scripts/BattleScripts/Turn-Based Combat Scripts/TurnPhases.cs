@@ -1,7 +1,7 @@
-using System.Diagnostics;
 using TurnBased;
-using Unity.VisualScripting;
 using UnityEngine;
+using System.Collections.Generic;
+using System;
 
 public abstract class Phase
 {
@@ -63,6 +63,7 @@ public class PreTurnPhase : Phase
         UnitSlot? unit = ConcreteMediator.PopNextUnitInTurnOrder();
         if(unit != null)
         {
+
             ConcreteMediator.ChangeToNextStateInOrder();
         }
         /*  If there is no Unit available in the Turn order, we are at the end of the Turn order and then we want to start the Round anew.  */
@@ -83,10 +84,148 @@ public class PreTurnPhase : Phase
     }
 }
 
+public abstract class UnitTurnSubPhase : Phase
+{
+    protected UnitSlot currentUnit;
+    protected UnitTurnPhase UnitTurnPhase_main;
+    public UnitTurnSubPhase(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator)
+    {
+        this.currentUnit = currentUnit;
+        this.UnitTurnPhase_main = unitTurnPhase_main;
+    }
+}
+
+public class UnitTurnPhase_Idle : UnitTurnSubPhase
+{
+    private float _enemyTurnTimer;
+    public UnitTurnPhase_Idle(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
+    {
+    }
+
+    public override void OnEnter()
+    {
+        _enemyTurnTimer = 2.0f;
+    }
+
+    public override void OnExit()
+    {
+        
+    }
+
+    public override void Update()
+    {
+        MonoBehaviour.print("<color=yellow>Idle for </color>" + currentUnit.Unit.gameObject.name);
+        if (currentUnit.Team == UnitTeam.ALLY)
+        {
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+
+                UnitTurnPhase_main.SwitchToNextSubPhase();
+            }
+
+        }
+        else if(currentUnit.Team == UnitTeam.ENEMY)
+        {
+            Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
+            _enemyTurnTimer -= Time.deltaTime;
+            if (_enemyTurnTimer <= 0)
+            {
+                MonoBehaviour.print("<color=yellow>Idle</color>");
+                Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + currentUnit.Unit.gameObject.name);
+                UnitTurnPhase_main.SwitchToNextSubPhase();
+            }
+        }
+    }
+}
+
+public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
+{
+    public UnitTurnPhase_MoveSelection(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
+    {
+    }
+
+    public override void OnEnter()
+    {
+        CombatSceneData sceneData = ConcreteMediator.CreateCombatSceneDataForUnitSlot(currentUnit);
+        MoveSelectionData moveSelectionData = currentUnit.Unit.DeclareUnitMoveIntent(sceneData);
+    }
+
+    public override void OnExit()
+    {
+        
+    }
+
+    public override void Update()
+    {
+        MonoBehaviour.print("<color=purple>MoveSelection</color>");
+        UnitTurnPhase_main.SwitchToNextSubPhase();
+    }
+}
+
+public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
+{
+    public UnitTurnPhase_TargetSelection(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
+    {
+    }
+
+    public override void OnEnter()
+    {
+        
+    }
+
+    public override void OnExit()
+    {
+
+    }
+
+    public override void Update()
+    {
+        MonoBehaviour.print("<color=pink>TargetSelection</color>");
+        UnitTurnPhase_main.SwitchToNextSubPhase();
+    }
+}
+
+public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
+{
+    public UnitTurnPhase_ResolveAttack(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
+    {
+        
+    }
+
+    public override void OnEnter()
+    {
+        MonoBehaviour.print("<color=green>ResolveAttack</color>");
+    }
+
+    public override void OnExit()
+    {
+
+    }
+
+    public override void Update()
+    {
+        if (Input.GetKey(KeyCode.Backspace))
+        {
+            UnitTurnPhase_main.SwitchToNextSubPhase();
+        }
+        else if (Input.GetKey(KeyCode.KeypadEnter))
+        {
+            ConcreteMediator.ChangeToNextStateInOrder();
+        }
+
+
+    }
+}
+
 public class UnitTurnPhase : Phase
 {
-    UnitSlot? currentUnit;
-    private float _enemyTurnTimer;
+    public enum MAIN_TURN_STATE { IDLE = 0, MOVE_SELECTION = 1, TARGET_SELECTION = 2, RESOLVE_ATTACK = 3}
+
+    private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
+    private MAIN_TURN_STATE currentState = new();
+
+    private CombatSceneData currentCombatSceneData = new();
+    private UnitSlot currentUnit = new();
 
     public UnitTurnPhase(BattleMediator concreteMediator) : base(concreteMediator)
     {
@@ -95,23 +234,41 @@ public class UnitTurnPhase : Phase
     public override void OnEnter()
     {
         /*  When we enter this Phase, we want to process any Start-Of-Turn Status Effects.  */
-        currentUnit = ConcreteMediator.GetCurrentUnit();
-        _enemyTurnTimer = 2.0f;
+        if (ConcreteMediator.GetCurrentUnit() == null)
+        {
+            UnityEngine.Debug.LogError("CURRENT UNIT IS NULL WITHIN UNIT_TURN_PHASE!!!");
+            return;
+        }
+        else {   currentUnit = ConcreteMediator.GetCurrentUnit().Value;  }
 
-        MonoBehaviour.print("<color=black>Processing Turn of Unit Named: </color>" + currentUnit?.Unit.gameObject.name);
+        /*  Clear the previous Phases for this currentUnit and Initalise them.  */
+        MainPhaseStates.Clear();
 
+        MainPhaseStates.Add(MAIN_TURN_STATE.IDLE, new UnitTurnPhase_Idle(ConcreteMediator, this, currentUnit));
+        MainPhaseStates.Add(MAIN_TURN_STATE.MOVE_SELECTION, new UnitTurnPhase_MoveSelection(ConcreteMediator, this, currentUnit));
+        MainPhaseStates.Add(MAIN_TURN_STATE.TARGET_SELECTION, new UnitTurnPhase_TargetSelection(ConcreteMediator, this, currentUnit));
+        MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK, new UnitTurnPhase_ResolveAttack(ConcreteMediator, this, currentUnit));
+
+        SwitchSubPhase(MAIN_TURN_STATE.IDLE);
     }
 
     public override void OnExit()
     {
+        MainPhaseStates[currentState]?.OnExit();
+
         /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
+
     }
 
     public override void Update()
     {
+        MainPhaseStates[currentState]?.Update();
+
         /*  Check if the Unit has an intention already planned. If so, execute it.  */
 
+
         /*  Otherwise, we want to create the intention by polling the Unit's Move Selection Component. */
+
 
         /*  Once a move is selected, get the Targetting data from that move and proceed to targetting Units for that move. As we are doing this in Update, it makes it easy for us to use a State-Machine to go backwards a step of this Phase. */
 
@@ -119,22 +276,24 @@ public class UnitTurnPhase : Phase
 
         /*  Once the Move is finished playing, check if the move ends the turn or not. If so, we want to tell the Mediator. If not, we want to just start again from Move selection. */
 
-        if (currentUnit?.Team == UnitTeam.ALLY)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                ConcreteMediator.ChangeToNextStateInOrder();
-            }
 
-        }
-        else
-        {
-            _enemyTurnTimer -= Time.deltaTime;
-            if (_enemyTurnTimer <= 0)
-            {
-                ConcreteMediator.ChangeToNextStateInOrder();
-            }
-        }
+    }
+
+    public void SwitchToNextSubPhase()
+    {
+        /*  This should assign our current state to the next state in sequence as defined in the Enum.  */
+        MAIN_TURN_STATE nextState = (MAIN_TURN_STATE)((int)(currentState + 1) % Enum.GetValues(typeof(MAIN_TURN_STATE)).Length);
+
+        SwitchSubPhase(nextState);
+    }
+
+    public void SwitchSubPhase(MAIN_TURN_STATE newState)
+    {
+        MainPhaseStates[currentState]?.OnExit();
+
+        currentState = newState;
+
+        MainPhaseStates[currentState]?.OnEnter();
     }
 }
 

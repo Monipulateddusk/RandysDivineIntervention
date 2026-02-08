@@ -5,14 +5,14 @@ using UnityEngine;
 
 public struct MoveSelectionData
 {
-    public BaseBattleUnit SourceUnit;
+    public UnitSlot SourceUnit;
     public UnitTeam SourceTeam;
     public IBattleMoveAction SelectedMove;
 
-    public List<BaseBattleUnit> Allies;
-    public List<BaseBattleUnit> Targets;
+    public List<UnitSlot> Allies;
+    public List<UnitSlot> Targets;
 
-    public MoveSelectionData(BaseBattleUnit sourceUnit, UnitTeam sourceTeam, IBattleMoveAction selectedMove, List<BaseBattleUnit> allies, List<BaseBattleUnit> targets)
+    public MoveSelectionData(UnitSlot sourceUnit, UnitTeam sourceTeam, IBattleMoveAction selectedMove, List<UnitSlot> allies, List<UnitSlot> targets)
     {
         this.SourceUnit = sourceUnit;
         this.SourceTeam = sourceTeam;
@@ -74,11 +74,7 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
         IBattleMoveAction selectedMove = battleMoves[rIndex];
 
 
-        return new MoveSelectionData(
-            battleUnit, battleUnit.GetTeam(), 
-            selectedMove, 
-            data.allies, 
-            data.targets);
+        return new();
     }
 }
 
@@ -117,6 +113,6 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         curMoveIndex++;
 
 
-        return new MoveSelectionData(battleUnit, battleUnit.GetTeam(), selectedMove, data.allies, data.targets);
+        return new();
     }
 }

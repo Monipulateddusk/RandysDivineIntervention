@@ -43,11 +43,11 @@ namespace TurnBased
     public struct CombatSceneData
     {
         public List<ImbuedEnvironmentElement> environmentalEffects;
-        public List<BaseBattleUnit> targets;
-        public List<BaseBattleUnit> allies;
-        public BaseBattleUnit sourceUnit;
+        public List<UnitSlot> targets;
+        public List<UnitSlot> allies;
+        public UnitSlot sourceUnit;
 
-        public CombatSceneData(BaseBattleUnit source, List<BaseBattleUnit> allies, List<BaseBattleUnit> targets, List<ImbuedEnvironmentElement> environmentalEffects)
+        public CombatSceneData(UnitSlot source, List<UnitSlot> allies, List<UnitSlot> targets, List<ImbuedEnvironmentElement> environmentalEffects)
         {
             this.environmentalEffects = environmentalEffects;
             this.targets = targets;
@@ -55,11 +55,12 @@ namespace TurnBased
             this.sourceUnit = source;
         }
     }
+    [Serializable]
     public struct UnitSlot
     {
-        public int? Index;
-        public UnitTeam Team;
-        public BaseBattleUnit Unit;
+        [SerializeField] public int? Index;
+        [SerializeField] public UnitTeam Team;
+        [SerializeField] public BaseBattleUnit Unit;
 
         public UnitSlot(int? index, UnitTeam unitTeam, BaseBattleUnit unit)
         {
@@ -97,14 +98,14 @@ namespace TurnBased
         public enum PHASE_TYPES {START_ROUND, PRE_UNIT_TURN, UNIT_TURN, END_ROUND};
         
         Dictionary<PHASE_TYPES, Phase> PhaseDictionary;
-        private PHASE_TYPES CurrentPhaseType;
+        [SerializeField] private PHASE_TYPES CurrentPhaseType;
         private Phase CurrentPhase;
 
         private int playerFieldSlots = 0;
         private int enemyFieldSlots = 0;
 
         private List<UnitSlot> Units = new();
-        private List<UnitSlot> TurnOrderList = new();
+        [SerializeField] private List<UnitSlot> TurnOrderList = new();
 
         private UnitSlot? currentUnit;
 
@@ -157,6 +158,32 @@ namespace TurnBased
             currentUnit = TurnOrderList.FirstOrDefault();
             TurnOrderList.RemoveAt(0);
             return currentUnit;
+        }
+
+        public CombatSceneData CreateCombatSceneDataForUnitSlot(UnitSlot sourceUnit)
+        {
+            /*  Get the Unit's Team and therefore the opposite team.    */
+            UnitTeam allyTeam = sourceUnit.Team;
+
+            List<UnitSlot> allies = new(), targets = new();
+            foreach(UnitSlot unit in Units)
+            {
+                /*  Don't process the UnitSlot who called us. */
+                if (unit.Unit == sourceUnit.Unit) { continue; }
+
+                if(unit.Team == allyTeam)
+                {
+                    allies.Add(unit);
+                }
+                else
+                {
+                    targets.Add(unit);
+                }
+
+            }
+
+            // TO DO: PASS IN ENVIRONMENT DATA
+            return new CombatSceneData(sourceUnit, allies, targets, new());
         }
 
         private void Awake()
@@ -219,13 +246,13 @@ namespace TurnBased
                 }
             }
 
-            print("<color=red>Exiting</color> Phase: " + CurrentPhaseDebug(CurrentPhase?.ToString()));
+            //print("<color=red>Exiting</color> Phase: " + CurrentPhaseDebug(CurrentPhase?.ToString()));
             CurrentPhase?.OnExit();
 
             CurrentPhaseType = newPhaseType;
             CurrentPhase = PhaseDictionary[newPhaseType];
 
-            print(" <color=green>Entering</color> Phase: " + CurrentPhaseDebug(CurrentPhase?.ToString()));
+            //print(" <color=green>Entering</color> Phase: " + CurrentPhaseDebug(CurrentPhase?.ToString()));
             CurrentPhase?.OnEnter();
         }
 

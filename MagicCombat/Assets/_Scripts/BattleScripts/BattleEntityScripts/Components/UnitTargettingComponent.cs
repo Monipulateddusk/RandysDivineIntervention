@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using TurnBased;
 
 public enum MoveTarget
 {
@@ -11,15 +13,10 @@ public enum MoveTarget
 }
 
 
-public class UnitTargettingData
+public struct UnitTargettingData
 {
-
-    public List<BaseBattleUnit> Targets;
-    public UnitTargettingData()
-    {
-        Targets = new();
-    }
-    public UnitTargettingData(List<BaseBattleUnit> targets)
+    public List<UnitSlot> Targets;
+    public UnitTargettingData(List<UnitSlot> targets)
     {
         this.Targets = targets;
     }
@@ -37,51 +34,46 @@ public class BaseUnitTargettingComponent : BaseComponent
 
     public virtual UnitTargettingData SelectTargets(MoveSelectionData moveData)
     {
-        returnData.Targets.Clear();
-        switch (moveData.SelectedMove.GetMoveTargetType())
+        MoveTarget moveTargetType = moveData.SelectedMove.GetMoveTargetType();
+
+        switch (moveTargetType)
         {
             case MoveTarget.Self:
-                returnData.Targets.Add(moveData.SourceUnit);
-                break;
+                return returnData = new()
+                {
+                    Targets = new List<UnitSlot> { moveData.SourceUnit }
+                };
             case MoveTarget.SingleEnemy:
-                if (moveData.Targets.Count > 0)
+                return returnData = new()
                 {
-                    returnData.Targets.Add(moveData.Targets[0]);
-                }
-                break;
+                    Targets = new List<UnitSlot> { moveData.Targets.FirstOrDefault() }
+                };
             case MoveTarget.SingleAlly:
-                foreach (BaseBattleUnit target in moveData.Allies)
+                return returnData = new()
                 {
-                    if (target != moveData.SourceUnit)
-                    {
-                        returnData.Targets.Add(target);
-                        break;
-                    }
-                }
-                if(returnData.Targets.Count <= 0 && moveData.Allies.Count > 0)
-                {
-                    returnData.Targets.Add(moveData.Allies[0]);
-                }
-
-                break;
+                    Targets = new List<UnitSlot> { moveData.Allies.FirstOrDefault() }
+                };
             case MoveTarget.AllEnemies:
-                returnData.Targets = new List<BaseBattleUnit>(moveData.Targets);
-                break;
-            case MoveTarget.AllAllies:
-                returnData.Targets = new List<BaseBattleUnit>(moveData.Allies);
-                break;
-            case MoveTarget.Area:
-                returnData.Targets = new List<BaseBattleUnit>(moveData.Allies);
-                returnData.Targets.AddRange(moveData.Targets);
-                break;   
-            default:
-                if (moveData.Targets.Count > 0)
+                return returnData = new()
                 {
-                    returnData.Targets.Add(moveData.Targets[0]);
-                }
-                break;
-        }
+                    Targets = moveData.Targets
+                };
+            case MoveTarget.AllAllies:
+                return returnData = new()
+                {
+                    Targets = moveData.Allies
+                };
+            case MoveTarget.Area:
+                List<UnitSlot> targets = new();
+                targets.AddRange(moveData.Targets);
+                targets.AddRange(moveData.Allies);
 
-        return returnData;
+                return returnData = new()
+                {
+                    Targets = targets
+                };
+            default:
+                return new();
+        }
     }
 }
