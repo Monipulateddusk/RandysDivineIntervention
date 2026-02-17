@@ -60,8 +60,8 @@ public class PreTurnPhase : Phase
     public override void OnEnter()
     {
         /*  Pop out the next Unit in turn order, move on to the Unit Turn Phase after this. */
-        UnitSlot? unit = ConcreteMediator.PopNextUnitInTurnOrder();
-        if(unit != null)
+        UnitIndex? unit = ConcreteMediator.PopNextUnitInTurnOrder();
+        if (unit != null)
         {
 
             ConcreteMediator.ChangeToNextStateInOrder();
@@ -70,7 +70,7 @@ public class PreTurnPhase : Phase
         else
         {
             ConcreteMediator.ChangeState(BattleMediator.PHASE_TYPES.END_ROUND);
-        }        
+        }
     }
 
     public override void OnExit()
@@ -86,11 +86,11 @@ public class PreTurnPhase : Phase
 
 public abstract class UnitTurnSubPhase : Phase
 {
-    protected UnitSlot currentUnit;
+    protected UnitIndex currentUnitIndex;
     protected UnitTurnPhase UnitTurnPhase_main;
-    public UnitTurnSubPhase(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator)
+    public UnitTurnSubPhase(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator)
     {
-        this.currentUnit = currentUnit;
+        this.currentUnitIndex = currentUnit;
         this.UnitTurnPhase_main = unitTurnPhase_main;
     }
 }
@@ -98,7 +98,7 @@ public abstract class UnitTurnSubPhase : Phase
 public class UnitTurnPhase_Idle : UnitTurnSubPhase
 {
     private float _enemyTurnTimer;
-    public UnitTurnPhase_Idle(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
+    public UnitTurnPhase_Idle(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
     {
     }
 
@@ -114,8 +114,8 @@ public class UnitTurnPhase_Idle : UnitTurnSubPhase
 
     public override void Update()
     {
-        MonoBehaviour.print("<color=yellow>Idle for </color>" + currentUnit.Unit.gameObject.name);
-        if (currentUnit.Team == UnitTeam.ALLY)
+        //MonoBehaviour.print("<color=yellow>Idle for </color>" + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name);
+        if (ConcreteMediator.GetUnitTeamOfUnitIndex(currentUnitIndex) == UnitTeam.ALLY)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -124,14 +124,14 @@ public class UnitTurnPhase_Idle : UnitTurnSubPhase
             }
 
         }
-        else if(currentUnit.Team == UnitTeam.ENEMY)
+        else if(ConcreteMediator.GetUnitTeamOfUnitIndex(currentUnitIndex) == UnitTeam.ENEMY)
         {
-            Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
+            //Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
             _enemyTurnTimer -= Time.deltaTime;
             if (_enemyTurnTimer <= 0)
             {
-                MonoBehaviour.print("<color=yellow>Idle</color>");
-                Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + currentUnit.Unit.gameObject.name);
+                //MonoBehaviour.print("<color=yellow>Idle</color>");
+                //Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).gameObject.name);
                 UnitTurnPhase_main.SwitchToNextSubPhase();
             }
         }
@@ -140,14 +140,21 @@ public class UnitTurnPhase_Idle : UnitTurnSubPhase
 
 public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
 {
-    public UnitTurnPhase_MoveSelection(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
+    public UnitTurnPhase_MoveSelection(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
     {
     }
 
     public override void OnEnter()
     {
-        CombatSceneData sceneData = ConcreteMediator.CreateCombatSceneDataForUnitSlot(currentUnit);
-        MoveSelectionData moveSelectionData = currentUnit.Unit.DeclareUnitMoveIntent(sceneData);
+        /*  Get the Current Unit's Move Selection Intention.    */
+        SceneData_UnitTurn sceneData = ConcreteMediator.GetCombatSceneDataForSourceUnitIndex(currentUnitIndex);
+        MoveSelectionData moveSelectionData = ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).GetMoveSelectorComponent().SelectMove(sceneData);
+
+        if (moveSelectionData.SelectedMove != null)
+        {
+
+            MonoBehaviour.print("Unit of name: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name + " has chosen move: " + moveSelectionData.SelectedMove.ToString());
+        }
     }
 
     public override void OnExit()
@@ -157,14 +164,14 @@ public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
 
     public override void Update()
     {
-        MonoBehaviour.print("<color=purple>MoveSelection</color>");
+        //MonoBehaviour.print("<color=purple>MoveSelection</color>");
         UnitTurnPhase_main.SwitchToNextSubPhase();
     }
 }
 
 public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
 {
-    public UnitTurnPhase_TargetSelection(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
+    public UnitTurnPhase_TargetSelection(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
     {
     }
 
@@ -180,21 +187,21 @@ public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
 
     public override void Update()
     {
-        MonoBehaviour.print("<color=pink>TargetSelection</color>");
+        //MonoBehaviour.print("<color=pink>TargetSelection</color>");
         UnitTurnPhase_main.SwitchToNextSubPhase();
     }
 }
 
 public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
 {
-    public UnitTurnPhase_ResolveAttack(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitSlot currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
+    public UnitTurnPhase_ResolveAttack(BattleMediator concreteMediator, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator, unitTurnPhase_main, currentUnit)
     {
         
     }
 
     public override void OnEnter()
     {
-        MonoBehaviour.print("<color=green>ResolveAttack</color>");
+        //MonoBehaviour.print("<color=green>ResolveAttack</color>");
     }
 
     public override void OnExit()
@@ -224,8 +231,8 @@ public class UnitTurnPhase : Phase
     private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
     private MAIN_TURN_STATE currentState = new();
 
-    private CombatSceneData currentCombatSceneData = new();
-    private UnitSlot currentUnit = new();
+    private SceneData_UnitTurn currentCombatSceneData = new();
+    UnitIndex currentUnitIndex;
 
     public UnitTurnPhase(BattleMediator concreteMediator) : base(concreteMediator)
     {
@@ -236,18 +243,18 @@ public class UnitTurnPhase : Phase
         /*  When we enter this Phase, we want to process any Start-Of-Turn Status Effects.  */
         if (ConcreteMediator.GetCurrentUnit() == null)
         {
-            UnityEngine.Debug.LogError("CURRENT UNIT IS NULL WITHIN UNIT_TURN_PHASE!!!");
+            //UnityEngine.Debug.LogError("CURRENT UNIT IS NULL WITHIN UNIT_TURN_PHASE!!!");
             return;
         }
-        else {   currentUnit = ConcreteMediator.GetCurrentUnit().Value;  }
+        else { currentUnitIndex = ConcreteMediator.GetCurrentUnit().Value;  }
 
         /*  Clear the previous Phases for this currentUnit and Initalise them.  */
         MainPhaseStates.Clear();
 
-        MainPhaseStates.Add(MAIN_TURN_STATE.IDLE, new UnitTurnPhase_Idle(ConcreteMediator, this, currentUnit));
-        MainPhaseStates.Add(MAIN_TURN_STATE.MOVE_SELECTION, new UnitTurnPhase_MoveSelection(ConcreteMediator, this, currentUnit));
-        MainPhaseStates.Add(MAIN_TURN_STATE.TARGET_SELECTION, new UnitTurnPhase_TargetSelection(ConcreteMediator, this, currentUnit));
-        MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK, new UnitTurnPhase_ResolveAttack(ConcreteMediator, this, currentUnit));
+        MainPhaseStates.Add(MAIN_TURN_STATE.IDLE, new UnitTurnPhase_Idle(ConcreteMediator, this, currentUnitIndex));
+        MainPhaseStates.Add(MAIN_TURN_STATE.MOVE_SELECTION, new UnitTurnPhase_MoveSelection(ConcreteMediator, this, currentUnitIndex));
+        MainPhaseStates.Add(MAIN_TURN_STATE.TARGET_SELECTION, new UnitTurnPhase_TargetSelection(ConcreteMediator, this, currentUnitIndex));
+        MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK, new UnitTurnPhase_ResolveAttack(ConcreteMediator, this, currentUnitIndex));
 
         SwitchSubPhase(MAIN_TURN_STATE.IDLE);
     }

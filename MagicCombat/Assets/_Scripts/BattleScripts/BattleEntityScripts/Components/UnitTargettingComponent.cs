@@ -15,8 +15,8 @@ public enum MoveTarget
 
 public struct UnitTargettingData
 {
-    public List<UnitSlot> Targets;
-    public UnitTargettingData(List<UnitSlot> targets)
+    public List<StationIndex?> Targets;
+    public UnitTargettingData(List<StationIndex?> targets)
     {
         this.Targets = targets;
     }
@@ -41,32 +41,32 @@ public class BaseUnitTargettingComponent : BaseComponent
             case MoveTarget.Self:
                 return returnData = new()
                 {
-                    Targets = new List<UnitSlot> { moveData.SourceUnit }
+                    Targets = new List<StationIndex?> { moveData.SourceStationIndex }
                 };
             case MoveTarget.SingleEnemy:
                 return returnData = new()
                 {
-                    Targets = new List<UnitSlot> { moveData.Targets.FirstOrDefault() }
+                    Targets = new List<StationIndex?> { moveData.TargetStationIndexes.FirstOrDefault() }
                 };
             case MoveTarget.SingleAlly:
                 return returnData = new()
                 {
-                    Targets = new List<UnitSlot> { moveData.Allies.FirstOrDefault() }
+                    Targets = new List<StationIndex?> { moveData.AllyStationIndexes.FirstOrDefault() }
                 };
             case MoveTarget.AllEnemies:
                 return returnData = new()
                 {
-                    Targets = moveData.Targets
+                    Targets = moveData.TargetStationIndexes
                 };
             case MoveTarget.AllAllies:
                 return returnData = new()
                 {
-                    Targets = moveData.Allies
+                    Targets = moveData.AllyStationIndexes
                 };
             case MoveTarget.Area:
-                List<UnitSlot> targets = new();
-                targets.AddRange(moveData.Targets);
-                targets.AddRange(moveData.Allies);
+                List<StationIndex?> targets = new();
+                targets.AddRange(moveData.TargetStationIndexes);
+                targets.AddRange(moveData.AllyStationIndexes);
 
                 return returnData = new()
                 {

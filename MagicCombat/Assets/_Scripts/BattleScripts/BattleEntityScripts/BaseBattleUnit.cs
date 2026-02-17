@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
 
-public enum UnitTeam { ALLY, ENEMY};
+public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
 public struct UnitIntention
 {
     public MoveSelectionData? MoveSelection;
@@ -152,7 +152,7 @@ public class BaseBattleUnit : MonoBehaviour
 
     #region Intent Methods
 
-    public MoveSelectionData DeclareUnitMoveIntent(CombatSceneData sceneData) 
+    public MoveSelectionData DeclareUnitMoveIntent(SceneData_UnitTurn sceneData) 
     {
         MoveSelectionData moveData = GetMoveSelectorComponent().SelectMove(sceneData);
         unitIntentData = new UnitIntention

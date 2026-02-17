@@ -5,21 +5,11 @@ using UnityEngine;
 
 public struct MoveSelectionData
 {
-    public UnitSlot SourceUnit;
-    public UnitTeam SourceTeam;
     public IBattleMoveAction SelectedMove;
 
-    public List<UnitSlot> Allies;
-    public List<UnitSlot> Targets;
-
-    public MoveSelectionData(UnitSlot sourceUnit, UnitTeam sourceTeam, IBattleMoveAction selectedMove, List<UnitSlot> allies, List<UnitSlot> targets)
-    {
-        this.SourceUnit = sourceUnit;
-        this.SourceTeam = sourceTeam;
-        this.SelectedMove = selectedMove;
-        this.Allies = allies;
-        this.Targets = targets;
-    }
+    public StationIndex SourceStationIndex;
+    public List<StationIndex?> AllyStationIndexes;
+    public List<StationIndex?> TargetStationIndexes;
 }
 
 public abstract class BaseMoveSelectorComponent : BaseComponent
@@ -40,11 +30,10 @@ public abstract class BaseMoveSelectorComponent : BaseComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
-    public abstract MoveSelectionData SelectMove(CombatSceneData data);
+    public abstract MoveSelectionData SelectMove(SceneData_UnitTurn data);
 
     public List<IBattleMoveAction> GetBattleMoves() => battleMoves; 
 }
@@ -57,7 +46,6 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
@@ -66,15 +54,18 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override MoveSelectionData SelectMove(CombatSceneData data)
+    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
     {
         // Select a random move to perform
         int rIndex = Random.Range(0, battleMoves.Count);
 
         IBattleMoveAction selectedMove = battleMoves[rIndex];
+        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
 
-        return new();
+        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
     }
 }
 
@@ -88,7 +79,6 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
@@ -98,7 +88,7 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override MoveSelectionData SelectMove(CombatSceneData data)
+    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
     {
         // If the index exceeds the count on the list, set it to the start of the list (0).
         // This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
@@ -108,11 +98,13 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         }
 
         IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
+        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
         // Increment the index after everything is decided
         curMoveIndex++;
 
-
-        return new();
+        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
     }
 }
