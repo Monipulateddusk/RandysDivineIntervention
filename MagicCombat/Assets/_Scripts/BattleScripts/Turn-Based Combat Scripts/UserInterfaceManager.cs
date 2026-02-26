@@ -1,11 +1,28 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.U2D;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler))]
 [RequireComponent (typeof(GraphicRaycaster))]
 public class UserInterfaceManager : MonoBehaviour
 {
+    [Serializable]class SelectedUserInterfaceElementProperties
+    {
+        [SerializeField]public IUISelectable hoveredUIObject;
+        [SerializeField]public bool isSelected;
+
+        [SerializeField]private CursorManager.CursorIcons cursorState;
+        public event Action<CursorManager.CursorIcons> OnChangeCursorState;
+
+        public void SetCursorState(CursorManager.CursorIcons newCursorState)
+        {
+            this.cursorState = newCursorState;
+            OnChangeCursorState?.Invoke(this.cursorState);
+        }
+    }
+
     /*  Manager Components and Children.    */
     [Header("Components")]
     private RectTransform rectTransform;
@@ -14,9 +31,15 @@ public class UserInterfaceManager : MonoBehaviour
     private GraphicRaycaster raycaster;
     private GameObject eventSystem;
 
-    [Header("User Interface Features")]
 
-    public bool test;
+    [Header("Selected User Interface Properties")]
+    [SerializeField]SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
+
+
+    [Header("Cursor Properties")]
+    [SerializeField, Tooltip("Required Field. Populate with the Prefab of the Cursor")]                     GameObject CursorPrefab;
+    [SerializeField, Tooltip("Required Field. Populate with a referance to the Cursor Image Spritesheet.")] Texture2D CursorImages;
+    CursorManager CursorManager;
 
     private void InitialiseComponents()
     {
@@ -35,19 +58,101 @@ public class UserInterfaceManager : MonoBehaviour
             eventSystem.AddComponent<StandaloneInputModule>();
         }
     }
+
+    private void InitaliseCursorManager()
+    {
+        this.selectedUserInterfaceElement = new();
+        this.CursorManager = new CursorManager(this.transform, this.CursorPrefab, this.CursorImages);
+        this.selectedUserInterfaceElement.OnChangeCursorState += this.CursorManager.SetCursorImageState;
+    }
+
     private void OnValidate()
     {
         InitialiseComponents();
+        InitaliseCursorManager();
     }
 
     private void Awake()
     {
         InitialiseComponents();
+        InitaliseCursorManager();
+    }
+
+    void ClearSelectedUIElement()
+    {
+        this.selectedUserInterfaceElement.hoveredUIObject?.OnDeselect(this.CursorManager.GetPreviousMousePosition());
+        this.selectedUserInterfaceElement.hoveredUIObject = null;
+        this.selectedUserInterfaceElement.isSelected = false;
+        this.selectedUserInterfaceElement.SetCursorState(CursorManager.CursorIcons.Cursor);
+    }
+
+    private void HandleRaycastUISelection()
+    {
+        /*  Throw out a raycast from the camera to the point where the cursor is at scanning for UI elements. */
+        Collider2D hit = Physics2D.OverlapPoint(this.CursorManager.GetPreviousMousePosition(), LayerMask.GetMask("UI"));
+
+        /*  
+         *  If we got something that implements IUISelectable, save that locally. 
+         *  If we didn't hit something with the raycast, we should deselect anything we could have been selecting before. 
+         */
+        if (hit && hit.TryGetComponent(out IUISelectable selectedUI))
+        {
+            this.selectedUserInterfaceElement.hoveredUIObject = selectedUI;
+        }
+        /*  We only want to clear the selected UI IF it isn't selected. Something can be selected and not under the mouse via Dragging while holding down the click. */
+        else if(!this.selectedUserInterfaceElement.isSelected)
+        {
+            ClearSelectedUIElement();
+        }
+    }
+
+    void ProcessCursorUISelection()
+    {
+        /*  Do not do any unnessessary checks if the cursor hasn't moved.   */
+        if (this.CursorManager.HasCursorMoved(Input.mousePosition))
+        {
+            HandleRaycastUISelection();
+        }
+
+        if (this.selectedUserInterfaceElement.hoveredUIObject != null)
+        {
+
+            CursorManager.CursorIcons enm = this.selectedUserInterfaceElement.hoveredUIObject.GetCurrentMouseStateSuggestion();
+
+            this.selectedUserInterfaceElement.SetCursorState(enm);
+
+            /*  If we have something valid from the Raycast and it isn't selected, we are hovering. Otherwise, we are dragging.*/
+            if (this.selectedUserInterfaceElement.isSelected)
+            {
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnDrag(this.CursorManager.GetPreviousMousePosition());
+            }
+            else
+            {
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnHover(this.CursorManager.GetPreviousMousePosition());
+            }
+
+            /*  Irregardless of if we are hovering or dragging, we want to handle the input buttons independantly. */
+            if (Input.GetMouseButtonUp(0) && this.selectedUserInterfaceElement.isSelected)
+            {
+                ClearSelectedUIElement();
+                HandleRaycastUISelection();
+            }
+
+            if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
+            {
+                this.selectedUserInterfaceElement.isSelected = true;
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(this.CursorManager.GetPreviousMousePosition());
+            }
+
+
+        }       
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        ProcessCursorUISelection();
+
+        this.CursorManager.Update();
     }
 }
