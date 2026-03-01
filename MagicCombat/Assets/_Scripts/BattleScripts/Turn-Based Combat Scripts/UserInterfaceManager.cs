@@ -36,6 +36,10 @@ public class UserInterfaceManager : MonoBehaviour
     [SerializeField]SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
 
 
+    [Header("Task bar Properties")]
+    [SerializeField] GameObject taskBarObject;
+    UITaskBarManager TaskBarManager;
+
     [Header("Cursor Properties")]
     [SerializeField, Tooltip("Required Field. Populate with the Prefab of the Cursor")]                     GameObject CursorPrefab;
     [SerializeField, Tooltip("Required Field. Populate with a referance to the Cursor Image Spritesheet.")] Texture2D CursorImages;
@@ -66,10 +70,18 @@ public class UserInterfaceManager : MonoBehaviour
         this.selectedUserInterfaceElement.OnChangeCursorState += this.CursorManager.SetCursorImageState;
     }
 
+    private void InitaliseTaskBarManager()
+    {
+        if (taskBarObject != null)
+        {
+            this.TaskBarManager = new((RectTransform)this.taskBarObject.transform.Find("TaskBarHomeBox").transform);
+        }
+    }
     private void OnValidate()
     {
         InitialiseComponents();
         InitaliseCursorManager();
+        InitaliseTaskBarManager();
     }
 
     private void Awake()
@@ -154,5 +166,6 @@ public class UserInterfaceManager : MonoBehaviour
         ProcessCursorUISelection();
 
         this.CursorManager.Update();
+        this.TaskBarManager.Update();
     }
 }
