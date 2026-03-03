@@ -116,6 +116,8 @@ public class UserInterfaceManager : MonoBehaviour
         {
             ClearSelectedUIElement();
         }
+
+
     }
 
     void ProcessCursorUISelection()
