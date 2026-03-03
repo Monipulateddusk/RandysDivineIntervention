@@ -2,25 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// This component handles the assignment of the sprite based on the BaseUnit data
-/// </summary>
-public class SpriteComponent : BaseCombatComponent
+public class SpriteComponent : BaseComponent
 {
+
     SpriteRenderer spriteRenderer;
 
-    public override void Init(BaseBattleUnit bBU)
+    public SpriteComponent()
     {
-        base.Init(bBU);
-        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
-        bBU.OnUnitCreated += AssignSprite;
-    }
-    void AssignSprite(BaseUnit unit)
-    {
-        //Debug.Log("Assigning sprite data");
-        spriteRenderer.sprite = unit.sprite;
-        spriteRenderer.color = unit.color;
+        spriteRenderer = null;
     }
 
+    public SpriteComponent(BaseBattleUnit battleUnit, UnitData unitData, SpriteRenderer spriteRenderer)
+    {
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
+        this.spriteRenderer = spriteRenderer;
 
+        /*  Assign the Sprite to the Sprite Renderer    */
+        spriteRenderer.sprite = unitData.sprite;
+        spriteRenderer.color = unitData.color;
+    }
 }

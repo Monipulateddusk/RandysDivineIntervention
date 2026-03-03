@@ -15,10 +15,20 @@ MonoBehaviour:
   name: Light Blue Slime
   maxHP: 10
   attack: 3
+  speed: 3
   color: {r: 0, g: 1, b: 0.9478698, a: 1}
   sprite: {fileID: 21300000, guid: 4e3929101b7d0894aa982cce9fd25b94, type: 3}
   element: 0
   moves:
-  - {fileID: 11400000, guid: 2320061fd71c4bd40a727c467e746aac, type: 2}
-  - {fileID: 11400000, guid: 7714929a2e2d0d649a38aad5286bdee9, type: 2}
+  - rid: 5544377716436893698
+  - rid: 5544377716436893699
   unitAnimator: {fileID: 9100000, guid: 36962da2f91ca574e9f4a5beb2d06501, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: 5544377716436893698
+      type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
+    - rid: 5544377716436893699
+      type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 

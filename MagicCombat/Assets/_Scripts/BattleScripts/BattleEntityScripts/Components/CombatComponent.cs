@@ -1,112 +1,89 @@
+using TurnBased;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
-public class CombatComponent : BaseCombatComponent
+public class CombatComponent : BaseComponent
 {
-    // This event handles logic that are called upon the unit ending the attack section of combat.
-    public event Action OnEndCombat;
-
-    // This event is called on two occasions; firstly when the unit has moved from their starting location to their target, and when they finish moving back to their starting location
-    public event Action OnFinishedMovement;
-
-    [SerializeField] AttackResolutionInfo currentAttackInfo;
-    [SerializeField] CombatReturnData combatReturnData;
+    /*  Transform of the Unit   */
+    Transform unitTransform;
     Vector3 battleStationLocation;
-    public override void Init(BaseBattleUnit bBU)
+
+    /*  Event: Invoked when Attacking is done   */
+    public event Action OnEndAttackingCombat;
+
+    /*  Current Attack Information */
+    AttackResolutionInfo currentAttackInfo;
+    CombatReturnData combatReturnData;
+
+
+    public CombatComponent()
     {
-        base.Init(bBU);
-        battleStationLocation = transform.position;
+        battleStationLocation = Vector3.zero;
+        battleUnit = null;
+        unitTransform = null;
     }
 
-    /// <summary>
-    /// Called externally from animationControllerComponent when an attack is animated to process the attack.
-    /// </summary>
-    public void ProcessAttack(AttackAction attackAction)
+    public CombatComponent(BaseBattleUnit battleUnit, UnitData unitData, Transform unitTransf)
     {
-        switch (attackAction.Type)
-        {
-            case AttackAction.ActionType.DAMAGE:
-                //Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
-                combatReturnData.target.Damage(attackAction.Value);
-
-                break;
-            case AttackAction.ActionType.HEALING:
-                break;
-        }
-
+        this.battleUnit = battleUnit;
+        this.unitData = unitData;
+        unitTransform = unitTransf;
+        battleStationLocation = unitTransform.position;
     }
-    public void StartCombat(AttackResolutionInfo info, CombatReturnData data)
+
+    ~CombatComponent()
+    {
+        currentAttackInfo = null;
+        unitTransform = null;
+    }
+
+    public async Task StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {
         currentAttackInfo = info;
         combatReturnData = data;
 
-        // Clear the event and subscribe to it
-        OnFinishedMovement = null;
-        OnFinishedMovement += Combat;
+        // Clear the event at the start of the Turn
+        OnEndAttackingCombat = null;
 
-        MoveUserToTarget(data.target.gameObject.transform.position);
+        // Move the user to the target ( this is where we'd evaluate if the move necessitates movement )
+        await MoveUserToTarget(data.targets[0].gameObject.transform.position);
+        battleUnit.PlayCombatAttackAnimation();
     }
 
     /// <summary>
-    /// Called externally from animationControllerComponent when an animation attack is over. Tells this component to move the unit back to their battle station.
+    /// ANIMATION EVENT: Called when an Attack's Animation is over. Move the unit back to the battle station.
     /// </summary>
-    public void EndAttack()
+    public async Task OnEndAttackAnimation()
     {
-        // Clear the event trigger for movement in preparation for the CombatSceneManager event subscription
-        OnFinishedMovement = null;
-
-        OnEndCombatSubscriptionChange();
-
-        MoveUserToTarget(battleStationLocation);
-    }
-
-
-
-    void Combat()
-    {
-        // Allocate the animation data and then play correlating animation to the move name
-        bBU.GetAnimationControllerComponent().SetAttackValues(currentAttackInfo);
-        bBU.GetAnimationControllerComponent().GetAnimator().Play(currentAttackInfo.moveName);
+        await MoveUserToTarget(battleStationLocation);
+        OnEndAttackingCombat?.Invoke();
 
     }
 
-    // Passes on the event subscription allocated to the OnEndCombat and attaches that subscription to the OnFinishedMovement event
-    // so that the end turn function is called when the Unit moves back to their battlestation
-    void OnEndCombatSubscriptionChange()
+    async Task MoveUserToTarget(Vector3 target)
     {
-        OnFinishedMovement = OnEndCombat;
-        OnEndCombat = null;
+        await MoveUnitToTarget(target);
     }
 
-    void MoveUserToTarget(Vector3 target)
+    private async Task MoveUnitToTarget(Vector3 targetPos)
     {
-        StartCoroutine(MoveUser(target));
-    }
-
-    /// <summary>
-    /// Called just before combat occours so that we move the users of attacks. We need info in the attack's data to determine if we are actually moving or not, but if we are,
-    /// we move the user to the target's world space location leaving a gap between.
-    /// </summary>
-    /// <param name="target"></param>
-    IEnumerator MoveUser(Vector3 targetPos)
-    {
-        Vector3 startPos = transform.position;
- 
-
+        Vector3 startPos = unitTransform.position;
         float elapsedTime = 0;
 
-        while (elapsedTime < 1.0f) // Constant time right now of 3 but we may make it so that moving to target takes different amounts of time based on conditions
-        { 
-            transform.position = Vector3.Lerp(startPos, targetPos, (elapsedTime /1));
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-        // Set the pos of the user to the target to finish the movement
-        transform.position = targetPos;
+        while (elapsedTime < 1.0f) 
+        {
+            if(unitTransform == null) { break; }
 
-        // Invoke an event saying we are finished moving
-        OnFinishedMovement?.Invoke();
+            unitTransform.position = Vector3.Lerp(startPos, targetPos, (elapsedTime / 1));
+            elapsedTime += Time.deltaTime;
+            await Task.Yield();
+        }
+
+        // Snap the Unit's position to the Target
+        if (unitTransform != null) { unitTransform.position = targetPos; }    
     }
+
+    public AttackResolutionInfo GetCurrentAttackInformation() {  return currentAttackInfo; }
+    public CombatReturnData GetCombatReturnData() { return combatReturnData; }
 }

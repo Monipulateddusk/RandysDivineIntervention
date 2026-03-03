@@ -1,44 +1,77 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
+using TurnBased;
 using UnityEngine;
 
+public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
+public struct UnitIntention
+{
+    public MoveSelectionData? MoveSelection;
+    public List<int?> TargetIndexList;
+
+    public UnitIntention(MoveSelectionData moveData, List<int?> targetIndex)
+    {
+        this.MoveSelection = moveData;
+        this.TargetIndexList = targetIndex;
+    }
+
+    public bool IsMoveSelectionEmpty()
+    {
+        return MoveSelection != null;
+    }
+}
+
+[RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
-    // This event handles creation of the object. While this class handles the logistics of data, other classes handle the visual elements and thus need BaseUnit data to assign values correctly.
-    public event Action<BaseUnit> OnUnitCreated;
 
     // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
     public event Action<int, bool> OnAlterHealth;
 
     [Header("Debugging")]
-    [SerializeField] BaseUnit unitData;
+    [SerializeField] UnitData unitData;
+    [SerializeField] Animator unitAnimator;
+    [SerializeField] SpriteRenderer unitSpriteRenderer;
+    [SerializeField] UnitTeam team;
+    [SerializeField] UnitIntention unitIntentData;
 
-    [SerializeField] BaseInputManagerComponent iMComponent;
-    [SerializeField] Health hComponent;
-    [SerializeField] SpriteComponent sComponent;
-    [SerializeField] AnimationControllerComponent aCComponent;
-    [SerializeField] CombatComponent cComponent;
+    /*  Custom Components for the Unit. Using Dependency Injection  */
+    BaseMoveSelectorComponent unitMoveSelectorComponent;
+    BaseUnitTargettingComponent unitTargettingComponent;
+    HealthComponent unitHealthComponent;
+    SpriteComponent unitSpriteComponent;
+    CombatComponent unitCombatComponent;
+
+    protected ICombatMediator concreteMediator;
 
     private void Awake()
     {
-        // Attach the required component for a Unit.
-        iMComponent = BaseComponent.CreateInstance<SequentialInputManagerComponent, BaseBattleUnit>(gameObject, this);
-        hComponent = BaseComponent.CreateInstance<Health, BaseBattleUnit>(gameObject, this);
-        sComponent = BaseComponent.CreateInstance<SpriteComponent, BaseBattleUnit>(gameObject, this);
-        aCComponent = BaseComponent.CreateInstance<AnimationControllerComponent, BaseBattleUnit>(gameObject, this);
-        cComponent = BaseComponent.CreateInstance<CombatComponent, BaseBattleUnit>(gameObject, this);
+        /*  Get Unity Components and Attach them    */
+        if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
+        {
+            this.unitSpriteRenderer = spriteRenderer;
+            this.unitAnimator = animator;
+            this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
+        }
+        else
+        {
+            Debug.LogError("UNABLE TO RETRIEVE UNITY COMPONENTS ON: " + gameObject.name);
+            Debug.Break();
+        }
+
+        /*  Gain a referance to the required components for a Unit.   */
+        unitMoveSelectorComponent = new SequentialMoveSelectorComponent(this, unitData);
+        unitTargettingComponent = new BaseUnitTargettingComponent(this, unitData);
+        unitHealthComponent = new HealthComponent(this, unitData);
+        unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
+        unitCombatComponent = new CombatComponent(this, unitData, gameObject.transform);
+
+
     }
 
-    private void OnEnable()
+    private void OnDestroy()
     {
-        OnUnitCreated += AssignUnitData;
-        OnUnitCreated?.Invoke(unitData);
-    }
-
-    void AssignUnitData(BaseUnit unit)
-    {
-        //Debug.Log("Assigning Unit Data");
+        OnAlterHealth = null;
     }
 
     public void Damage(int damageAmount)
@@ -52,32 +85,89 @@ public class BaseBattleUnit : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyUp(KeyCode.D))
+        if (Input.GetKeyUp(KeyCode.D))
         {
             Damage(1);
         }
-        if(Input.GetKeyUp(KeyCode.H))
-        { 
-            Heal(1); 
+        if (Input.GetKeyUp(KeyCode.H))
+        {
+            Heal(1);
         }
     }
 
-    #region Getters
-    public  BaseUnit GetBaseUnit() { return unitData; }
-    public BaseInputManagerComponent GetInputManagerComponent() { return iMComponent; }
-    public Health GetHealthComponent() { return hComponent; }
-    public SpriteComponent GetSpriteComponent() {  return sComponent; }
-    public AnimationControllerComponent  GetAnimationControllerComponent() { return aCComponent; }
-    public CombatComponent GetCombatComponent() { return cComponent; }
+    public void NotifyMediator(CombatAttackEvent ev)
+    {
+        concreteMediator?.NotifyConcreteMediator(this, ev);
+    }
+
+    #region Animation Methods
+
+
+    /// <summary>
+    /// Play the Animation within the Animation Node correlating to the Attack Name
+    /// </summary>
+    public void PlayCombatAttackAnimation()
+    {
+        if (unitAnimator != null)
+        {
+            unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
+        }
+    }
+
+
+    /// <summary>
+    /// ANIMATION EVENT: Called when an Attack Animation Event triggers to do the Attack Action. Process that part of the Attack
+    /// </summary>
+    public void OnAttackActionAnimationTrigger()
+    {
+        NotifyMediator(new CombatAttackEvent(GetCombatComponent().GetCurrentAttackInformation(), unitIntentData));
+    }
+
+
+    /// <summary>
+    /// ANIMATION EVENT: Called when the End Attack Animation Event is triggered. 
+    /// </summary>
+    public async void OnAttackAnimationEnd()
+    {
+        await GetCombatComponent().OnEndAttackAnimation();
+    }
+
 
     #endregion
 
-    /// <summary>
-    /// Effectively similar to a deconstructor. Needed to unsubscribe to events to prevent memory leaks
-    /// </summary>
-    private void OnDestroy()
+    #region Getter/Setter Methods
+
+    public UnitData GetBaseUnit() { return unitData; }
+    public BaseMoveSelectorComponent GetMoveSelectorComponent() { return unitMoveSelectorComponent; }
+    public BaseUnitTargettingComponent GetUnitTargettingComponent() { return unitTargettingComponent; } 
+    public HealthComponent GetHealthComponent() { return unitHealthComponent; }
+    public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
+    public CombatComponent GetCombatComponent() { return unitCombatComponent; }
+    public void SetTeam(UnitTeam team) { this.team = team; }
+    public UnitTeam GetTeam() { return team; }
+
+    public void SetMediator(ICombatMediator mediator) { concreteMediator = mediator; }
+
+    #endregion
+
+    #region Intent Methods
+
+    public MoveSelectionData DeclareUnitMoveIntent(SceneData_UnitTurn sceneData) 
     {
-        OnUnitCreated = null;
-        OnAlterHealth = null;
+        MoveSelectionData moveData = GetMoveSelectorComponent().SelectMove(sceneData);
+        unitIntentData = new UnitIntention
+        {
+            MoveSelection = moveData
+        };
+        return moveData;
     }
+    public UnitTargettingData DeclareUnitTargettingIntent(MoveSelectionData moveSelectionData)
+    {
+        UnitTargettingData targetData = GetUnitTargettingComponent().SelectTargets(moveSelectionData);
+        //unitIntentData.TargetSelection  = targetData;   
+        return targetData;
+    }
+    public UnitIntention GetUnitIntentData() { return unitIntentData; }
+
+    #endregion
 }
