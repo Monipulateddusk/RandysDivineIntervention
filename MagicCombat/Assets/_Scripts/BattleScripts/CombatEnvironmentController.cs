@@ -1,98 +1,65 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TurnBased;
-using UnityEditor.Build;
 using UnityEngine;
 
-/// <summary>
-/// Same order as 'Element' enum in BaseUnit Class for easy integer conversion between the two
-/// </summary>
-public enum EnvironmentalElement
+public struct ImbuedEnvironmentElement
 {
-   IMBUE_FIRE, IMBUE_WATER, IMBUE_ICE, IMBUE_EARTH, IMBUE_LIGHT, IMBUE_DARKNESS, NULL,
+    public UnitTeam team;
+    public Element imbuedEnvironmentElement;
+
+    public ImbuedEnvironmentElement(UnitTeam team, Element element)
+    {
+        this.team = team;
+        this.imbuedEnvironmentElement = element;
+    }
 }
 
-
-public class CombatEnvironmentController : MonoBehaviour
+public class CombatEnvironmentController
 {
-    [SerializeField]private static CombatEnvironmentController _instance;
-    public static CombatEnvironmentController Instance
+    /*  Elemental Look-Up Table     */
+    /*  Same size as the Element Enum. Units are able to imbue the Environment with their Element to do an attack if their Ally participates.   */
+    readonly IElementalMoveAction[,] ElementalMoveLookUpTable = new IElementalMoveAction[7, 7]
+    {   /*  NULL,   Fire                Water                   Ice                     Earth                       Light                   Darkness    */
+        {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* NULL     */
+        {   null,   new EM_Inferno(),   new EM_Steam(),         new EM_Frostburn(),     new EM_Volcano(),           null,                   null,  },   /* Fire     */
+        {   null,   new EM_Steam(),     new EM_Tsunami(),       new EM_HailCloak(),     new EM_Wellspring(),        null,                   null,  },   /* Water    */
+        {   null,   new EM_Frostburn(), new EM_HailCloak(),     new EM_IceAge(),        new EM_FrostLock(),         null,                   null,  },   /* Ice      */
+        {   null,   new EM_Volcano(),   new EM_Wellspring(),    new EM_FrostLock(),     new EM_Fissure(),           null,                   null,  },   /* Earth    */
+        {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* Light    */
+        {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
+    };
+
+    private readonly List<ImbuedEnvironmentElement> environmentEffects;
+
+    public CombatEnvironmentController()
     {
-        get
+        environmentEffects = new();
+    }
+
+    public void AddEnvironmentalEffect(Element effect, UnitTeam team, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    {
+        Debug.Log("Imbuing effect: " + effect.ToString());
+        environmentEffects.Add(new ImbuedEnvironmentElement(team, effect));
+
+        /*  As we loop through the environment list, add to a Queue for each effect within the list that belongs to either the Enemy or Ally (Based on the isAlly perameter). */
+        var elmEffects = new Queue<ImbuedEnvironmentElement>(environmentEffects.Where(iEE => iEE.team == team));
+
+        if(elmEffects.Count >= 2)
         {
-            if( _instance == null)
+            /*  Once a move is determined and set to be executed, Clear the elemental list of the team specified by isAlly.  */
+            for (int i = 0; i < elmEffects.Count; i++)
             {
-                Debug.LogError("CombatEnvironmentController is null");
+                Debug.Log("Removing effect: " + elmEffects.ToList()[i].imbuedEnvironmentElement.ToString());
+                environmentEffects.Remove(elmEffects.ToList()[i]);
             }
-            return _instance;
+
+            Element elementA = elmEffects.Dequeue().imbuedEnvironmentElement;
+            Element elementB = elmEffects.Dequeue().imbuedEnvironmentElement;
+
+
+            ProcessElementalMove(elementA, elementB, team, users, targets);
         }
-    }
-
-    [Header("Inspector variables")]
-    [SerializeField] List<EnvironmentalEffect> effects = new();
-
-    Dictionary<Element, EnvironmentalEffect> effectDict; 
-
-    // Keep track of what the allies and the enemies are doing to display what effect is active
-    EnvironmentalEffect allyEnvirEffect, enemyEnvirEffect;
-
-
-    private void Awake()
-    {
-        // Declare the instance
-        _instance = this;
-
-        // Populate the dictionary
-        effectDict = new Dictionary<Element, EnvironmentalEffect>();
-
-        // This adds a means for other classes to input an Element enum and get the corresponding elemental effect. 
-        // It is imperative that the order of the Element Enum and the EnvironmentalEffect list match to the correct element type.
-        // E.g. Element index 0 is fire and so fire should also be element 0 in effects list
-        for(int i = 0; i < effects.Count; i++){
-            effectDict.Add((Element)i, effects[i]);
-        }
-    }
-
-    /// <summary>
-    /// Called by exterior classes to use their Element Enum when imbuing the environment for elemental attacks
-    /// </summary>
-    public void AddEnvironmentalElement(Element element)
-    {
-        EnvironmentalEffect effect = effectDict[element];
-    }
-
-    public void AddEnvironmentalEffect(EnvironmentalEffect effect, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool isAlly)
-    {
-        // If there is no environmental effect active, make it so. If not, process the environmental move
-        switch (isAlly)
-        {
-            case true:
-
-                if(allyEnvirEffect != null)
-                {
-                    allyEnvirEffect = effect;
-                }
-                else
-                {
-                    ProcessElementalMove(ref allyEnvirEffect, effect, users, targets);
-                }
-
-                break;
-
-            case false:
-                if(enemyEnvirEffect != null)
-                {
-                    enemyEnvirEffect = effect;
-                }
-                else
-                {
-                    ProcessElementalMove(ref enemyEnvirEffect, effect, users, targets);
-                }
-
-            break;
-        }
-
     }
 
     /// <summary>
@@ -103,27 +70,47 @@ public class CombatEnvironmentController : MonoBehaviour
     /// <param name="combinedEffect"></param>
     /// <param name="users"></param>
     /// <param name="targets"></param>
-    void ProcessElementalMove(ref EnvironmentalEffect curEffect, EnvironmentalEffect combinedEffect, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
+    public void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team, List<BaseBattleUnit> users, List<BaseBattleUnit> targets)
     {
         // Find out what move the elements combine into and do that move to get the info needed to resolve it
-        IBattleMoveAction action = curEffect.ConvertToMove(combinedEffect);
+        IElementalMoveAction action = ProcessElementalCombination(elementValueA, elementValueB);
 
-        // Convert basebattleunit to baseunit for each list using LINQ for shorthand usage.
-        List<UnitData> baseUnitsUsers = users.Select(user => user.GetBaseUnit()).ToList();
-        List<UnitData> baseUnitsTargets = targets.Select(user => user.GetBaseUnit()).ToList();
-
-        AttackResolutionInfo info = action.DoMove(usersInfo: baseUnitsUsers, targetsInfo: baseUnitsTargets);
-
-        // Once a move is determined and set to be executed, set the current effect of either the player or enemy
-        curEffect = null;
-
-        // Execute the move by calling the ProcessAttack function in CombatAttackHandler as many times as there are Actions in the attack
-        foreach(AttackAction a in info.Actions)
+        if (action == null)
         {
-            // Convert into CombatReturnData
-            CombatReturnData data = new(action, users, targets);
-            CombatAttackHandler.ProcessAttack(info, data);
+            Debug.LogError("ELEMENTAL COMBINATION ERROR: NOT VALID!!!");
         }
+
+        List<UnitData> baseUnitsUsers = new();
+        List<UnitData> baseUnitsTargets = new();
+
+        foreach (BaseBattleUnit unit in users)
+        {
+            baseUnitsUsers.Add(unit.GetBaseUnit());
+        }
+        foreach (BaseBattleUnit unit in targets)
+        {
+            baseUnitsTargets.Add(unit.GetBaseUnit());
+        }
+
+
+        AttackResolutionInfo info = action.DoElementalMove(usersInfo: baseUnitsUsers, targetsInfo: baseUnitsTargets);
+
+        Debug.Log("PROCESSING MOVE: " + info.moveName);
+
+        //CombatAttackHandler.ProcessAttackStep(this, info, users.FirstOrDefault().GetUnitIntentData());
+
     }
 
+
+    IElementalMoveAction ProcessElementalCombination(Element elementValueA, Element elementValueB)
+    {
+        if ((uint)elementValueA < (uint)ElementalMoveLookUpTable.GetLength(0) &&
+            (uint)elementValueB < (uint)ElementalMoveLookUpTable.GetLength(1))
+        {
+            return ElementalMoveLookUpTable[(uint)elementValueA, (uint)elementValueB];
+        }
+        return null;
+    }
+
+    public List<ImbuedEnvironmentElement> GetImbuedEnvironmentElements() { return environmentEffects; }
 }

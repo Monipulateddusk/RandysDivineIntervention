@@ -1,3 +1,4 @@
+using UnityEngine;
 using TurnBased;
 
 /// <summary>
@@ -5,42 +6,56 @@ using TurnBased;
 /// </summary>
 public static class CombatAttackHandler
 {
-    /// <summary>
-    /// Is called by units when doing moves but also by the environment moves handler
-    /// </summary>
-    /// <param name="attackAction"></param>
-    public static void ProcessAttack(AttackResolutionInfo currentAttackInfo, CombatReturnData attackInfo)
+    public static void ProcessAttackStep(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, UnitIntention intentInfo)
     {
-
-        AttackAction attackAction = currentAttackInfo.Actions[0];
-        foreach (BaseBattleUnit t in attackInfo.targets)
+        if (currentAttackInfo.Steps.Count < 0)
         {
-            switch (attackAction.Type)
-            {
-                case AttackAction.ActionType.DAMAGE:
-                    //Debug.LogWarning("Dealing Damage to " + combatReturnData.target + " by: " + attackAction.Value);
-                    t.Damage(attackAction.Value);
-
-                    break;
-                case AttackAction.ActionType.HEALING:
-                    t.Heal(attackAction.Value);
-                    break;
-
-                    // Call the CombatEnvironmentController to keep track of the environment condition
-                case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
-                    CombatEnvironmentController.Instance.AddEnvironmentalElement(attackAction.ElementEffect);
-                    break;
-
-
-                    // Call the status handler passing in the attack action information so that class knows what targets are going to get what status
-                case AttackAction.ActionType.STATUS_EFFECT:
-
-                    break;
-            }
+            Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process Attack Step! Steps List is Empty!");
+            return;
         }
-        // Remove the move when it is done. If we have a multi-part move, with different attack values, this is how it should be done
-        currentAttackInfo.Actions.Remove(attackAction);
+
+        AttackStep processedStep = null;
+        foreach (AttackStep step in currentAttackInfo.Steps)
+        {
+            foreach (AttackAction action in step.Actions)
+            {
+                ProcessAttackAction(environmentController, currentAttackInfo, intentInfo, action);
+            }
+
+            processedStep = step;
+            break;
+        }
+        // Remove the processed step from the Steps List
+        currentAttackInfo.Steps.Remove(processedStep);
     }
 
 
+    public static void ProcessAttackAction(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, UnitIntention intentInfo, AttackAction attackAction)
+    {
+        //foreach (BaseBattleUnit t in intentInfo.TargetSelection.Targets)
+        //{
+        //    switch (attackAction.Type)
+        //    {
+        //        case AttackAction.ActionType.DAMAGE:
+        //            t.Damage(attackAction.Value);
+
+        //            break;
+        //        case AttackAction.ActionType.HEALING:
+        //            t.Heal(attackAction.Value);
+        //            break;
+
+        //        // Call the CombatEnvironmentHandler to keep track of the environment condition
+        //        case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
+        //            environmentController.AddEnvironmentalEffect(attackAction.ElementEffect, intentInfo.MoveSelection.SourceTeam, intentInfo.MoveSelection.Allies, intentInfo.MoveSelection.Targets);
+        //            break;
+
+
+        //        // Call the status handler passing in the attack action information so that class knows what targets are going to get what status
+        //        case AttackAction.ActionType.STATUS_EFFECT:
+
+        //            break;
+        //    }
+        //}
+    }
+    
 }

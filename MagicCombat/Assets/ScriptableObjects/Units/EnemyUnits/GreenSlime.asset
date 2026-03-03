@@ -15,6 +15,7 @@ MonoBehaviour:
   name: Green Slime
   maxHP: 8
   attack: 3
+  speed: 5
   color: {r: 0.023050921, g: 0.6981132, b: 0.05496035, a: 1}
   sprite: {fileID: 21300000, guid: 4e3929101b7d0894aa982cce9fd25b94, type: 3}
   element: 0

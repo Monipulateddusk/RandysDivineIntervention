@@ -5,10 +5,8 @@ using UnityEngine;
 
 public class CombatComponent : BaseComponent
 {
-
+    /*  Transform of the Unit   */
     Transform unitTransform;
-
-    /*  Starting Position of the Unit   */
     Vector3 battleStationLocation;
 
     /*  Event: Invoked when Attacking is done   */
@@ -37,17 +35,9 @@ public class CombatComponent : BaseComponent
     ~CombatComponent()
     {
         currentAttackInfo = null;
-        combatReturnData = null;
         unitTransform = null;
     }
 
-    /// <summary>
-    /// Called externally from animationControllerComponent when an attack is animated to process the attack.
-    /// </summary>
-    public void ProcessAttack()
-    {
-        CombatAttackHandler.ProcessAttack(currentAttackInfo, combatReturnData);
-    }
     public async Task StartCombat(AttackResolutionInfo info, CombatReturnData data)
     {
         currentAttackInfo = info;
