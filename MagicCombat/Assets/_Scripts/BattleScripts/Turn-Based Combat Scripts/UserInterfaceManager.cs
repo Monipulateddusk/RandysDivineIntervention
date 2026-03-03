@@ -102,12 +102,12 @@ public class UserInterfaceManager : MonoBehaviour
     {
         /*  Throw out a raycast from the camera to the point where the cursor is at scanning for UI elements. */
         Collider2D hit = Physics2D.OverlapPoint(this.CursorManager.GetPreviousMousePosition(), LayerMask.GetMask("UI"));
-
+        if (hit == null) { return; }
         /*  
          *  If we got something that implements IUISelectable, save that locally. 
          *  If we didn't hit something with the raycast, we should deselect anything we could have been selecting before. 
          */
-        if (hit && hit.TryGetComponent(out IUISelectable selectedUI))
+        if (hit.TryGetComponent(out IUISelectable selectedUI))
         {
             this.selectedUserInterfaceElement.hoveredUIObject = selectedUI;
         }

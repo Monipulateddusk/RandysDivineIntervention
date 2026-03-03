@@ -5,8 +5,9 @@ public class UITaskBarManager
 {
     RectTransform TaskbarHomeBoxTransform;
 
-    const float MAX_TASKBAR_HOME_HEIGHT = -140;
-    const float EXPAND_SHRINK_TIMER = 2.0f;
+    const float MAX_TASKBAR_HOME_HEIGHT = 140;
+    const float EXPAND_SHRINK_TIMER = 0.1f;
+    bool isExpandingShrinking = false;
 
     public UITaskBarManager(RectTransform taskBarHomeBoxTransform)
     {
@@ -17,33 +18,43 @@ public class UITaskBarManager
     {
         if (Input.GetKeyDown(KeyCode.Y))
         {
-            OnClickStartOS();
+            _ = OnClickStartOS();
         }
     }
 
 
-    public void OnClickStartOS()
+    public async Task OnClickStartOS()
     {
-        if (TaskbarHomeBoxTransform != null)
+        if (TaskbarHomeBoxTransform != null && !isExpandingShrinking)
         {
-            float targetHeight = this.TaskbarHomeBoxTransform.GetTop() == MAX_TASKBAR_HOME_HEIGHT ? 0 : MAX_TASKBAR_HOME_HEIGHT;
-            _ = ExpandShrinkHomeBox(targetHeight);
+            (float, float) homeBoxStartEnd = GetHomeBoxExpandShrinkParameters();
+            await ExpandShrinkHomeBox(homeBoxStartEnd.Item1, homeBoxStartEnd.Item2);
+        }
+    }
+    private (float, float) GetHomeBoxExpandShrinkParameters()
+    {
+        if (this.TaskbarHomeBoxTransform.GetTop() > 0)
+        {
+            return (-MAX_TASKBAR_HOME_HEIGHT, 0);
+        }
+        else
+        {
+            return (0, -MAX_TASKBAR_HOME_HEIGHT);
         }
     }
 
-
-    async Task ExpandShrinkHomeBox(float targetHeight)
+    async Task ExpandShrinkHomeBox(float startHeight, float targetHeight)
     {
-        if (TaskbarHomeBoxTransform != null)
+        isExpandingShrinking = true;
+        float startTime = Time.time;
+        while (Time.time < startTime + EXPAND_SHRINK_TIMER)
         {
-            float endTime = Time.deltaTime + EXPAND_SHRINK_TIMER;
-            while (Time.deltaTime < endTime) 
-            {
-                Debug.Log("sadad");
-                //this.TaskbarHomeBoxTransform.SetTop(this.TaskbarHomeBoxTransform.GetTop() - (targetHeight * Time.deltaTime));
-                await Task.Yield();
-            }
+            float t = (Time.time - startTime) / EXPAND_SHRINK_TIMER;
+            this.TaskbarHomeBoxTransform.SetTop(Mathf.Lerp(startHeight, targetHeight, t));
+            await Task.Yield();
         }
-        
+    
+        this.TaskbarHomeBoxTransform.SetTop(targetHeight);
+        isExpandingShrinking = false;
     }
 }

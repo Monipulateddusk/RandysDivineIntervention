@@ -27,7 +27,7 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
 
     [SerializeField] DialogueBoxState currentDialogueBoxState;
     Vector3 MouseDragStartPosition;
-    const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50;
+    const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50, HEADER_BUTTON_WIDTH = 110;
 
     private void Awake()
     {
@@ -147,17 +147,13 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
 
     private bool IsPositionWithinTopTile(float positionX, float positionY)
     {
-        /*  Find the origin of the Header.  */
-        float originX = this.transform.position.x;
-        float originY = this.transform.position.y + ((this.BoxCollider.size.y * 0.5f) - (TITLE_BAR_HEIGHT * 0.5f));
+        /*  Get the bounds  */
+        Bounds boxBounds = this.BoxCollider.bounds;
 
-        /*  Ignoring Positive and Negative values, determine how far the Position is from the Box's centre in world Space.  */
-        float distanceFromOriginX = Mathf.Abs(positionX - originX);
-        float distanceFromOriginY = Mathf.Abs(positionY - originY);
+        bool withinX = positionX <= (boxBounds.max.x - HEADER_BUTTON_WIDTH) && positionX >= boxBounds.min.x;
+        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.max.y - TITLE_BAR_HEIGHT);
 
-        /*  Is this point within the threshold for the Horizontal Bounds AND within the 50 units from the OriginY? */
-        return (distanceFromOriginX <= (this.BoxCollider.size.x * 0.5f) && distanceFromOriginY <= TITLE_BAR_HEIGHT);
-
+        return withinX && withinY;
     }
 
     private void ProcessDragMove()
