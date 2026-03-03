@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5a70537c79c94749958ff40d998d76f, type: 3}
+  m_Name: PlayerHammer
+  m_EditorClassIdentifier: 
+  name: 
+  maxHP: 5
+  attack: 5
+  speed: 10
+  color: {r: 0, g: 0.2333653, b: 1, a: 1}
+  sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
+  element: 2
+  moves:
+  - rid: 5544377919140265985
+  - rid: 5544377919140265986
+  unitAnimator: {fileID: 9100000, guid: 212fd75ee11e56848afcb4a2c3d4fc0c, type: 2}
+  references:
+    version: 2
+    RefIds:
+    - rid: 5544377919140265985
+      type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
+    - rid: 5544377919140265986
+      type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
