@@ -20,6 +20,7 @@ public class UnitData : ScriptableObject
 
     public int maxHP;
     public int attack;
+    public int speed;
 
     public Color color;
     public Sprite sprite;

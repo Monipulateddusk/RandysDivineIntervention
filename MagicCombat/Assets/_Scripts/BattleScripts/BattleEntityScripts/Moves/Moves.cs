@@ -7,42 +7,63 @@ namespace TurnBased
     {
         NULL,
     }
-    [System.Serializable]
+
+
     public class AttackAction
     {
         public enum ActionType { DAMAGE, HEALING, STATUS_EFFECT, IMBUE_ENVIRONMENTS }
 
         public ActionType Type { get; private set; }
+        public Element ElementEffect { get; private set; }
+        public MoveTarget AttackTarget { get; private set; }
         public int Value { get; private set; }
         public string StaEffect { get; private set; }
-        public Element ElementEffect { get; private set; }
 
-        public AttackAction(ActionType type, int value = 0, string staEffect = "", Element elementEff = 0)
+
+        public AttackAction(ActionType type, int value = 0, string staEffect = "", Element elementEff = 0, MoveTarget attackTarget = MoveTarget.SingleEnemy)
         {
             Type = type;
+            ElementEffect = elementEff;
             Value = value;
             StaEffect = staEffect;
-            ElementEffect = elementEff;
+            AttackTarget = attackTarget;
         }
     }
 
-    [System.Serializable]
+    public class AttackStep
+    {
+        public List<AttackAction> Actions = new();
+
+        public AttackStep()
+        {
+            Actions = new();
+        }
+
+        public AttackStep(List<AttackAction> actions)
+        {
+            this.Actions = actions; 
+        }
+    }
+
+
     public class AttackResolutionInfo
     {
         public string moveName;
-        public List<AttackAction> Actions { get; private set; }
+        public List<AttackStep> Steps { get; private set; }
 
         public AttackResolutionInfo()
         {
-            Actions = new List<AttackAction>();
+            Steps = new List<AttackStep>();
         }
-        public void RemoveAtIndex(int index) { Actions.RemoveAt(index); }
     }
     #endregion
 
     public interface IBattleMoveAction
     {
-        public abstract AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
+        public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null);
+        public MoveTarget GetMoveTargetType();
+        public int GetMaxTargets();
+        public bool DoesSourceUnitMove();
     }
 
     /// <summary>
@@ -50,15 +71,28 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
-                moveName = "HeavyAttack"
+                moveName = "HeavyAttack",
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack, attackTarget: MoveTarget.SingleEnemy)
+                        }                        
+                    }, 
+                }
             };
-            resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack));
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 1;
+        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
+        public bool DoesSourceUnitMove() => true;   
     }
 
     /// <summary>
@@ -66,19 +100,45 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {
+            int damage = userInfo.attack / 3;
             AttackResolutionInfo resolutionInfo = new()
             {
-                moveName = "LightAttack"
-            };
-            int damage = userInfo.attack / 3;
-            resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
-            resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, 1));
-            resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, damage));
+                moveName = "LightAttack",
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackAction(AttackAction.ActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                        }
+                    },
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackAction(AttackAction.ActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                        }
+                    },
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
 
+                            new AttackAction(AttackAction.ActionType.DAMAGE, damage, attackTarget: MoveTarget.SingleEnemy)
+                        }
+                    },
+                }
+
+            };
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 1;
+        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
+        public bool DoesSourceUnitMove() => true;
     }
 
     /// <summary>
@@ -86,16 +146,28 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMoveAction
     {
-        public AttackResolutionInfo DoMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
                 moveName = "ImbueEnvironment",
-
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element, attackTarget: MoveTarget.Area),
+                        },
+                    }
+                }
 
             };
-            resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element));
             return resolutionInfo;
         }
+
+        public int GetMaxTargets() => 0;
+        public MoveTarget GetMoveTargetType() => MoveTarget.Area;
+        public bool DoesSourceUnitMove() => false;
     }
 }

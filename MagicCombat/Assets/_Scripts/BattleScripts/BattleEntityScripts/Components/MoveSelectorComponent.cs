@@ -2,6 +2,16 @@ using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
 
+
+public struct MoveSelectionData
+{
+    public IBattleMoveAction SelectedMove;
+
+    public StationIndex SourceStationIndex;
+    public List<StationIndex?> AllyStationIndexes;
+    public List<StationIndex?> TargetStationIndexes;
+}
+
 public abstract class BaseMoveSelectorComponent : BaseComponent
 {
 
@@ -20,13 +30,12 @@ public abstract class BaseMoveSelectorComponent : BaseComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
-    public abstract CombatReturnData Combat(CombatSceneData data);
+    public abstract MoveSelectionData SelectMove(SceneData_UnitTurn data);
 
-    public List<IBattleMoveAction> GetBattleMoves() { return battleMoves; }
+    public List<IBattleMoveAction> GetBattleMoves() => battleMoves; 
 }
 
 public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
@@ -37,7 +46,6 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
@@ -46,26 +54,18 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override CombatReturnData Combat(CombatSceneData data)
+    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
     {
         // Select a random move to perform
         int rIndex = Random.Range(0, battleMoves.Count);
 
         IBattleMoveAction selectedMove = battleMoves[rIndex];
+        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
-        // Use the param of the function to select between targets
-        rIndex = Random.Range(0, data.possibleTargets.Count);
-        BaseBattleUnit target = data.possibleTargets[rIndex];
 
-        List<BaseBattleUnit> users = new()
-        {
-            battleUnit
-        }, 
-        targets = new()
-        {
-            target
-        };
-        return new CombatReturnData(selectedMove, battleUnit.GetTeam(), users, targets);
+        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
     }
 }
 
@@ -79,7 +79,6 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         this.unitData = unitData;
 
         /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = new();
         this.battleMoves = unitData.moves;
     }
 
@@ -89,7 +88,7 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
     /// </summary>
     /// <param name="data"></param>
     /// <returns></returns>
-    public override CombatReturnData Combat(CombatSceneData data)
+    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
     {
         // If the index exceeds the count on the list, set it to the start of the list (0).
         // This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
@@ -99,23 +98,13 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         }
 
         IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
+        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
         // Increment the index after everything is decided
         curMoveIndex++;
 
-        // We will still randomly gen a target from the possible targets
-        // Use the param of the function to select between targets
-        int rIndex = Random.Range(0, data.possibleTargets.Count);
-        BaseBattleUnit target = data.possibleTargets[rIndex];
-
-
-        List<BaseBattleUnit> users = new()
-        {
-            battleUnit
-        }, targets = new()
-        {
-            target
-        };
-        return new CombatReturnData(selectedMove, battleUnit.GetTeam(), users, targets);
+        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
     }
 }

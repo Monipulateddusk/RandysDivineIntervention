@@ -16,11 +16,6 @@ public class EM_Inferno : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Inferno"
-        };
-
         int totalAttackValue = 0;
         foreach (var unit in usersInfo)
         {
@@ -33,7 +28,22 @@ public class EM_Inferno : IElementalMoveAction
         // Give a multiplier to the attack to make it better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.5f);
 
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.FIRE));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Inferno",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        
+                        // Afflicting status: Burned to enemies
+                        new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.FIRE, attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+            }
+        };
         return resolutionInfo;
     }
 }
@@ -45,11 +55,6 @@ public class EM_Steam : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Steam"
-        };
-
         int totalAttackValue = 0;
         foreach (var unit in usersInfo)
         {
@@ -62,8 +67,23 @@ public class EM_Steam : IElementalMoveAction
         // Give a multiplier to the attack to make it slightly better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.25f);
 
-        // Afflicting status: Burned to enemies
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned"));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Steam",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        
+                        // Afflicting status: Burned to enemies
+                        new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+            }
+
+        };
         return resolutionInfo;
     }
 }
@@ -77,11 +97,21 @@ public class EM_Frostburn : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Frostburn"
-        };
+            moveName = "Frostburn",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        
+                        // Afflicting status: Frostburn to enemies & Slippery
+                        new AttackAction(AttackAction.ActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
 
-        // Afflicting status: Frostburn to enemies & Slippery
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn"));
+            }
+        };
         return resolutionInfo;
     }
 }
@@ -93,11 +123,6 @@ public class EM_Volcano : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Volcano"
-        };
-
         int totalAttackValue = 0;
         foreach (var unit in usersInfo)
         {
@@ -110,8 +135,24 @@ public class EM_Volcano : IElementalMoveAction
         // Give a multiplier to the attack to make it slightly better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.25f);
 
-        // Afflicting status: Burned to enemies
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned"));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Volcano",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        
+                        // Afflicting status: Burned to enemies
+                        new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+
+            }
+        };
+
         return resolutionInfo;
     }
 }
@@ -127,12 +168,8 @@ public class EM_Tsunami : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Tsunami"
-        };
-
         int totalAttackValue = 0;
+
         foreach (var unit in usersInfo)
         {
             if (unit.element == Element.WATER)
@@ -140,11 +177,25 @@ public class EM_Tsunami : IElementalMoveAction
                 totalAttackValue = +unit.attack;
             }
         }
-
         // Give a multiplier to the attack to make it better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.5f);
 
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Tsunami",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                      new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+
+            }
+        };
+
         return resolutionInfo;
     }
 }
@@ -158,12 +209,22 @@ public class EM_Wellspring : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Wellspring"
+            moveName = "Wellspring",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        // All allies are healed for 2 HP
+                        new AttackAction(AttackAction.ActionType.HEALING, value: 2, attackTarget: MoveTarget.AllAllies)
+                    }
+                }
+
+            }
+
         };
 
-        // All allies are healed for 2 HP
-
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.HEALING, value: 2));
         return resolutionInfo;
     }
 }
@@ -179,10 +240,6 @@ public class EM_IceAge : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Ice Age"
-        };
 
         int totalAttackValue = 0;
         foreach (var unit in usersInfo)
@@ -196,7 +253,21 @@ public class EM_IceAge : IElementalMoveAction
         // Give a multiplier to the attack to make it better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.5f);
 
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Ice Age",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+
+            }
+        };
         return resolutionInfo;
     }
 }
@@ -210,12 +281,21 @@ public class EM_HailCloak : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Hail Cloak"
+            moveName = "Hail Cloak",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        // All allies are granted Hailcloak
+                        new AttackAction(AttackAction.ActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
+                    }
+                }
+
+            }
+
         };
-
-        // All allies are granted Hailcloak
-
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.STATUS_EFFECT, staEffect: "Hail Cloak"));
         return resolutionInfo;
     }
 }
@@ -231,10 +311,6 @@ public class EM_Fissure : IElementalMoveAction
 {
     public AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null)
     {
-        AttackResolutionInfo resolutionInfo = new()
-        {
-            moveName = "Fissure"
-        };
 
         int totalAttackValue = 0;
         foreach (var unit in usersInfo)
@@ -248,7 +324,23 @@ public class EM_Fissure : IElementalMoveAction
         // Give a multiplier to the attack to make it better than the sum of it's parts
         totalAttackValue = (int)(totalAttackValue * 1.5f);
 
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH));
+        AttackResolutionInfo resolutionInfo = new()
+        {
+            moveName = "Fissure",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        new AttackAction(AttackAction.ActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
+                    }
+                }
+
+            }
+        };
+
+
         return resolutionInfo;
     }
 }
@@ -262,12 +354,22 @@ public class EM_FrostLock : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Frost Lock"
+            moveName = "Frost Lock",
+            Steps =
+            {
+                new AttackStep()
+                {
+                    Actions =
+                    {
+                        // Afflict targets with frost lock
+                        new AttackAction(AttackAction.ActionType.STATUS_EFFECT, staEffect: "Frost Lock", attackTarget: MoveTarget.AllEnemies)
+                    }
+                }
+
+            }
         };
 
-        // Afflict targets with frost lock
 
-        resolutionInfo.Actions.Add(new AttackAction(AttackAction.ActionType.STATUS_EFFECT, staEffect: "Frost Lock"));
         return resolutionInfo;
     }
 }

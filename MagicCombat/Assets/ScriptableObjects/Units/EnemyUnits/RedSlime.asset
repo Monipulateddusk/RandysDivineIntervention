@@ -15,6 +15,7 @@ MonoBehaviour:
   name: Red Slime
   maxHP: 15
   attack: 6
+  speed: 1
   color: {r: 0.8679245, g: 0.10767631, b: 0, a: 1}
   sprite: {fileID: 21300000, guid: 4e3929101b7d0894aa982cce9fd25b94, type: 3}
   element: 0
