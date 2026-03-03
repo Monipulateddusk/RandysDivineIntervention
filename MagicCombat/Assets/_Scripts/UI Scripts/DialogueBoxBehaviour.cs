@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 
@@ -10,7 +11,15 @@ public interface IUISelectable
     public CursorManager.CursorIcons GetCurrentMouseStateSuggestion();
 }
 
-public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
+public class MinimisableUI : MonoBehaviour
+{
+    private int minimisableIndex;
+
+    public void SetMinimisableIndex(int index) {  this.minimisableIndex = index; }
+    public int GetMinimisableIndex() { return this.minimisableIndex; }
+}
+
+public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 {
     enum DialogueBoxState
     {
@@ -21,18 +30,36 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
         BothAxisResize = HorizontalResize | VerticalResize,
         DragMoving = 4,
     }
-    UnityEngine.UI.LayoutElement LayoutElement;
-    UnityEngine.BoxCollider2D BoxCollider;
-    [SerializeField] TextMeshProUGUI textMeshProUGUI;
+    enum ButtonSelection 
+    {
+        None = 0,
+        Minimise = 1,
+        Close = 2,
+    }
+    //  Box Move and Resize.        
+    private DialogueBoxState currentDialogueBoxState;
+    private Vector3 MouseDragStartPosition;
+    private const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50;
 
-    [SerializeField] DialogueBoxState currentDialogueBoxState;
-    Vector3 MouseDragStartPosition;
-    const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50, HEADER_BUTTON_WIDTH = 110;
+    //  Components 
+    private UnityEngine.UI.LayoutElement LayoutElement;
+    private UnityEngine.BoxCollider2D BoxCollider;
+
+    //  Header Button Referances.   
+    private UnityEngine.BoxCollider2D minimiseCollider, closeCollider;
+    private ButtonSelection currentButtonSelection;
+
+    public event Action OnMinimise;
 
     private void Awake()
     {
         this.BoxCollider = GetComponent<BoxCollider2D>();
         this.LayoutElement = GetComponent<UnityEngine.UI.LayoutElement>();
+
+        /*  Get the colliders of the Buttons in the Header. IMPORTANT: The selectable component is Smoke and Mirrors. It just changes the colour shade. */
+        Transform buttonsParentTransform = this.transform.Find("Header").Find("HeaderBuffer").Find("Buttons");
+        this.minimiseCollider   = buttonsParentTransform.Find("MinimiseBG").GetComponent<BoxCollider2D>();
+        this.closeCollider      = buttonsParentTransform.Find("CloseBG").GetComponent<BoxCollider2D>();
     }
 
     #region Resize Functionality
@@ -97,7 +124,7 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
         }
     }
     
-    void ResizeDialogueBox(Vector2 newSize)
+    public void ResizeDialogueBox(Vector2 newSize)
     {
         if(newSize.x <= MIN_WIDTH) { newSize.x = MIN_WIDTH; }
         if(newSize.y <= MIN_HEIGHT) { newSize.y = MIN_HEIGHT; }
@@ -134,32 +161,55 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
 
     #endregion
 
-    #region Drag Move Functionality
-
-    private void ProcessIfCursorIsWithinTitleBar(Vector2 mousePos)
-    {
-        if (currentDialogueBoxState == DialogueBoxState.Idle && IsPositionWithinTopTile(mousePos.x, mousePos.y))
-        {         
-            currentDialogueBoxState = DialogueBoxState.DragMoving;
-        }
-    }
-
-
+    #region Header Button Functionality
     private bool IsPositionWithinTopTile(float positionX, float positionY)
     {
         /*  Get the bounds  */
         Bounds boxBounds = this.BoxCollider.bounds;
 
-        bool withinX = positionX <= (boxBounds.max.x - HEADER_BUTTON_WIDTH) && positionX >= boxBounds.min.x;
+        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
         bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.max.y - TITLE_BAR_HEIGHT);
 
         return withinX && withinY;
     }
 
+    private bool IsPositionWithinBoxBounds(float positionX, float positionY, Bounds boxBounds)
+    {
+        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
+        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.min.y);
+        return withinX && withinY;
+    }
+
+    private void ProcessIfCursorIsWithinTitleBar(Vector2 mousePos)
+    {
+        if (currentDialogueBoxState == DialogueBoxState.Idle && IsPositionWithinTopTile(mousePos.x, mousePos.y))
+        {
+            /*  Check to see if the mouse position is within either of the Button Boxes. If so, we aren't drag moving.  */
+            if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, minimiseCollider.bounds)) 
+            {
+                currentButtonSelection = ButtonSelection.Minimise;
+                currentDialogueBoxState = DialogueBoxState.Idle;
+            }
+            else if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, closeCollider.bounds))
+            {
+                currentButtonSelection = ButtonSelection.Close;
+                currentDialogueBoxState = DialogueBoxState.Idle;
+            }
+            else
+            {
+                currentButtonSelection = ButtonSelection.None;
+                currentDialogueBoxState = DialogueBoxState.DragMoving;
+            }           
+        }
+    }
+
+    #endregion
+
+    #region Drag Move Functionality
+
     private void ProcessDragMove()
     {
         this.transform.position = Input.mousePosition - MouseDragStartPosition;
-        textMeshProUGUI.text = "XPos: " + this.transform.position.x + "YPos" + this.transform.position.y;
     }
 
 
@@ -167,12 +217,21 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
 
     public void OnSelect(Vector2 mousePos)
     {
-
-
-
         if (currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
             MouseDragStartPosition = Input.mousePosition - this.transform.position;
+        }
+        else if(currentDialogueBoxState == DialogueBoxState.Idle)
+        {
+            if(currentButtonSelection == ButtonSelection.Minimise)
+            {
+                UserInterfaceManager.Instance.GetTaskBarManager().OnMinimisedClicked(this);
+            }
+            else if(currentButtonSelection == ButtonSelection.Close)
+            {
+                UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this);
+
+            }
         }
     }
 
@@ -221,6 +280,16 @@ public class DialogueBoxBehaviour : MonoBehaviour, IUISelectable
                 return CursorManager.CursorIcons.Cursor;
 
         }
+    }
+
+    public Vector2 GetDialogueBoxSize()
+    {
+        return new Vector2(this.LayoutElement.preferredWidth, this.LayoutElement.preferredHeight);
+    }
+
+    public void OnMinimiseHappen()
+    {
+        throw new NotImplementedException();
     }
 }
 

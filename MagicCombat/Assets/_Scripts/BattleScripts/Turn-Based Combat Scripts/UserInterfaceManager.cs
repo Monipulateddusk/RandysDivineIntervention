@@ -1,13 +1,29 @@
 using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.U2D;
 using UnityEngine.UI;
 
+public struct DialogueBoxData
+{
+    public Vector2 Position;
+    public Vector2 Size;
+}
+
 [RequireComponent(typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler))]
-[RequireComponent (typeof(GraphicRaycaster))]
+[RequireComponent(typeof(GraphicRaycaster))]
 public class UserInterfaceManager : MonoBehaviour
 {
+    private static UserInterfaceManager instance;
+    public static UserInterfaceManager Instance
+    {
+        get
+        {
+            if (instance == null)
+                Debug.Log("UserInterfaceManager is NULL");
+            return instance;
+        }
+    }
+
     [Serializable]class SelectedUserInterfaceElementProperties
     {
         [SerializeField]public IUISelectable hoveredUIObject;
@@ -29,16 +45,20 @@ public class UserInterfaceManager : MonoBehaviour
     private Canvas canvas;
     private CanvasScaler scaler;
     private GraphicRaycaster raycaster;
-    private GameObject eventSystem;
+    private EventSystem eventSystem;
 
 
     [Header("Selected User Interface Properties")]
-    [SerializeField]SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
+    [SerializeField] SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
 
 
     [Header("Task bar Properties")]
+    [SerializeField] GameObject dialogueBoxPrefab;
+    [SerializeField] GameObject windowMinimisationPrefab;
     [SerializeField] GameObject taskBarObject;
+    [SerializeField] GameObject ScreenElementsTransform;
     UITaskBarManager TaskBarManager;
+
 
     [Header("Cursor Properties")]
     [SerializeField, Tooltip("Required Field. Populate with the Prefab of the Cursor")]                     GameObject CursorPrefab;
@@ -57,9 +77,8 @@ public class UserInterfaceManager : MonoBehaviour
         this.raycaster = GetComponent<GraphicRaycaster>();
 
         if (this.eventSystem == null && !GameObject.Find("EventSystem")) {
-            eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<StandaloneInputModule>();
+            eventSystem = new GameObject("EventSystem").AddComponent<EventSystem>();
+            eventSystem.gameObject.AddComponent<StandaloneInputModule>();
         }
     }
 
@@ -74,20 +93,44 @@ public class UserInterfaceManager : MonoBehaviour
     {
         if (taskBarObject != null)
         {
-            this.TaskBarManager = new((RectTransform)this.taskBarObject.transform.Find("TaskBarHomeBox").transform);
+            this.TaskBarManager = new(
+                (RectTransform)this.taskBarObject.transform.Find("TaskBarHomeBox").transform,
+                (RectTransform)this.taskBarObject.transform.Find("Object_Elements").Find("WindowGrid").transform,
+                (RectTransform)this.ScreenElementsTransform.transform,
+                windowMinimisationPrefab,
+                dialogueBoxPrefab
+                );
         }
     }
     private void OnValidate()
     {
         InitialiseComponents();
         InitaliseCursorManager();
-        InitaliseTaskBarManager();
+    }
+
+    private void InitaliseSingleton()
+    {
+        if (instance == null)
+        {
+            instance = this;
+        }
+        else
+        {
+            DestroyImmediate(this);
+        }
     }
 
     private void Awake()
     {
+        InitaliseSingleton();
         InitialiseComponents();
         InitaliseCursorManager();
+        InitaliseTaskBarManager();
+    }
+
+    private void Start()
+    {
+
     }
 
     void ClearSelectedUIElement()
@@ -170,4 +213,7 @@ public class UserInterfaceManager : MonoBehaviour
         this.CursorManager.Update();
         this.TaskBarManager.Update();
     }
+
+
+    public UITaskBarManager GetTaskBarManager() { return TaskBarManager; }
 }
