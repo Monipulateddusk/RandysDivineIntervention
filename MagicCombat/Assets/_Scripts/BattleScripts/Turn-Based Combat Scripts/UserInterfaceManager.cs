@@ -3,12 +3,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public struct DialogueBoxData
-{
-    public Vector2 Position;
-    public Vector2 Size;
-}
-
 [RequireComponent(typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler))]
 [RequireComponent(typeof(GraphicRaycaster))]
 public class UserInterfaceManager : MonoBehaviour

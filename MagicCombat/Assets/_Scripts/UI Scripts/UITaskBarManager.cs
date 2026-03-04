@@ -1,6 +1,19 @@
+using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.UIElements;
+
+public struct WindowData
+{
+    public DialogueBoxBehaviour DialogueBox;
+    public GameObject TaskBarBox;
+
+    public Vector2 Position, Size;
+
+    public bool IsEnabled;
+}
 
 public class UITaskBarManager
 {
@@ -17,7 +30,7 @@ public class UITaskBarManager
     private readonly RectTransform WindowGridTransform;
     private readonly RectTransform ScreenElementsTransform;
 
-    private readonly Dictionary<int, DialogueBoxData> DialogueBoxDataDict = new();
+    private readonly Dictionary<int, WindowData> WindowDataDict = new();
 
     public UITaskBarManager(RectTransform taskBarHomeBoxTransform, RectTransform windowGridTransform, RectTransform screenElementsTransform, GameObject windowMinimisationPrefab, GameObject dialogueBoxPrefab)
     {
@@ -41,36 +54,72 @@ public class UITaskBarManager
 
     public void CreateWindow(int index, Vector2 position, Vector2 size)
     {
-        /*  When creating a window, we need to do two things:   */
-        /*  1) Create the UI Game Object.   */
-        GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, position, Quaternion.identity, this.ScreenElementsTransform.transform);
-        gO.GetComponent<DialogueBoxBehaviour>().ResizeDialogueBox(size);
-        gO.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-        /*  2) Create the TaskBar minimisation Widget.          */
-        gO = GameObject.Instantiate(this.WindowMinimisationPrefab, this.ScreenElementsTransform.transform);
-        gO.transform.SetParent(WindowGridTransform.transform);
-
         /*  Store the data of this Window.  */
-        if(!DialogueBoxDataDict.ContainsKey(index))
+        if (!WindowDataDict.ContainsKey(index))
         {
-            DialogueBoxDataDict.Add(index, new DialogueBoxData() { Size = size, Position = position });
-            Debug.Log(DialogueBoxDataDict.Count);
+            DialogueBoxBehaviour    createdDialogueBox  = CreateDialogueBoxWindow(index, position, size);
+            GameObject              taskBarWidget       = CreateTaskBarMinimisationWidget();
+
+            WindowDataDict.Add(index, new WindowData() 
+            {
+                DialogueBox = createdDialogueBox, 
+                TaskBarBox = taskBarWidget, 
+                IsEnabled = true,
+                Position = position,
+                Size = size
+            });
+            
         }
     }
 
-    public void OnMinimisedClicked(DialogueBoxBehaviour dialogueBoxBehaviour)
+    DialogueBoxBehaviour CreateDialogueBoxWindow(int index, Vector2 position, Vector2 size)
     {
-        DialogueBoxData data = new()
+        GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, position, Quaternion.identity, this.ScreenElementsTransform.transform);
+
+        if (gO != null && gO.TryGetComponent(out DialogueBoxBehaviour dBB))
         {
-            Position = dialogueBoxBehaviour.transform.position,
-            Size = dialogueBoxBehaviour.GetDialogueBoxSize(),
-        };
-
-
+            dBB.ResizeDialogueBox(size);
+            gO.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+            return dBB;
+        }
+        return null;    
     }
 
-    public void OnClosedClicked(DialogueBoxBehaviour dialogueBoxBehaviour)
+    GameObject CreateTaskBarMinimisationWidget()
+    {
+        GameObject gO = GameObject.Instantiate(this.WindowMinimisationPrefab, this.ScreenElementsTransform.transform);
+        gO.transform.SetParent(WindowGridTransform.transform);
+        return gO;
+    }
+
+    public void OnMinimiseClicked(int index)
+    {
+        Debug.Log("Minimised clicked");
+    }
+
+    public void OnMinimisedTaskbarClicked(int index)
+    {
+        Debug.Log("Taskbar Minimisation clicked");
+
+        WindowData data = WindowDataDict[index];
+        if (data.IsEnabled)
+        {
+            data.IsEnabled = false;
+
+            /*  Destroy the Window. (Probably change this to just disable the visibility?   */
+            GameObject.DestroyImmediate(data.DialogueBox.gameObject);
+            data.DialogueBox = null;
+        }
+        else
+        {
+            data.IsEnabled = true;
+
+            /*  Respawn the Dialogue box based on the specifications.   */
+            data.DialogueBox = CreateDialogueBoxWindow(index, data.Position, data.Size);
+        }
+    }
+
+    public void OnClosedClicked(int index)
     {
 
     }

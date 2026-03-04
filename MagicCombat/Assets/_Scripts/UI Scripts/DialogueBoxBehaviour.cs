@@ -47,7 +47,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     //  Header Button Referances.   
     private UnityEngine.BoxCollider2D minimiseCollider, closeCollider;
-    private ButtonSelection currentButtonSelection;
+    [SerializeField]private ButtonSelection currentButtonSelection;
 
     public event Action OnMinimise;
 
@@ -225,11 +225,11 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         {
             if(currentButtonSelection == ButtonSelection.Minimise)
             {
-                UserInterfaceManager.Instance.GetTaskBarManager().OnMinimisedClicked(this);
+                UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
             }
             else if(currentButtonSelection == ButtonSelection.Close)
             {
-                UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this);
+                UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
 
             }
         }
