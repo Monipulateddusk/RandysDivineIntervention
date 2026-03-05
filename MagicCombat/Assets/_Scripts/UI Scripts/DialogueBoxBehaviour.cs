@@ -37,7 +37,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         Close = 2,
     }
     //  Box Move and Resize.        
-    private DialogueBoxState currentDialogueBoxState;
+    [SerializeField] private DialogueBoxState currentDialogueBoxState;
     private Vector3 MouseDragStartPosition;
     private const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50;
 
@@ -47,7 +47,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     //  Header Button Referances.   
     private UnityEngine.BoxCollider2D minimiseCollider, closeCollider;
-    [SerializeField]private ButtonSelection currentButtonSelection;
+    [SerializeField] private ButtonSelection currentButtonSelection;
 
     public event Action OnMinimise;
 
@@ -73,32 +73,28 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     bool IsPositionInsideVerticalEdgeBounds(float positionX, float positionY)
     {
-        /* Ignoring Positive and Negative values, determine how far the Position is from the Box's centre in world Space. */
-        float distanceFromBoxCentreY = Mathf.Abs(positionY - this.transform.position.y); 
-        
-        /* Using that distance, compare that distance from the half size of the BoxCollider. */ 
-        
-        float distanceFromVerticalEdge = Mathf.Abs(distanceFromBoxCentreY - (this.BoxCollider.size.y * 0.5f)); 
-        float horizontalBounds = Mathf.Abs(this.transform.position.x + (this.BoxCollider.size.x * 0.5f) + this.BoxCollider.edgeRadius); 
-        
-        /* Is this point within the threshold for the edge radius? */ 
-        return (distanceFromVerticalEdge <= this.BoxCollider.edgeRadius) && Mathf.Abs(positionX) <= horizontalBounds;
+        /*  Get the bounds  */
+        Bounds boxBounds = this.BoxCollider.bounds;
 
+        bool withinTopEdge          = positionY >= (boxBounds.max.y - this.BoxCollider.edgeRadius) && positionY <= (boxBounds.max.y);
+        bool withinBottomEdge       = positionY >= (boxBounds.min.y - this.BoxCollider.edgeRadius) && positionY <= (boxBounds.min.y);
+
+        bool withinHorizontalBounds = positionX >= (boxBounds.min.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.max.x + this.BoxCollider.edgeRadius);
+
+        return (withinTopEdge || withinBottomEdge) && withinHorizontalBounds;
     }
 
     bool IsPositionInsideHorizontalEdgeBounds(float positionX, float positionY)
     {
-        /* Ignoring Positive and Negative values, determine how far the Position is from the Box's centre in world Space. */
-        float distanceFromBoxCentreX = Mathf.Abs(positionX - this.transform.position.x);
+        /*  Get the bounds  */
+        Bounds boxBounds = this.BoxCollider.bounds;
 
-        /* Using that distance, compare that distance from the half size of the BoxCollider. */
+        bool withinLeftEdge     = positionX >= (boxBounds.min.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.min.x + this.BoxCollider.edgeRadius);
+        bool withinRightEdge    = positionX >= (boxBounds.max.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.max.x + this.BoxCollider.edgeRadius);
 
-        float distanceFromHorizontalEdge = Mathf.Abs(distanceFromBoxCentreX - (this.BoxCollider.size.x * 0.5f));
-        float verticalBounds = Mathf.Abs(this.transform.position.y + (this.BoxCollider.size.y * 0.5f) + this.BoxCollider.edgeRadius);
+        bool withinVerticalBounds = positionY <= (boxBounds.max.y + this.BoxCollider.edgeRadius) && positionY >= (boxBounds.min.y - this.BoxCollider.edgeRadius);
 
-        /* Is this point within the threshold for the edge radius? */
-        return (distanceFromHorizontalEdge <= this.BoxCollider.edgeRadius) && Mathf.Abs(positionY) <= verticalBounds;
-
+        return (withinLeftEdge || withinRightEdge) && withinVerticalBounds;
     }
 
     void AssignResizeOperation(bool isWithinHorizonalEdge, bool isWithinVerticalEdge)
@@ -135,23 +131,25 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         this.BoxCollider.size = newSize;
     }
 
-    void ProcessResize()
+    void ProcessResize(Vector2 mousePos)
     {
+        Bounds bounds = this.BoxCollider.bounds;
+        float canvasScaleFactor = GameObject.FindObjectOfType<Canvas>().scaleFactor;
         if (currentDialogueBoxState == DialogueBoxState.HorizontalResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs(Input.mousePosition.x - this.transform.position.x);
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX * 2, this.BoxCollider.size.y));
+            float mouseDistanceFromCentreX = Mathf.Abs((mousePos.x) - this.transform.position.x * canvasScaleFactor);
+            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, this.BoxCollider.size.y));
         }
         else if (currentDialogueBoxState == DialogueBoxState.VerticalResize)
         {
-            float mouseDistanceFromCentreY = Mathf.Abs(Input.mousePosition.y - this.transform.position.y);
-            ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY * 2));
+            float mouseDistanceFromCentreY = Mathf.Abs((mousePos.y) - bounds.center.y * canvasScaleFactor);
+            ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY));
         }
         else if (currentDialogueBoxState == DialogueBoxState.BothAxisResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs(Input.mousePosition.x - this.transform.position.x);
-            float mouseDistanceFromCentreY = Mathf.Abs(Input.mousePosition.y - this.transform.position.y);
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX * 2, mouseDistanceFromCentreY * 2));
+            float mouseDistanceFromCentreX = Mathf.Abs((mousePos.x) - this.transform.position.x * canvasScaleFactor);
+            float mouseDistanceFromCentreY = Mathf.Abs((mousePos.y) - this.transform.position.y * canvasScaleFactor);
+            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, mouseDistanceFromCentreY));
         }
         else
         {
@@ -244,7 +242,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     {
         if (currentDialogueBoxState != DialogueBoxState.Idle && currentDialogueBoxState != DialogueBoxState.DragMoving)
         {
-            ProcessResize();
+            ProcessResize(mousePos);
         }
         else if(currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
