@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public interface IUISelectable
 {
@@ -131,24 +132,33 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         this.BoxCollider.size = newSize;
     }
 
+    private Vector3 WorldSpaceToScreenSpace(Vector3 inPos) => Camera.main.WorldToScreenPoint(new Vector3(inPos.x, inPos.y, 0));
+
     void ProcessResize(Vector2 mousePos)
     {
-        Bounds bounds = this.BoxCollider.bounds;
-        float canvasScaleFactor = GameObject.FindObjectOfType<Canvas>().scaleFactor;
+        RectTransform rect = GetComponent<RectTransform>();
+
+        Vector2 localMousePos;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            rect,
+            mousePos,
+            null,
+            out localMousePos
+        );
+
+        float mouseDistanceFromCentreX = Mathf.Abs(localMousePos.x) * 2;
+        float mouseDistanceFromCentreY = Mathf.Abs(localMousePos.y) * 2;
+
         if (currentDialogueBoxState == DialogueBoxState.HorizontalResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs((mousePos.x) - this.transform.position.x * canvasScaleFactor);
             ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, this.BoxCollider.size.y));
         }
         else if (currentDialogueBoxState == DialogueBoxState.VerticalResize)
         {
-            float mouseDistanceFromCentreY = Mathf.Abs((mousePos.y) - bounds.center.y * canvasScaleFactor);
             ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY));
         }
         else if (currentDialogueBoxState == DialogueBoxState.BothAxisResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs((mousePos.x) - this.transform.position.x * canvasScaleFactor);
-            float mouseDistanceFromCentreY = Mathf.Abs((mousePos.y) - this.transform.position.y * canvasScaleFactor);
             ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, mouseDistanceFromCentreY));
         }
         else

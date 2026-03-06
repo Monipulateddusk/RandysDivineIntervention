@@ -60,9 +60,6 @@ public class CursorManager
         if(previousCursorPosition != Input.mousePosition)
         {
             previousCursorPosition = Input.mousePosition;
-
-            previousCursorPosition /= GameObject.FindObjectOfType<Canvas>().scaleFactor;
-
             this.cursorObject.transform.position = previousCursorPosition;
             tmpUGUI.text = "XPos: " + this.cursorObject.transform.position.x + "YPos: " + this.cursorObject.transform.position.y;
 
