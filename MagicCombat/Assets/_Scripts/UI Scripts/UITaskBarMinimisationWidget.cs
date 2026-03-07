@@ -1,0 +1,49 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class UITaskBarMinimisationWidget : MinimisableUI, IUISelectable
+{
+    public CursorManager.CursorIcons GetCurrentMouseStateSuggestion()
+    {
+        return CursorManager.CursorIcons.Cursor;
+    }
+
+    public void OnDeselect(Vector2 mousePos)
+    {
+        
+    }
+
+    public void OnDrag(Vector2 mousePos)
+    {
+        
+    }
+
+    private bool IsMouseInsideRect(Vector2 mousePos)
+    {
+        // Get the local mouse position within the UI rect
+
+        /*  Get the mouse position inside each UI element. Yes, this is horribly inefficient. However, counterpoint: */
+        Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect((RectTransform)this.transform, mousePos);
+        if((this.transform as RectTransform).rect.Contains(mousePositionInsideTitleBarRect))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void OnHover(Vector2 mousePos)
+    {
+    }
+
+    public void OnSelect(Vector2 mousePos)
+    {
+        Debug.Log("Widget Selected");
+        if (IsMouseInsideRect(mousePos))
+        {
+            Debug.Log("Widget has cursor inside");
+
+            UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+        }
+    }
+}

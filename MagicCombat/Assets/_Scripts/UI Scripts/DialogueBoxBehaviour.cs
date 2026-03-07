@@ -18,6 +18,12 @@ public class MinimisableUI : MonoBehaviour
 
     public void SetMinimisableIndex(int index) {  this.minimisableIndex = index; }
     public int GetMinimisableIndex() { return this.minimisableIndex; }
+
+    protected Vector2 GetMousePositionWithinRect(RectTransform rectTransform, Vector2 mousePos)
+    {
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out Vector2 localMousePos);
+        return localMousePos;
+    }
 }
 
 public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
@@ -45,22 +51,26 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     //  Components 
     private UnityEngine.UI.LayoutElement LayoutElement;
     private UnityEngine.BoxCollider2D BoxCollider;
+    private CanvasGroup CanvasGroup;
+    private BoxCollider2D[] BoxColliders;
 
     //  Header Button Referances.   
-    private UnityEngine.BoxCollider2D minimiseCollider, closeCollider;
+    private UnityEngine.RectTransform minimiseTransform, closeTransform;
     [SerializeField] private ButtonSelection currentButtonSelection;
 
-    public event Action OnMinimise;
+
 
     private void Awake()
     {
         this.BoxCollider = GetComponent<BoxCollider2D>();
         this.LayoutElement = GetComponent<UnityEngine.UI.LayoutElement>();
+        this.CanvasGroup = GetComponent<CanvasGroup>();
+        this.BoxColliders = GetComponentsInChildren<BoxCollider2D>();
 
         /*  Get the colliders of the Buttons in the Header. IMPORTANT: The selectable component is Smoke and Mirrors. It just changes the colour shade. */
         Transform buttonsParentTransform = this.transform.Find("Header").Find("HeaderBuffer").Find("Buttons");
-        this.minimiseCollider   = buttonsParentTransform.Find("MinimiseBG").GetComponent<BoxCollider2D>();
-        this.closeCollider      = buttonsParentTransform.Find("CloseBG").GetComponent<BoxCollider2D>();
+        this.minimiseTransform  = buttonsParentTransform.Find("MinimiseBG").GetComponent<RectTransform>();
+        this.closeTransform     = buttonsParentTransform.Find("CloseBG").GetComponent<RectTransform>();
     }
 
     #region Resize Functionality
@@ -132,18 +142,15 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         this.BoxCollider.size = newSize;
     }
 
-    private Vector3 WorldSpaceToScreenSpace(Vector3 inPos) => Camera.main.WorldToScreenPoint(new Vector3(inPos.x, inPos.y, 0));
-
     void ProcessResize(Vector2 mousePos)
     {
-        RectTransform rect = GetComponent<RectTransform>();
+        RectTransform mainWindowRect = GetComponent<RectTransform>();
 
-        Vector2 localMousePos;
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            rect,
+            mainWindowRect,
             mousePos,
             null,
-            out localMousePos
+            out Vector2 localMousePos
         );
 
         float mouseDistanceFromCentreX = Mathf.Abs(localMousePos.x) * 2;
@@ -170,35 +177,25 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     #endregion
 
     #region Header Button Functionality
-    private bool IsPositionWithinTopTile(float positionX, float positionY)
-    {
-        /*  Get the bounds  */
-        Bounds boxBounds = this.BoxCollider.bounds;
-
-        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
-        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.max.y - TITLE_BAR_HEIGHT);
-
-        return withinX && withinY;
-    }
-
-    private bool IsPositionWithinBoxBounds(float positionX, float positionY, Bounds boxBounds)
-    {
-        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
-        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.min.y);
-        return withinX && withinY;
-    }
 
     private void ProcessIfCursorIsWithinTitleBar(Vector2 mousePos)
     {
-        if (currentDialogueBoxState == DialogueBoxState.Idle && IsPositionWithinTopTile(mousePos.x, mousePos.y))
+        // Get the local mouse position within the UI rect
+        RectTransform headerBufferTransform = (RectTransform)this.transform.Find("Header").Find("HeaderBuffer").transform;
+
+        /*  Get the mouse position inside each UI element. Yes, this is horribly inefficient. However, counterpoint: */
+        Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect(headerBufferTransform, mousePos);
+        Vector2 mousePositionInsideMinimiseButtonRect = GetMousePositionWithinRect(minimiseTransform, mousePos);
+        Vector2 mousePositionInsideCloseButtonRect = GetMousePositionWithinRect(closeTransform, mousePos);
+
+        if (headerBufferTransform.rect.Contains(mousePositionInsideTitleBarRect))
         {
-            /*  Check to see if the mouse position is within either of the Button Boxes. If so, we aren't drag moving.  */
-            if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, minimiseCollider.bounds)) 
+            if (this.minimiseTransform.rect.Contains(mousePositionInsideMinimiseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Minimise;
                 currentDialogueBoxState = DialogueBoxState.Idle;
             }
-            else if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, closeCollider.bounds))
+            else if (this.closeTransform.rect.Contains(mousePositionInsideCloseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Close;
                 currentDialogueBoxState = DialogueBoxState.Idle;
@@ -207,7 +204,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
             {
                 currentButtonSelection = ButtonSelection.None;
                 currentDialogueBoxState = DialogueBoxState.DragMoving;
-            }           
+            }
         }
     }
 
@@ -223,19 +220,51 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     #endregion
 
+    private void SetColliderState(bool isActive)
+    {
+        foreach (Collider2D collider in this.BoxColliders)
+        {
+            collider.enabled = isActive;
+        }
+    }
+
+    public void ApplyMinimised(bool isEnabled)
+    {
+        // Based if we are minimised, we want to disable colliders and set the CanvasGroup's settings accordingly.
+        if (isEnabled)
+        {
+            SetColliderState(true);
+            this.CanvasGroup.alpha = 1;
+            this.CanvasGroup.interactable = true;
+            this.CanvasGroup.blocksRaycasts = true;
+        }
+        else
+        {
+            // Disable Colliders
+            SetColliderState(false);
+
+            // Set Canvas group settings
+            this.CanvasGroup.alpha = 0;
+            this.CanvasGroup.interactable = false;
+            this.CanvasGroup.blocksRaycasts = false;
+
+        }
+    }
+
     public void OnSelect(Vector2 mousePos)
     {
         if (currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
-            MouseDragStartPosition = Input.mousePosition - this.transform.position;
+            MouseDragStartPosition = (Vector3)mousePos - this.transform.position;
         }
-        else if(currentDialogueBoxState == DialogueBoxState.Idle)
+        else if (currentDialogueBoxState == DialogueBoxState.Idle)
         {
-            if(currentButtonSelection == ButtonSelection.Minimise)
+
+            if (currentButtonSelection == ButtonSelection.Minimise)
             {
                 UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
             }
-            else if(currentButtonSelection == ButtonSelection.Close)
+            else if (currentButtonSelection == ButtonSelection.Close)
             {
                 UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
 
@@ -293,11 +322,6 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     public Vector2 GetDialogueBoxSize()
     {
         return new Vector2(this.LayoutElement.preferredWidth, this.LayoutElement.preferredHeight);
-    }
-
-    public void OnMinimiseHappen()
-    {
-        throw new NotImplementedException();
     }
 }
 

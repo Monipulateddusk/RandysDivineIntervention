@@ -20,7 +20,7 @@ public class UserInterfaceManager : MonoBehaviour
 
     [Serializable]class SelectedUserInterfaceElementProperties
     {
-        [SerializeField]public DialogueBoxBehaviour hoveredUIObject;
+        [SerializeField]public IUISelectable hoveredUIObject;
         [SerializeField]public bool isSelected;
 
         [SerializeField]private CursorManager.CursorIcons cursorState;
@@ -147,7 +147,7 @@ public class UserInterfaceManager : MonoBehaviour
          */
         if (hit != null && hit.TryGetComponent(out IUISelectable selectedUI))
         {
-            this.selectedUserInterfaceElement.hoveredUIObject = (DialogueBoxBehaviour)selectedUI;
+            this.selectedUserInterfaceElement.hoveredUIObject = selectedUI;
         }
         /*  We only want to clear the selected UI IF it isn't selected. Something can be selected and not under the mouse via Dragging while holding down the click. */
         else if (!this.selectedUserInterfaceElement.isSelected)
@@ -187,11 +187,13 @@ public class UserInterfaceManager : MonoBehaviour
             if (Input.GetMouseButtonUp(0) && this.selectedUserInterfaceElement.isSelected)
             {
                 ClearSelectedUIElement();
+                HandleRaycastUISelection();
             }
 
             if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
             {
                 this.selectedUserInterfaceElement.isSelected = true;
+                Debug.Log("Selected a thing!!!");
                 this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
             }
 

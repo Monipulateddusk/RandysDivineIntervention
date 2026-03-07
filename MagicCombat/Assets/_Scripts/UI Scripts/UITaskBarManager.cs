@@ -8,7 +8,7 @@ using UnityEngine.UIElements;
 public struct WindowData
 {
     public DialogueBoxBehaviour DialogueBox;
-    public GameObject TaskBarBox;
+    public UITaskBarMinimisationWidget TaskBarWidget;
 
     public Vector2 Position, Size;
 
@@ -30,7 +30,7 @@ public class UITaskBarManager
     private readonly RectTransform WindowGridTransform;
     private readonly RectTransform ScreenElementsTransform;
 
-    private readonly Dictionary<int, WindowData> WindowDataDict = new();
+    private Dictionary<int, WindowData> WindowDataDict = new();
 
     public UITaskBarManager(RectTransform taskBarHomeBoxTransform, RectTransform windowGridTransform, RectTransform screenElementsTransform, GameObject windowMinimisationPrefab, GameObject dialogueBoxPrefab)
     {
@@ -50,6 +50,15 @@ public class UITaskBarManager
         {
             _ = OnClickStartOS();
         }
+
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            foreach (var item in WindowDataDict.Values)
+            {
+                Debug.Log(item.IsEnabled);
+            }
+        }
+        
     }
 
     public void CreateWindow(int index, Vector2 position, Vector2 size)
@@ -58,12 +67,12 @@ public class UITaskBarManager
         if (!WindowDataDict.ContainsKey(index))
         {
             DialogueBoxBehaviour createdDialogueBox = CreateDialogueBoxWindow(index, position, size);
-            GameObject taskBarWidget = CreateTaskBarMinimisationWidget();
+            UITaskBarMinimisationWidget taskBarWidget = CreateTaskBarMinimisationWidget(index);
 
             WindowDataDict.Add(index, new WindowData()
             {
                 DialogueBox = createdDialogueBox,
-                TaskBarBox = taskBarWidget,
+                TaskBarWidget = taskBarWidget,
                 IsEnabled = true,
                 Position = position,
                 Size = size
@@ -88,38 +97,41 @@ public class UITaskBarManager
         return null;
     }
 
-    GameObject CreateTaskBarMinimisationWidget()
+    UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(int index)
     {
         GameObject gO = GameObject.Instantiate(this.WindowMinimisationPrefab, this.ScreenElementsTransform.transform);
         gO.transform.SetParent(WindowGridTransform.transform);
-        return gO;
+        if(gO.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget))
+        {
+            minimisationWidget.SetMinimisableIndex(index);
+            return minimisationWidget;
+        }
+        return null;
     }
 
     public void OnMinimiseClicked(int index)
     {
-        Debug.Log("Minimised clicked");
+        if (WindowDataDict.ContainsKey(index))
+        {
+            WindowData data = WindowDataDict[index];
+            data.IsEnabled = !data.IsEnabled;
+            data.DialogueBox.ApplyMinimised(data.IsEnabled);
+
+            WindowDataDict[index] = data;
+        }
     }
 
     public void OnMinimisedTaskbarClicked(int index)
     {
-        Debug.Log("Taskbar Minimisation clicked");
-
-        WindowData data = WindowDataDict[index];
-        if (data.IsEnabled)
+        if (WindowDataDict.ContainsKey(index))
         {
-            data.IsEnabled = false;
+            WindowData data = WindowDataDict[index];
+            data.IsEnabled = !data.IsEnabled;
+            data.DialogueBox.ApplyMinimised(data.IsEnabled);
 
-            /*  Destroy the Window. (Probably change this to just disable the visibility?   */
-            GameObject.DestroyImmediate(data.DialogueBox.gameObject);
-            data.DialogueBox = null;
+            WindowDataDict[index] = data;
         }
-        else
-        {
-            data.IsEnabled = true;
 
-            /*  Respawn the Dialogue box based on the specifications.   */
-            data.DialogueBox = CreateDialogueBoxWindow(index, data.Position, data.Size);
-        }
     }
 
     public void OnClosedClicked(int index)
