@@ -40,8 +40,8 @@ public class UITaskBarManager
         this.WindowMinimisationPrefab = windowMinimisationPrefab;
         this.DialogueBoxPrefab = dialogueBoxPrefab;
 
-        CreateWindow(0, new Vector2(500, 0), new Vector2(300, 400));
-        CreateWindow(1, new Vector2(1000, 0), new Vector2(300, 400));
+        CreateWindow(0, new Vector2(500, 500), new Vector2(300, 400));
+        CreateWindow(1, new Vector2(1000, 500), new Vector2(300, 400));
     }
 
     public void Update()
@@ -57,24 +57,27 @@ public class UITaskBarManager
         /*  Store the data of this Window.  */
         if (!WindowDataDict.ContainsKey(index))
         {
-            DialogueBoxBehaviour    createdDialogueBox  = CreateDialogueBoxWindow(index, position, size);
-            GameObject              taskBarWidget       = CreateTaskBarMinimisationWidget();
+            DialogueBoxBehaviour createdDialogueBox = CreateDialogueBoxWindow(index, position, size);
+            GameObject taskBarWidget = CreateTaskBarMinimisationWidget();
 
-            WindowDataDict.Add(index, new WindowData() 
+            WindowDataDict.Add(index, new WindowData()
             {
-                DialogueBox = createdDialogueBox, 
-                TaskBarBox = taskBarWidget, 
+                DialogueBox = createdDialogueBox,
+                TaskBarBox = taskBarWidget,
                 IsEnabled = true,
                 Position = position,
                 Size = size
             });
-            
+
         }
     }
 
     DialogueBoxBehaviour CreateDialogueBoxWindow(int index, Vector2 position, Vector2 size)
     {
-        GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, position, Quaternion.identity, this.ScreenElementsTransform.transform);
+        GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, this.ScreenElementsTransform.transform);
+
+        RectTransform gORect = gO.GetComponent<RectTransform>();
+        gORect.anchoredPosition = position;
 
         if (gO != null && gO.TryGetComponent(out DialogueBoxBehaviour dBB))
         {
@@ -82,7 +85,7 @@ public class UITaskBarManager
             gO.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
             return dBB;
         }
-        return null;    
+        return null;
     }
 
     GameObject CreateTaskBarMinimisationWidget()
