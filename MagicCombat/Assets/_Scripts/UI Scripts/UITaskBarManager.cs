@@ -34,28 +34,30 @@ public struct WindowData
             dialogueBox.ApplyMinimised(this.IsEnabled);
         }
 
-        private async Task EnlargeShrinkWindow(DialogueBoxBehaviour dialogueBox, float duration)
+        private async Task EnlargeShrinkWindow(DialogueBoxBehaviour dialogueBox, UITaskBarMinimisationWidget taskbarWidget, float duration)
         {
             /*  If our target state is Shrunk, then we want to expand. Otherwise, we are already enlarged, and our target is to shrink. */
             // Item 1 of Touple: Start  Size
             // Item 2 of Touple: Target Size
-            (Vector2, Vector2) sizes = this.TargetState == WindowAnimationState.Shrunk ? (this.Size, Vector2.zero) : (Vector2.zero, this.Size);
+            (Vector2, Vector2) sizes        = this.TargetState == WindowAnimationState.Shrunk ? (this.Size, Vector2.zero) : (Vector2.zero, this.Size);
+            (Vector2, Vector2) positions = this.TargetState == WindowAnimationState.Shrunk ? (this.Position, taskbarWidget.transform.position) : (taskbarWidget.transform.position, this.Position);
 
             float startTime = Time.time;
             while (Time.time < startTime + duration)
             {
                 float t = (Time.time - startTime) / duration;
                 dialogueBox.ResizeDialogueBox(new Vector2(Mathf.Lerp(sizes.Item1.x, sizes.Item2.x, t), Mathf.Lerp(sizes.Item1.y, sizes.Item2.y, t)));
+                dialogueBox.transform.position = new Vector2(Mathf.Lerp(positions.Item1.x, positions.Item2.x, t), Mathf.Lerp(positions.Item1.y, positions.Item2.y, t));
                 await Task.Yield();
             }
         }
 
-        public async Task PlayEnlargeShrinkAnimation(DialogueBoxBehaviour dialogueBox, float duration)
+        public async Task PlayEnlargeShrinkAnimation(DialogueBoxBehaviour dialogueBox, UITaskBarMinimisationWidget taskbarWidget, float duration)
         {
             if (this.isAnimating) { return; }
             this.isAnimating = true;
 
-            await EnlargeShrinkWindow(dialogueBox, duration);      
+            await EnlargeShrinkWindow(dialogueBox, taskbarWidget, duration);      
 
             ToggleEnabled();
             ToggleDialogueBoxVisibility(dialogueBox);
@@ -155,8 +157,7 @@ public class UITaskBarManager
     {
         GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, this.ScreenElementsTransform.transform);
 
-        RectTransform gORect = gO.GetComponent<RectTransform>();
-        gORect.anchoredPosition = position;
+        UnityUIUtility.SetRectPosition(gO.GetComponent<RectTransform>(), position);
 
         if (gO != null && gO.TryGetComponent(out DialogueBoxBehaviour dBB))
         {
@@ -198,7 +199,7 @@ public class UITaskBarManager
             data.WindowAnimData.SavePositionAndSize(data.DialogueBox.transform.position, data.DialogueBox.GetDialogueBoxSize());
 
             /*  Play the animation as an asyncronous task. Only after ALL tasks are done, do we want to set isAnimating to false!   */
-            await data.WindowAnimData.PlayEnlargeShrinkAnimation(data.DialogueBox, EXPAND_SHRINK_TIMER);
+            await data.WindowAnimData.PlayEnlargeShrinkAnimation(data.DialogueBox, data.TaskBarWidget, EXPAND_SHRINK_TIMER);
         }
     }
 
