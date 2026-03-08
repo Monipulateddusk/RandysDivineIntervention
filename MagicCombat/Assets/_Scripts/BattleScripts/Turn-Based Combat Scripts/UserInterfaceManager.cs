@@ -169,7 +169,7 @@ public class UserInterfaceManager : MonoBehaviour
         if (this.selectedUserInterfaceElement.hoveredUIObject != null)
         {
             /*  If we are selecting a DialogueBox, we want to pull it to the front. */
-            if (this.selectedUserInterfaceElement.hoveredUIObject is DialogueBoxBehaviour)
+            if ((DialogueBoxBehaviour)selectedUserInterfaceElement.hoveredUIObject)
             {
                 ((DialogueBoxBehaviour)this.selectedUserInterfaceElement.hoveredUIObject).transform.SetAsLastSibling();
             }
