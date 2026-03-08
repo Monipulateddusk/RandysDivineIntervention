@@ -1,18 +1,88 @@
-using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public struct WindowData
 {
+    public class WindowAnimationData
+    {
+        public Vector2 Position, Size;
+        public enum WindowAnimationState { Shrunk, Enlarged }
+        public WindowAnimationState TargetState;
+
+        public bool IsEnabled, isAnimating;
+
+        public WindowAnimationData(Vector2 position, Vector2 size)
+        {
+            this.Position = position;
+            this.Size = size;
+
+            this.IsEnabled = true;
+            this.isAnimating = false;
+            this.TargetState = WindowAnimationState.Enlarged;
+        }
+
+        private void ToggleEnabled()
+        {
+            if (this.TargetState == WindowAnimationState.Enlarged) { this.IsEnabled = true; }
+            else { this.IsEnabled = false; }
+            
+        }
+
+        private void ToggleDialogueBoxVisibility(DialogueBoxBehaviour dialogueBox)
+        {
+            dialogueBox.ApplyMinimised(this.IsEnabled);
+        }
+
+        private async Task EnlargeShrinkWindow(DialogueBoxBehaviour dialogueBox, float duration)
+        {
+            /*  If our target state is Shrunk, then we want to expand. Otherwise, we are already enlarged, and our target is to shrink. */
+            // Item 1 of Touple: Start  Size
+            // Item 2 of Touple: Target Size
+            (Vector2, Vector2) sizes = this.TargetState == WindowAnimationState.Shrunk ? (this.Size, Vector2.zero) : (Vector2.zero, this.Size);
+
+            float startTime = Time.time;
+            while (Time.time < startTime + duration)
+            {
+                float t = (Time.time - startTime) / duration;
+                dialogueBox.ResizeDialogueBox(new Vector2(Mathf.Lerp(sizes.Item1.x, sizes.Item2.x, t), Mathf.Lerp(sizes.Item1.y, sizes.Item2.y, t)));
+                await Task.Yield();
+            }
+        }
+
+        public async Task PlayEnlargeShrinkAnimation(DialogueBoxBehaviour dialogueBox, float duration)
+        {
+            if (this.isAnimating) { return; }
+            this.isAnimating = true;
+
+            await EnlargeShrinkWindow(dialogueBox, duration);      
+
+            ToggleEnabled();
+            ToggleDialogueBoxVisibility(dialogueBox);
+            this.isAnimating = false;
+        }
+
+        public void ToggleAnimationState()
+        {
+            if(this.TargetState == WindowAnimationState.Enlarged) { this.TargetState = WindowAnimationState.Shrunk; }
+            else { this.TargetState = WindowAnimationState.Enlarged; }
+        }
+
+        public void SavePositionAndSize(Vector2 position,  Vector2 size)
+        {
+            /*  Only if we are not animating and our target state is shrinking do we want to save the position and size.    */
+            if (!this.isAnimating && this.TargetState == WindowAnimationState.Shrunk)
+            {
+                this.Size = size;
+                this.Position = position;
+            }
+        }
+    }
+
+
     public DialogueBoxBehaviour DialogueBox;
     public UITaskBarMinimisationWidget TaskBarWidget;
-
-    public Vector2 Position, Size;
-
-    public bool IsEnabled;
+    public WindowAnimationData WindowAnimData;
 }
 
 public class UITaskBarManager
@@ -55,7 +125,7 @@ public class UITaskBarManager
         {
             foreach (var item in WindowDataDict.Values)
             {
-                Debug.Log(item.IsEnabled);
+                Debug.Log(item.WindowAnimData.IsEnabled);
             }
         }
         
@@ -73,9 +143,9 @@ public class UITaskBarManager
             {
                 DialogueBox = createdDialogueBox,
                 TaskBarWidget = taskBarWidget,
-                IsEnabled = true,
-                Position = position,
-                Size = size
+
+                WindowAnimData = new WindowData.WindowAnimationData(position, size)
+
             });
 
         }
@@ -109,29 +179,27 @@ public class UITaskBarManager
         return null;
     }
 
-    public void OnMinimiseClicked(int index)
+
+
+    public async Task OnMinimiseClicked(int index)
     {
         if (WindowDataDict.ContainsKey(index))
         {
+            /*  Get the window data and corresponding animation data for this window. Set the window to be disabled.    */
             WindowData data = WindowDataDict[index];
-            data.IsEnabled = !data.IsEnabled;
-            data.DialogueBox.ApplyMinimised(data.IsEnabled);
 
-            WindowDataDict[index] = data;
+            /*  Check to see if we are animating, if so, ABORT! */
+            if (data.WindowAnimData.isAnimating) { return; }
+
+            /*  Set the target state to the opposite that we are in. So if we are shrunk, we want to enlarge.   */
+            data.WindowAnimData.ToggleAnimationState();
+
+            /*  We want to check if we AREN'T animating, and that our target state is Enlarged. If so, then we want to save the size of the dialogue box.  */
+            data.WindowAnimData.SavePositionAndSize(data.DialogueBox.transform.position, data.DialogueBox.GetDialogueBoxSize());
+
+            /*  Play the animation as an asyncronous task. Only after ALL tasks are done, do we want to set isAnimating to false!   */
+            await data.WindowAnimData.PlayEnlargeShrinkAnimation(data.DialogueBox, EXPAND_SHRINK_TIMER);
         }
-    }
-
-    public void OnMinimisedTaskbarClicked(int index)
-    {
-        if (WindowDataDict.ContainsKey(index))
-        {
-            WindowData data = WindowDataDict[index];
-            data.IsEnabled = !data.IsEnabled;
-            data.DialogueBox.ApplyMinimised(data.IsEnabled);
-
-            WindowDataDict[index] = data;
-        }
-
     }
 
     public void OnClosedClicked(int index)

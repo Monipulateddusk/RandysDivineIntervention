@@ -38,12 +38,9 @@ public class UITaskBarMinimisationWidget : MinimisableUI, IUISelectable
 
     public void OnSelect(Vector2 mousePos)
     {
-        Debug.Log("Widget Selected");
         if (IsMouseInsideRect(mousePos))
         {
-            Debug.Log("Widget has cursor inside");
-
-            UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+            _ = UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
         }
     }
 }

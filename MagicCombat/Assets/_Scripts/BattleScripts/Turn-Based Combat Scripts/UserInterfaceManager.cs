@@ -193,7 +193,6 @@ public class UserInterfaceManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
             {
                 this.selectedUserInterfaceElement.isSelected = true;
-                Debug.Log("Selected a thing!!!");
                 this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
             }
 
