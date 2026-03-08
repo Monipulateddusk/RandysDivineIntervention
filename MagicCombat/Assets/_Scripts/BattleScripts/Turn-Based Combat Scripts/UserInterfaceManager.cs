@@ -168,6 +168,11 @@ public class UserInterfaceManager : MonoBehaviour
 
         if (this.selectedUserInterfaceElement.hoveredUIObject != null)
         {
+            /*  If we are selecting a DialogueBox, we want to pull it to the front. */
+            if (this.selectedUserInterfaceElement.hoveredUIObject is DialogueBoxBehaviour)
+            {
+                ((DialogueBoxBehaviour)this.selectedUserInterfaceElement.hoveredUIObject).transform.SetAsLastSibling();
+            }
 
             CursorManager.CursorIcons enm = this.selectedUserInterfaceElement.hoveredUIObject.GetCurrentMouseStateSuggestion();
 
@@ -192,6 +197,8 @@ public class UserInterfaceManager : MonoBehaviour
 
             if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
             {
+
+
                 this.selectedUserInterfaceElement.isSelected = true;
                 this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
             }

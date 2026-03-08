@@ -262,7 +262,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
             if (currentButtonSelection == ButtonSelection.Minimise)
             {
-                UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+                _ = UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
             }
             else if (currentButtonSelection == ButtonSelection.Close)
             {
