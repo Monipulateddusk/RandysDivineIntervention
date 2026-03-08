@@ -138,18 +138,19 @@ public class UserInterfaceManager : MonoBehaviour
     private void HandleRaycastUISelection()
     {
         /*  Throw out a raycast from the camera to the point where the cursor is at scanning for UI elements. */
-        Collider2D hit = Physics2D.OverlapPoint(this.CursorManager.GetPreviousMousePosition(), LayerMask.GetMask("UI"));
-        if (hit == null) { return; }
+        Collider2D hit = Physics2D.OverlapPoint(Input.mousePosition, LayerMask.GetMask("UI"));
+
+
         /*  
          *  If we got something that implements IUISelectable, save that locally. 
          *  If we didn't hit something with the raycast, we should deselect anything we could have been selecting before. 
          */
-        if (hit.TryGetComponent(out IUISelectable selectedUI))
+        if (hit != null && hit.TryGetComponent(out IUISelectable selectedUI))
         {
             this.selectedUserInterfaceElement.hoveredUIObject = selectedUI;
         }
         /*  We only want to clear the selected UI IF it isn't selected. Something can be selected and not under the mouse via Dragging while holding down the click. */
-        else if(!this.selectedUserInterfaceElement.isSelected)
+        else if (!this.selectedUserInterfaceElement.isSelected)
         {
             ClearSelectedUIElement();
         }
@@ -175,11 +176,11 @@ public class UserInterfaceManager : MonoBehaviour
             /*  If we have something valid from the Raycast and it isn't selected, we are hovering. Otherwise, we are dragging.*/
             if (this.selectedUserInterfaceElement.isSelected)
             {
-                this.selectedUserInterfaceElement.hoveredUIObject?.OnDrag(this.CursorManager.GetPreviousMousePosition());
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnDrag(Input.mousePosition);
             }
             else
             {
-                this.selectedUserInterfaceElement.hoveredUIObject?.OnHover(this.CursorManager.GetPreviousMousePosition());
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnHover(Input.mousePosition);
             }
 
             /*  Irregardless of if we are hovering or dragging, we want to handle the input buttons independantly. */
@@ -192,11 +193,11 @@ public class UserInterfaceManager : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
             {
                 this.selectedUserInterfaceElement.isSelected = true;
-                this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(this.CursorManager.GetPreviousMousePosition());
+                this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
             }
 
 
-        }       
+        }
     }
 
     // Update is called once per frame

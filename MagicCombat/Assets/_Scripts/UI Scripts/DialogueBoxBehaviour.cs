@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public interface IUISelectable
 {
@@ -17,6 +18,12 @@ public class MinimisableUI : MonoBehaviour
 
     public void SetMinimisableIndex(int index) {  this.minimisableIndex = index; }
     public int GetMinimisableIndex() { return this.minimisableIndex; }
+
+    protected Vector2 GetMousePositionWithinRect(RectTransform rectTransform, Vector2 mousePos)
+    {
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out Vector2 localMousePos);
+        return localMousePos;
+    }
 }
 
 public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
@@ -37,29 +44,33 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         Close = 2,
     }
     //  Box Move and Resize.        
-    private DialogueBoxState currentDialogueBoxState;
+    [SerializeField] private DialogueBoxState currentDialogueBoxState;
     private Vector3 MouseDragStartPosition;
     private const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50;
 
     //  Components 
     private UnityEngine.UI.LayoutElement LayoutElement;
     private UnityEngine.BoxCollider2D BoxCollider;
+    private CanvasGroup CanvasGroup;
+    private BoxCollider2D[] BoxColliders;
 
     //  Header Button Referances.   
-    private UnityEngine.BoxCollider2D minimiseCollider, closeCollider;
-    [SerializeField]private ButtonSelection currentButtonSelection;
+    private UnityEngine.RectTransform minimiseTransform, closeTransform;
+    [SerializeField] private ButtonSelection currentButtonSelection;
 
-    public event Action OnMinimise;
+
 
     private void Awake()
     {
         this.BoxCollider = GetComponent<BoxCollider2D>();
         this.LayoutElement = GetComponent<UnityEngine.UI.LayoutElement>();
+        this.CanvasGroup = GetComponent<CanvasGroup>();
+        this.BoxColliders = GetComponentsInChildren<BoxCollider2D>();
 
         /*  Get the colliders of the Buttons in the Header. IMPORTANT: The selectable component is Smoke and Mirrors. It just changes the colour shade. */
         Transform buttonsParentTransform = this.transform.Find("Header").Find("HeaderBuffer").Find("Buttons");
-        this.minimiseCollider   = buttonsParentTransform.Find("MinimiseBG").GetComponent<BoxCollider2D>();
-        this.closeCollider      = buttonsParentTransform.Find("CloseBG").GetComponent<BoxCollider2D>();
+        this.minimiseTransform  = buttonsParentTransform.Find("MinimiseBG").GetComponent<RectTransform>();
+        this.closeTransform     = buttonsParentTransform.Find("CloseBG").GetComponent<RectTransform>();
     }
 
     #region Resize Functionality
@@ -73,32 +84,28 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     bool IsPositionInsideVerticalEdgeBounds(float positionX, float positionY)
     {
-        /* Ignoring Positive and Negative values, determine how far the Position is from the Box's centre in world Space. */
-        float distanceFromBoxCentreY = Mathf.Abs(positionY - this.transform.position.y); 
-        
-        /* Using that distance, compare that distance from the half size of the BoxCollider. */ 
-        
-        float distanceFromVerticalEdge = Mathf.Abs(distanceFromBoxCentreY - (this.BoxCollider.size.y * 0.5f)); 
-        float horizontalBounds = Mathf.Abs(this.transform.position.x + (this.BoxCollider.size.x * 0.5f) + this.BoxCollider.edgeRadius); 
-        
-        /* Is this point within the threshold for the edge radius? */ 
-        return (distanceFromVerticalEdge <= this.BoxCollider.edgeRadius) && Mathf.Abs(positionX) <= horizontalBounds;
+        /*  Get the bounds  */
+        Bounds boxBounds = this.BoxCollider.bounds;
 
+        bool withinTopEdge          = positionY >= (boxBounds.max.y - this.BoxCollider.edgeRadius) && positionY <= (boxBounds.max.y);
+        bool withinBottomEdge       = positionY >= (boxBounds.min.y - this.BoxCollider.edgeRadius) && positionY <= (boxBounds.min.y);
+
+        bool withinHorizontalBounds = positionX >= (boxBounds.min.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.max.x + this.BoxCollider.edgeRadius);
+
+        return (withinTopEdge || withinBottomEdge) && withinHorizontalBounds;
     }
 
     bool IsPositionInsideHorizontalEdgeBounds(float positionX, float positionY)
     {
-        /* Ignoring Positive and Negative values, determine how far the Position is from the Box's centre in world Space. */
-        float distanceFromBoxCentreX = Mathf.Abs(positionX - this.transform.position.x);
+        /*  Get the bounds  */
+        Bounds boxBounds = this.BoxCollider.bounds;
 
-        /* Using that distance, compare that distance from the half size of the BoxCollider. */
+        bool withinLeftEdge     = positionX >= (boxBounds.min.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.min.x + this.BoxCollider.edgeRadius);
+        bool withinRightEdge    = positionX >= (boxBounds.max.x - this.BoxCollider.edgeRadius) && positionX <= (boxBounds.max.x + this.BoxCollider.edgeRadius);
 
-        float distanceFromHorizontalEdge = Mathf.Abs(distanceFromBoxCentreX - (this.BoxCollider.size.x * 0.5f));
-        float verticalBounds = Mathf.Abs(this.transform.position.y + (this.BoxCollider.size.y * 0.5f) + this.BoxCollider.edgeRadius);
+        bool withinVerticalBounds = positionY <= (boxBounds.max.y + this.BoxCollider.edgeRadius) && positionY >= (boxBounds.min.y - this.BoxCollider.edgeRadius);
 
-        /* Is this point within the threshold for the edge radius? */
-        return (distanceFromHorizontalEdge <= this.BoxCollider.edgeRadius) && Mathf.Abs(positionY) <= verticalBounds;
-
+        return (withinLeftEdge || withinRightEdge) && withinVerticalBounds;
     }
 
     void AssignResizeOperation(bool isWithinHorizonalEdge, bool isWithinVerticalEdge)
@@ -135,23 +142,31 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         this.BoxCollider.size = newSize;
     }
 
-    void ProcessResize()
+    void ProcessResize(Vector2 mousePos)
     {
+        RectTransform mainWindowRect = GetComponent<RectTransform>();
+
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            mainWindowRect,
+            mousePos,
+            null,
+            out Vector2 localMousePos
+        );
+
+        float mouseDistanceFromCentreX = Mathf.Abs(localMousePos.x) * 2;
+        float mouseDistanceFromCentreY = Mathf.Abs(localMousePos.y) * 2;
+
         if (currentDialogueBoxState == DialogueBoxState.HorizontalResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs(Input.mousePosition.x - this.transform.position.x);
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX * 2, this.BoxCollider.size.y));
+            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, this.BoxCollider.size.y));
         }
         else if (currentDialogueBoxState == DialogueBoxState.VerticalResize)
         {
-            float mouseDistanceFromCentreY = Mathf.Abs(Input.mousePosition.y - this.transform.position.y);
-            ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY * 2));
+            ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY));
         }
         else if (currentDialogueBoxState == DialogueBoxState.BothAxisResize)
         {
-            float mouseDistanceFromCentreX = Mathf.Abs(Input.mousePosition.x - this.transform.position.x);
-            float mouseDistanceFromCentreY = Mathf.Abs(Input.mousePosition.y - this.transform.position.y);
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX * 2, mouseDistanceFromCentreY * 2));
+            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, mouseDistanceFromCentreY));
         }
         else
         {
@@ -162,35 +177,25 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     #endregion
 
     #region Header Button Functionality
-    private bool IsPositionWithinTopTile(float positionX, float positionY)
-    {
-        /*  Get the bounds  */
-        Bounds boxBounds = this.BoxCollider.bounds;
-
-        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
-        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.max.y - TITLE_BAR_HEIGHT);
-
-        return withinX && withinY;
-    }
-
-    private bool IsPositionWithinBoxBounds(float positionX, float positionY, Bounds boxBounds)
-    {
-        bool withinX = positionX <= (boxBounds.max.x) && positionX >= boxBounds.min.x;
-        bool withinY = positionY <= boxBounds.max.y && (positionY >= boxBounds.min.y);
-        return withinX && withinY;
-    }
 
     private void ProcessIfCursorIsWithinTitleBar(Vector2 mousePos)
     {
-        if (currentDialogueBoxState == DialogueBoxState.Idle && IsPositionWithinTopTile(mousePos.x, mousePos.y))
+        // Get the local mouse position within the UI rect
+        RectTransform headerBufferTransform = (RectTransform)this.transform.Find("Header").Find("HeaderBuffer").transform;
+
+        /*  Get the mouse position inside each UI element. Yes, this is horribly inefficient. However, counterpoint: */
+        Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect(headerBufferTransform, mousePos);
+        Vector2 mousePositionInsideMinimiseButtonRect = GetMousePositionWithinRect(minimiseTransform, mousePos);
+        Vector2 mousePositionInsideCloseButtonRect = GetMousePositionWithinRect(closeTransform, mousePos);
+
+        if (headerBufferTransform.rect.Contains(mousePositionInsideTitleBarRect))
         {
-            /*  Check to see if the mouse position is within either of the Button Boxes. If so, we aren't drag moving.  */
-            if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, minimiseCollider.bounds)) 
+            if (this.minimiseTransform.rect.Contains(mousePositionInsideMinimiseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Minimise;
                 currentDialogueBoxState = DialogueBoxState.Idle;
             }
-            else if(IsPositionWithinBoxBounds(mousePos.x, mousePos.y, closeCollider.bounds))
+            else if (this.closeTransform.rect.Contains(mousePositionInsideCloseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Close;
                 currentDialogueBoxState = DialogueBoxState.Idle;
@@ -199,7 +204,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
             {
                 currentButtonSelection = ButtonSelection.None;
                 currentDialogueBoxState = DialogueBoxState.DragMoving;
-            }           
+            }
         }
     }
 
@@ -215,19 +220,51 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     #endregion
 
+    private void SetColliderState(bool isActive)
+    {
+        foreach (Collider2D collider in this.BoxColliders)
+        {
+            collider.enabled = isActive;
+        }
+    }
+
+    public void ApplyMinimised(bool isEnabled)
+    {
+        // Based if we are minimised, we want to disable colliders and set the CanvasGroup's settings accordingly.
+        if (isEnabled)
+        {
+            SetColliderState(true);
+            this.CanvasGroup.alpha = 1;
+            this.CanvasGroup.interactable = true;
+            this.CanvasGroup.blocksRaycasts = true;
+        }
+        else
+        {
+            // Disable Colliders
+            SetColliderState(false);
+
+            // Set Canvas group settings
+            this.CanvasGroup.alpha = 0;
+            this.CanvasGroup.interactable = false;
+            this.CanvasGroup.blocksRaycasts = false;
+
+        }
+    }
+
     public void OnSelect(Vector2 mousePos)
     {
         if (currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
-            MouseDragStartPosition = Input.mousePosition - this.transform.position;
+            MouseDragStartPosition = (Vector3)mousePos - this.transform.position;
         }
-        else if(currentDialogueBoxState == DialogueBoxState.Idle)
+        else if (currentDialogueBoxState == DialogueBoxState.Idle)
         {
-            if(currentButtonSelection == ButtonSelection.Minimise)
+
+            if (currentButtonSelection == ButtonSelection.Minimise)
             {
                 UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
             }
-            else if(currentButtonSelection == ButtonSelection.Close)
+            else if (currentButtonSelection == ButtonSelection.Close)
             {
                 UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
 
@@ -244,7 +281,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     {
         if (currentDialogueBoxState != DialogueBoxState.Idle && currentDialogueBoxState != DialogueBoxState.DragMoving)
         {
-            ProcessResize();
+            ProcessResize(mousePos);
         }
         else if(currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
@@ -285,11 +322,6 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     public Vector2 GetDialogueBoxSize()
     {
         return new Vector2(this.LayoutElement.preferredWidth, this.LayoutElement.preferredHeight);
-    }
-
-    public void OnMinimiseHappen()
-    {
-        throw new NotImplementedException();
     }
 }
 

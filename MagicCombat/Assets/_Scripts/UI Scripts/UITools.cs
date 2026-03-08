@@ -2,8 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class UITools 
+public static class UnityUIUtility
 {
+    public static void SetRectPosition(RectTransform rectTransform, Vector2 position)
+    {
+        rectTransform.anchoredPosition = position;
+    }
+
     public static void SetLeft(this RectTransform rt, float left)
     {
         rt.offsetMin = new Vector2(left, rt.offsetMin.y);
