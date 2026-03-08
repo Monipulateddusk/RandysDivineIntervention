@@ -205,7 +205,15 @@ public class UITaskBarManager
 
     public void OnClosedClicked(int index)
     {
+        if (WindowDataDict.ContainsKey(index))
+        {
+            /*  Destroy the window and the widget.  */
+            GameObject.Destroy(WindowDataDict[index].DialogueBox.gameObject);
+            GameObject.Destroy(WindowDataDict[index].TaskBarWidget.gameObject);
 
+            /*  Clear the dictionary entry. */
+            WindowDataDict.Remove(index);
+        }
     }
 
     public async Task OnClickStartOS()
