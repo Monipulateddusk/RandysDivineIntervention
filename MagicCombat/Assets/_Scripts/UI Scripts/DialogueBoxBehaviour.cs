@@ -46,7 +46,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     //  Box Move and Resize.        
     [SerializeField] private DialogueBoxState currentDialogueBoxState;
     private Vector3 MouseDragStartPosition;
-    private const float MIN_WIDTH = 300, MIN_HEIGHT = 150, TITLE_BAR_HEIGHT = 50;
+    private const float TITLE_BAR_HEIGHT = 50;
 
     //  Components 
     private UnityEngine.UI.LayoutElement LayoutElement;
@@ -133,8 +133,8 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     
     public void ResizeDialogueBox(Vector2 newSize)
     {
-        if(newSize.x <= MIN_WIDTH) { newSize.x = MIN_WIDTH; }
-        if(newSize.y <= MIN_HEIGHT) { newSize.y = MIN_HEIGHT; }
+        if(newSize.x <= this.LayoutElement.minWidth) { newSize.x = this.LayoutElement.minWidth; }
+        if(newSize.y <= this.LayoutElement.minHeight) { newSize.y = this.LayoutElement.minHeight; }
 
         this.LayoutElement.preferredHeight = newSize.y;
         this.LayoutElement.preferredWidth = newSize.x;
