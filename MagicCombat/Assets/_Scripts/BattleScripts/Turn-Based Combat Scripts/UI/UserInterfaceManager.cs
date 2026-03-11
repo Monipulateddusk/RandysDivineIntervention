@@ -122,11 +122,6 @@ public class UserInterfaceManager : MonoBehaviour
         InitaliseTaskBarManager();
     }
 
-    private void Start()
-    {
-
-    }
-
     void ClearSelectedUIElement()
     {
         this.selectedUserInterfaceElement.hoveredUIObject?.OnDeselect(this.CursorManager.GetPreviousMousePosition());
@@ -139,7 +134,6 @@ public class UserInterfaceManager : MonoBehaviour
     {
         /*  Throw out a raycast from the camera to the point where the cursor is at scanning for UI elements. */
         Collider2D hit = Physics2D.OverlapPoint(Input.mousePosition, LayerMask.GetMask("UI"));
-
 
         /*  
          *  If we got something that implements IUISelectable, save that locally. 
@@ -154,8 +148,6 @@ public class UserInterfaceManager : MonoBehaviour
         {
             ClearSelectedUIElement();
         }
-
-
     }
 
     void ProcessCursorUISelection()
@@ -202,8 +194,6 @@ public class UserInterfaceManager : MonoBehaviour
                 this.selectedUserInterfaceElement.isSelected = true;
                 this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
             }
-
-
         }
     }
 
