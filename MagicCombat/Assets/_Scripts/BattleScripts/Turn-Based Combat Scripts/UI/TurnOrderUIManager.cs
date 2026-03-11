@@ -4,13 +4,15 @@ namespace TurnBased
 {
     public class TurnOrderUIManager
     {
+        System.Collections.Generic.List<GameObject> instanciatedItems;
         private GameObject ScrollableRootGameObject, ContentParentGameObject;
         private GameObject SummoningCirclePrefab, ItemParentPrefab, SlotPrefab;
         private UnityEngine.UI.Image SummoningCircleImage;
         private Color SUMMONING_CIRCLE_COLOUR = new(0.4941177f, 0.7372549f, 1);
-        public TurnOrderUIManager(GameObject ScrollableContentRoot) 
+        public TurnOrderUIManager(GameObject ScrollableContentRoot, GameObject ContentParentGO) 
         {
             this.ScrollableRootGameObject = ScrollableContentRoot;
+            this.ContentParentGameObject = ContentParentGO;
 
             BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
         }
@@ -70,6 +72,38 @@ namespace TurnBased
         {
             return GameObject.Instantiate(this.SummoningCirclePrefab, parent);
         }
+        private GameObject CreateSlot(Transform parent)
+        {
+            return GameObject.Instantiate(this.SlotPrefab, parent);
+        }
+
+        private void SetImageOfSlot(GameObject slot, UnityEngine.Sprite img)
+        {
+            if (slot != null && slot.name == "Slot")
+            {
+                Transform unitImageTransform = slot.transform.Find("UnitImage");
+                if(unitImageTransform != null && unitImageTransform.gameObject.TryGetComponent(out UnityEngine.UI.Image image))
+                {
+                    image.sprite = img;
+                }
+                else
+                {
+                    Debug.LogWarning("ERROR: SLOT DOES NOT HAVE A CHILD CALLED 'UnitImage' OR DOES NOT HAVE AN IMAGE COMPONENT!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("ERROR: SLOT IS NULL OR NOT NAMED 'SLOT'!");
+            }
+        }
+
+        private void DeleteIcons()
+        {
+            foreach (GameObject obj in instanciatedItems)
+            {
+                GameObject.DestroyImmediate(obj);
+            }
+        }
 
         private void CreateTurnOrderUI(System.Collections.Generic.List<UnitIndex> list)
         {
@@ -77,23 +111,42 @@ namespace TurnBased
              *  The 0-index slot, needs to be on the Summoning Circle however.
              */
 
-
-
-            for(int i = 0; i < list.Count; i++)
+            GameObject itemObject, slot, summoningCircleParent;
+            RectTransform bgTransform;
+            BaseBattleUnit battleUnit;
+            for (int i = 0; i < list.Count; i++)
             {
-                GameObject itemObject = CreateItem(ContentParentGameObject.transform);
-                RectTransform bgTransform = GetBackgroundTransformOfItem(itemObject);
+                itemObject = CreateItem(ContentParentGameObject.transform);
+                bgTransform = GetBackgroundTransformOfItem(itemObject);
 
                 if (i == 0)
                 {
                     GetSummoningCircleUIPrefab();
-                    GameObject summoningCircleParent = CreateSummoningCircle(bgTransform);
+                    summoningCircleParent = CreateSummoningCircle(bgTransform);
+                    slot = CreateSlot(summoningCircleParent.transform);
+
+                    /*  Get the image of the Unit. And Set it  */
+                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(list[i]);
+                    SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
+                else
+                {
+
+
+                    slot = CreateSlot(bgTransform.transform);
+
+                    /*  Get the image of the Unit. And Set it  */
+                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(list[i]);
+                    SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
+                }
+
+                instanciatedItems.Add(itemObject);
             }
         }
 
         private void BattleMediator_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
         {
+            DeleteIcons();
             CreateTurnOrderUI(list);
         }
     }
