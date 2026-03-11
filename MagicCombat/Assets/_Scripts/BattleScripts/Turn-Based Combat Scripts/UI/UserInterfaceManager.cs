@@ -47,15 +47,13 @@ public class UserInterfaceManager : MonoBehaviour
 
 
     [Header("Task bar Properties")]
-    [SerializeField] GameObject dialogueBoxPrefab;
-    [SerializeField] GameObject windowMinimisationPrefab;
+    [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;
     [SerializeField] GameObject taskBarObject;
     [SerializeField] GameObject ScreenElementsTransform;
     UITaskBarManager TaskBarManager;
 
 
     [Header("Cursor Properties")]
-    [SerializeField, Tooltip("Required Field. Populate with the Prefab of the Cursor")]                     GameObject CursorPrefab;
     [SerializeField, Tooltip("Required Field. Populate with a referance to the Cursor Image Spritesheet.")] Texture2D CursorImages;
     CursorManager CursorManager;
 
@@ -79,7 +77,7 @@ public class UserInterfaceManager : MonoBehaviour
     private void InitaliseCursorManager()
     {
         this.selectedUserInterfaceElement = new();
-        this.CursorManager = new CursorManager(this.transform, this.CursorPrefab, this.CursorImages);
+        this.CursorManager = new CursorManager(this.transform, this.UI_PrefabData.CursorPrefab, this.CursorImages);
         this.selectedUserInterfaceElement.OnChangeCursorState += this.CursorManager.SetCursorImageState;
     }
 
@@ -91,11 +89,11 @@ public class UserInterfaceManager : MonoBehaviour
                 (RectTransform)this.taskBarObject.transform.Find("TaskBarHomeBox").transform,
                 (RectTransform)this.taskBarObject.transform.Find("Object_Elements").Find("WindowGrid").transform,
                 (RectTransform)this.ScreenElementsTransform.transform,
-                windowMinimisationPrefab,
-                dialogueBoxPrefab
+                UI_PrefabData
                 );
         }
     }
+
     private void OnValidate()
     {
         InitialiseComponents();

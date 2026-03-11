@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a104de6f4230d3d498699d751739bbe7, type: 3}
+  m_Name: UI Data
+  m_EditorClassIdentifier: 
+  DialogueBoxPrefab: {fileID: 8515525482885389312, guid: 656153f955fe7154c9273e007c709a3d, type: 3}
+  WindowMinimisationWidgetPrefab: {fileID: 2810197271432906295, guid: aa2d35e652cd6904dac884d7e69c37fe, type: 3}
+  CursorPrefab: {fileID: 3221711187981998106, guid: c349a70b782884e4d89184e798c9e9d8, type: 3}
+  ScrollableContentPrefab: {fileID: 6520692245716291881, guid: eed3de752b4f94c4a84a57606443e0b8, type: 3}
+  ScrollableSlotPrefab: {fileID: 2376954060107117144, guid: 2891739a49212104c9c43ef87dde970d, type: 3}
+  ScrollableItemPrefab: {fileID: 6469300161972515841, guid: 055f2bd0455300c40896781b2cc9727a, type: 3}
+  SummoningCircleSprite: {fileID: 0}

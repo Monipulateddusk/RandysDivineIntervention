@@ -5,20 +5,28 @@ namespace TurnBased
     public class TurnOrderUIManager
     {
         System.Collections.Generic.List<GameObject> instanciatedItems;
+        private UICollection_SO UI_PrefabData;
         private GameObject ScrollableRootGameObject, ContentParentGameObject;
-        private GameObject SummoningCirclePrefab, ItemParentPrefab, SlotPrefab;
-        private UnityEngine.UI.Image SummoningCircleImage;
+        private GameObject SummoningCirclePrefab;
+
+        private UnityEngine.Sprite SummoningCircleImage;
         private Color SUMMONING_CIRCLE_COLOUR = new(0.4941177f, 0.7372549f, 1);
-        public TurnOrderUIManager(GameObject ScrollableContentRoot, GameObject ContentParentGO) 
+        public TurnOrderUIManager(UICollection_SO UI_PrefabData, GameObject ScrollableContentRoot) 
         {
             this.ScrollableRootGameObject = ScrollableContentRoot;
-            this.ContentParentGameObject = ContentParentGO;
+            this.UI_PrefabData = UI_PrefabData; 
+            this.SummoningCircleImage = UI_PrefabData.SummoningCircleSprite;
 
+            /*  Find the contentParentGO    */
+            this.ContentParentGameObject = this.ScrollableRootGameObject.transform.Find("ScrollableContent").Find("ViewportBuffer").Find("Viewport").Find("Content").gameObject;
+
+            CreateTurnOrderUI(BattleMediator.Instance.GetTurnOrderList());
             BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
         }
 
         ~TurnOrderUIManager()
         {
+            DeleteIcons();
             BattleMediator.OnUpdateTurnOrder -= BattleMediator_OnUpdateTurnOrder;
         }
 
@@ -29,7 +37,7 @@ namespace TurnBased
                 gO.AddComponent<RectTransform>();
                 gO.AddComponent<CanvasRenderer>();
                 UnityEngine.UI.Image img = gO.AddComponent<UnityEngine.UI.Image>();
-                img.sprite = this.SummoningCircleImage.sprite;
+                img.sprite = this.SummoningCircleImage;
                 img.color = SUMMONING_CIRCLE_COLOUR;
 
                 gO.AddComponent<UnityEngine.UI.Outline>();
@@ -66,7 +74,7 @@ namespace TurnBased
 
         private GameObject CreateItem(Transform parent)
         {
-            return GameObject.Instantiate(this.ItemParentPrefab, parent);
+            return GameObject.Instantiate(this.UI_PrefabData.ScrollableItemPrefab, parent);
         }
         private GameObject CreateSummoningCircle(Transform parent)
         {
@@ -74,7 +82,7 @@ namespace TurnBased
         }
         private GameObject CreateSlot(Transform parent)
         {
-            return GameObject.Instantiate(this.SlotPrefab, parent);
+            return GameObject.Instantiate(this.UI_PrefabData.ScrollableSlotPrefab, parent);
         }
 
         private void SetImageOfSlot(GameObject slot, UnityEngine.Sprite img)

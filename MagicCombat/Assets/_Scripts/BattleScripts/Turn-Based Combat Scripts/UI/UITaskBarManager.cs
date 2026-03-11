@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Content;
 using UnityEngine;
 
 public struct WindowData
@@ -96,21 +97,20 @@ public class UITaskBarManager
     bool isExpandingShrinking = false;
 
     /*  Minimised Window Variables and Referances   */
-    private readonly GameObject WindowMinimisationPrefab;
-    private readonly GameObject DialogueBoxPrefab;
+    UICollection_SO UI_PrefabData;
 
     private readonly RectTransform WindowGridTransform;
     private readonly RectTransform ScreenElementsTransform;
 
     private Dictionary<int, WindowData> WindowDataDict = new();
 
-    public UITaskBarManager(RectTransform taskBarHomeBoxTransform, RectTransform windowGridTransform, RectTransform screenElementsTransform, GameObject windowMinimisationPrefab, GameObject dialogueBoxPrefab)
+    private TurnBased.TurnOrderUIManager TurnOrderManagerUI;
+    public UITaskBarManager(RectTransform taskBarHomeBoxTransform, RectTransform windowGridTransform, RectTransform screenElementsTransform, UICollection_SO uiData)
     {
         this.TaskbarHomeBoxTransform = taskBarHomeBoxTransform;
         this.WindowGridTransform = windowGridTransform;
         this.ScreenElementsTransform = screenElementsTransform;
-        this.WindowMinimisationPrefab = windowMinimisationPrefab;
-        this.DialogueBoxPrefab = dialogueBoxPrefab;
+        this.UI_PrefabData = uiData;
 
         CreateWindow(0, new Vector2(500, 500), new Vector2(300, 400));
         CreateWindow(1, new Vector2(1000, 500), new Vector2(300, 400));
@@ -130,9 +130,24 @@ public class UITaskBarManager
                 Debug.Log(item.WindowAnimData.IsEnabled);
             }
         }
+        if (Input.GetKeyDown(KeyCode.Z))
+        {
+            CreateTurnOrderUIWindow();
+        }
         
     }
 
+    private void CreateTurnOrderUIWindow()
+    {
+        // Testing script. Get the 0-index of the windowDataDict and set one of the dialogue boxes to be the turn-order manager.
+        if (WindowDataDict.ContainsKey(0))
+        {
+            // Find the Content child and instanciate the Scrollable Content prefab to it.
+            Transform contentTransform = WindowDataDict[0].DialogueBox.transform.Find("Content");
+            GameObject scrollableRoot = GameObject.Instantiate(UI_PrefabData.ScrollableContentPrefab, contentTransform);
+            TurnOrderManagerUI = new(this.UI_PrefabData, scrollableRoot);
+        }
+    }
     public void CreateWindow(int index, Vector2 position, Vector2 size)
     {
         /*  Store the data of this Window.  */
@@ -155,7 +170,7 @@ public class UITaskBarManager
 
     DialogueBoxBehaviour CreateDialogueBoxWindow(int index, Vector2 position, Vector2 size)
     {
-        GameObject gO = GameObject.Instantiate(this.DialogueBoxPrefab, this.ScreenElementsTransform.transform);
+        GameObject gO = GameObject.Instantiate(this.UI_PrefabData.DialogueBoxPrefab, this.ScreenElementsTransform.transform);
 
         UnityUIUtility.SetRectPosition(gO.GetComponent<RectTransform>(), position);
 
@@ -170,7 +185,7 @@ public class UITaskBarManager
 
     UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(int index)
     {
-        GameObject gO = GameObject.Instantiate(this.WindowMinimisationPrefab, this.ScreenElementsTransform.transform);
+        GameObject gO = GameObject.Instantiate(this.UI_PrefabData.WindowMinimisationWidgetPrefab, this.ScreenElementsTransform.transform);
         gO.transform.SetParent(WindowGridTransform.transform);
         if(gO.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget))
         {
