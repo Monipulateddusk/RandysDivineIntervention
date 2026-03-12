@@ -508,6 +508,7 @@ GameObject:
   - component: {fileID: 1354575647398047581}
   - component: {fileID: 7900643484833241300}
   - component: {fileID: 2085865105188538137}
+  - component: {fileID: 3528682755075412326}
   m_Layer: 5
   m_Name: ScrollableContentBG
   m_TagString: Untagged
@@ -618,6 +619,22 @@ MonoBehaviour:
   m_EffectColor: {r: 1, g: 1, b: 1, a: 0.5}
   m_EffectDistance: {x: -2, y: 2}
   m_UseGraphicAlpha: 0
+--- !u!114 &3528682755075412326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6520692245716291881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a997f3eaf6f82c4fb59b2540cb21338, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ScrollableContentBGTransform: {fileID: 1099398457088764932}
+  ScrollableRootTransform: {fileID: 3477874364706508718}
+  ScrollableViewportTransform: {fileID: 7291553970525652957}
+  ScrollableContentTransform: {fileID: 2632357222439263575}
 --- !u!1 &7208351528038124464
 GameObject:
   m_ObjectHideFlags: 0

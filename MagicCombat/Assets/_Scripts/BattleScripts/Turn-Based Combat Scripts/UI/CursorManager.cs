@@ -28,6 +28,7 @@ public class CursorManager
 
     void InitaliseCursorObject(Transform parentTransform, GameObject cursorPrefab)
     {
+        /*  Only allow one cursor object at a time. */
         GameObject instanciatedCursorObject = GameObject.Find("Cursor(Clone)");
         if (instanciatedCursorObject == null) { this.cursorObject = GameObject.Instantiate(cursorPrefab); }
         else { this.cursorObject =  instanciatedCursorObject; }

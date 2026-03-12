@@ -143,9 +143,9 @@ public class UITaskBarManager
         if (WindowDataDict.ContainsKey(0))
         {
             // Find the Content child and instanciate the Scrollable Content prefab to it.
-            Transform contentTransform = WindowDataDict[0].DialogueBox.transform.Find("Content");
-            GameObject scrollableRoot = GameObject.Instantiate(UI_PrefabData.ScrollableContentPrefab, contentTransform);
-            TurnOrderManagerUI = new(this.UI_PrefabData, scrollableRoot);
+            RectTransform contentTransform = WindowDataDict[0].DialogueBox.GetContentGameObjectRoot();
+            RectTransform scrollableRoot = (RectTransform)(GameObject.Instantiate(UI_PrefabData.ScrollableContentPrefab, contentTransform)).transform;
+            TurnOrderManagerUI = new(this.UI_PrefabData, contentTransform, scrollableRoot);
         }
     }
     public void CreateWindow(int index, Vector2 position, Vector2 size)

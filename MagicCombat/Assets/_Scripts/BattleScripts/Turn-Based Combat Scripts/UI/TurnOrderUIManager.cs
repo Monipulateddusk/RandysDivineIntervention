@@ -1,3 +1,4 @@
+using TurnBased.UI;
 using UnityEngine;
 
 namespace TurnBased
@@ -6,19 +7,17 @@ namespace TurnBased
     {
         System.Collections.Generic.List<GameObject> instanciatedItems;
         private UICollection_SO UI_PrefabData;
-        private GameObject ScrollableRootGameObject, ContentParentGameObject;
+        private ScrollableContentPrefabData scrollablePrefabData;
         private GameObject SummoningCirclePrefab;
 
         private UnityEngine.Sprite SummoningCircleImage;
         private Color SUMMONING_CIRCLE_COLOUR = new(0.4941177f, 0.7372549f, 1);
-        public TurnOrderUIManager(UICollection_SO UI_PrefabData, GameObject ScrollableContentRoot) 
+        public TurnOrderUIManager(UICollection_SO UI_PrefabData, ScrollableContentPrefabData contentData) 
         {
-            this.ScrollableRootGameObject = ScrollableContentRoot;
+            this.scrollablePrefabData = contentData;
+
             this.UI_PrefabData = UI_PrefabData; 
             this.SummoningCircleImage = UI_PrefabData.SummoningCircleSprite;
-
-            /*  Find the contentParentGO    */
-            this.ContentParentGameObject = this.ScrollableRootGameObject.transform.Find("ScrollableContent").Find("ViewportBuffer").Find("Viewport").Find("Content").gameObject;
 
             CreateTurnOrderUI(BattleMediator.Instance.GetTurnOrderList());
             BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
@@ -50,26 +49,15 @@ namespace TurnBased
 
         private RectTransform GetBackgroundTransformOfItem(GameObject itemGameObject)
         {
-            if (itemGameObject != null)
+            if (itemGameObject != null && itemGameObject.TryGetComponent(out ItemPrefabData itemPrefabData))
             {
-                Transform sliderBG = itemGameObject.transform.Find("SliderBG");
-                /*  Checking to ensure the SliderBG was found.  */
-                if (sliderBG == null)
-                {
-                    Debug.LogWarning("ERROR: SliderBG NOT FOUND!");
-                    return null;
-                }
-
-                Transform background = sliderBG.Find("Background").transform;
-                if (background == null)
-                {
-                    Debug.LogWarning("ERROR: background NOT FOUND!");
-                    return null;
-                }
-                return ((RectTransform)background);
+                return itemPrefabData.BackgroundTransform;
             }
-            Debug.LogWarning("ERROR: NULL REFERANCE itemGameObject");
-            return null;
+
+            else
+            {
+                return null;
+            }
         }
 
         private GameObject CreateItem(Transform parent)
@@ -87,10 +75,9 @@ namespace TurnBased
 
         private void SetImageOfSlot(GameObject slot, UnityEngine.Sprite img)
         {
-            if (slot != null && slot.name == "Slot")
+            if (slot != null && slot.TryGetComponent(out SlotPrefabData slotData))
             {
-                Transform unitImageTransform = slot.transform.Find("UnitImage");
-                if(unitImageTransform != null && unitImageTransform.gameObject.TryGetComponent(out UnityEngine.UI.Image image))
+                if(slotData.UnitImageTransform != null && slotData.UnitImageTransform.gameObject.TryGetComponent(out UnityEngine.UI.Image image))
                 {
                     image.sprite = img;
                 }
@@ -124,7 +111,7 @@ namespace TurnBased
             BaseBattleUnit battleUnit;
             for (int i = 0; i < list.Count; i++)
             {
-                itemObject = CreateItem(ContentParentGameObject.transform);
+                itemObject = CreateItem(this.scrollablePrefabData.ScrollableContentTransform);
                 bgTransform = GetBackgroundTransformOfItem(itemObject);
 
                 if (i == 0)

@@ -1073,7 +1073,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c59585ef4bba2ed4f8f2a1df36941645, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentDialogueBoxState: 0
+  LayoutElement: {fileID: 1515202103821314958}
+  BoxCollider: {fileID: 4466488621449587564}
+  CanvasGroup: {fileID: 2781911558804302905}
+  ContentGameObjectRoot: {fileID: 7174760385394455568}
+  minimiseButtonTransform: {fileID: 2440233715088099097}
+  closeButtonTransform: {fileID: 8048172810777100408}
+  headerBufferTransform: {fileID: 6668506463568773292}
   currentButtonSelection: 0
 --- !u!114 &4454796680637814640
 MonoBehaviour:

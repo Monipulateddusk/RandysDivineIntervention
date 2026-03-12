@@ -43,35 +43,22 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         Minimise = 1,
         Close = 2,
     }
-    //  Box Move and Resize.        
-    [SerializeField] private DialogueBoxState currentDialogueBoxState;
-    private Vector3 MouseDragStartPosition;
-    private const float TITLE_BAR_HEIGHT = 50;
 
-    //  Components 
-    private UnityEngine.UI.LayoutElement LayoutElement;
-    private UnityEngine.BoxCollider2D BoxCollider;
-    private CanvasGroup CanvasGroup;
+    [Header("Serialised Variables. Assign in inspector!")]
+    [SerializeField] private UnityEngine.UI.LayoutElement LayoutElement;
+    [SerializeField] private UnityEngine.BoxCollider2D BoxCollider;
+    [SerializeField] private CanvasGroup CanvasGroup;
+    [SerializeField, Tooltip("Assign with the 'Content' GameObject")] private UnityEngine.RectTransform ContentGameObjectRoot;
+    [SerializeField] private UnityEngine.RectTransform headerBufferTransform, minimiseButtonTransform, closeButtonTransform;
     private BoxCollider2D[] BoxColliders;
 
-    //  Header Button Referances.   
-    private UnityEngine.RectTransform minimiseTransform, closeTransform;
-    [SerializeField] private ButtonSelection currentButtonSelection;
+    [Header("Debugging")]
+    
+    private ButtonSelection currentButtonSelection;
+    private DialogueBoxState currentDialogueBoxState;
 
-
-
-    private void Awake()
-    {
-        this.BoxCollider = GetComponent<BoxCollider2D>();
-        this.LayoutElement = GetComponent<UnityEngine.UI.LayoutElement>();
-        this.CanvasGroup = GetComponent<CanvasGroup>();
-        this.BoxColliders = GetComponentsInChildren<BoxCollider2D>();
-
-        /*  Get the colliders of the Buttons in the Header. IMPORTANT: The selectable component is Smoke and Mirrors. It just changes the colour shade. */
-        Transform buttonsParentTransform = this.transform.Find("Header").Find("HeaderBuffer").Find("Buttons");
-        this.minimiseTransform  = buttonsParentTransform.Find("MinimiseBG").GetComponent<RectTransform>();
-        this.closeTransform     = buttonsParentTransform.Find("CloseBG").GetComponent<RectTransform>();
-    }
+    //  Box Move and Resize.        
+    private Vector3 MouseDragStartPosition;
 
     #region Resize Functionality
     void ProcessIfCursorIsWithinEdgeBounds(Vector2 mousePos)
@@ -180,22 +167,19 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     private void ProcessIfCursorIsWithinTitleBar(Vector2 mousePos)
     {
-        // Get the local mouse position within the UI rect
-        RectTransform headerBufferTransform = (RectTransform)this.transform.Find("Header").Find("HeaderBuffer").transform;
-
         /*  Get the mouse position inside each UI element. Yes, this is horribly inefficient. However, counterpoint: */
-        Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect(headerBufferTransform, mousePos);
-        Vector2 mousePositionInsideMinimiseButtonRect = GetMousePositionWithinRect(minimiseTransform, mousePos);
-        Vector2 mousePositionInsideCloseButtonRect = GetMousePositionWithinRect(closeTransform, mousePos);
+        Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect(this.headerBufferTransform, mousePos);
+        Vector2 mousePositionInsideMinimiseButtonRect = GetMousePositionWithinRect(minimiseButtonTransform, mousePos);
+        Vector2 mousePositionInsideCloseButtonRect = GetMousePositionWithinRect(closeButtonTransform, mousePos);
 
-        if (headerBufferTransform.rect.Contains(mousePositionInsideTitleBarRect))
+        if (this.headerBufferTransform.rect.Contains(mousePositionInsideTitleBarRect))
         {
-            if (this.minimiseTransform.rect.Contains(mousePositionInsideMinimiseButtonRect))
+            if (this.minimiseButtonTransform.rect.Contains(mousePositionInsideMinimiseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Minimise;
                 currentDialogueBoxState = DialogueBoxState.Idle;
             }
-            else if (this.closeTransform.rect.Contains(mousePositionInsideCloseButtonRect))
+            else if (this.closeButtonTransform.rect.Contains(mousePositionInsideCloseButtonRect))
             {
                 currentButtonSelection = ButtonSelection.Close;
                 currentDialogueBoxState = DialogueBoxState.Idle;
@@ -323,6 +307,8 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     {
         return new Vector2(this.LayoutElement.preferredWidth, this.LayoutElement.preferredHeight);
     }
+
+    public RectTransform GetContentGameObjectRoot() => ContentGameObjectRoot;
 }
 
 
