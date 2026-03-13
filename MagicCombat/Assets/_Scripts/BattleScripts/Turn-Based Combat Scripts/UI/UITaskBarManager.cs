@@ -100,8 +100,8 @@ public class UITaskBarManager
     /*  Minimised Window Variables and Referances   */
     UICollection_SO UI_PrefabData;
 
-    private readonly RectTransform WindowGridTransform;
-    private readonly RectTransform ScreenElementsTransform;
+    private RectTransform WindowGridTransform;
+    private RectTransform ScreenElementsTransform;
 
     private Dictionary<int, WindowData> WindowDataDict = new();
 
@@ -158,7 +158,7 @@ public class UITaskBarManager
         /*  Store the data of this Window.  */
         if (!WindowDataDict.ContainsKey(index))
         {
-            DialogueBoxBehaviour createdDialogueBox = CreateDialogueBoxWindow(index, position, size);
+            DialogueBoxBehaviour createdDialogueBox = UIWindowFactory.CreateWindow(WindowType.DialogueBox, UI_PrefabData, ref ScreenElementsTransform, index, position, size) as DialogueBoxBehaviour;
             UITaskBarMinimisationWidget taskBarWidget = CreateTaskBarMinimisationWidget(index);
 
             WindowDataDict.Add(index, new WindowData()
@@ -171,21 +171,6 @@ public class UITaskBarManager
             });
 
         }
-    }
-
-    DialogueBoxBehaviour CreateDialogueBoxWindow(int index, Vector2 position, Vector2 size)
-    {
-        GameObject gO = GameObject.Instantiate(this.UI_PrefabData.DialogueBoxPrefab, this.ScreenElementsTransform.transform);
-
-        UnityUIUtility.SetRectPosition(gO.GetComponent<RectTransform>(), position);
-
-        if (gO != null && gO.TryGetComponent(out DialogueBoxBehaviour dBB))
-        {
-            dBB.ResizeDialogueBox(size);
-            gO.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-            return dBB;
-        }
-        return null;
     }
 
     UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(int index)

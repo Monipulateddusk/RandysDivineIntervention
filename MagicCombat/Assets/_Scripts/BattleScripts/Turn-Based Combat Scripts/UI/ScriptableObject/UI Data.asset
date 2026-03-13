@@ -18,4 +18,4 @@ MonoBehaviour:
   ScrollableContentPrefab: {fileID: 6520692245716291881, guid: eed3de752b4f94c4a84a57606443e0b8, type: 3}
   ScrollableSlotPrefab: {fileID: 2376954060107117144, guid: 2891739a49212104c9c43ef87dde970d, type: 3}
   ScrollableItemPrefab: {fileID: 6469300161972515841, guid: 055f2bd0455300c40896781b2cc9727a, type: 3}
-  SummoningCircleSprite: {fileID: 0}
+  SummoningCircleSprite: {fileID: 21300000, guid: 48b0c0e6d4ce01849bd59eb2f65b0778, type: 3}
