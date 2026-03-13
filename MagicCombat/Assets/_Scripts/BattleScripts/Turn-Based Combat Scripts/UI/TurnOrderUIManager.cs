@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TurnBased.UI;
 using UnityEngine;
 
@@ -19,7 +20,9 @@ namespace TurnBased
             this.UI_PrefabData = UI_PrefabData; 
             this.SummoningCircleImage = UI_PrefabData.SummoningCircleSprite;
 
-            CreateTurnOrderUI(BattleMediator.Instance.GetTurnOrderList());
+            this.instanciatedItems = new();
+
+            CreateTurnOrderUI(BattleMediator.Instance.GetCurrentUnit(), BattleMediator.Instance.GetTurnOrderList());
             BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
         }
 
@@ -31,12 +34,19 @@ namespace TurnBased
 
         private GameObject GetSummoningCircleUIPrefab()
         {
-            if (this.SummoningCirclePrefab == null && this.SummoningCircleImage != null) {
+            if (this.SummoningCirclePrefab == null && UI_PrefabData.SummoningCircleSprite != null) {
                 GameObject gO = new("SummoningCircle");
-                gO.AddComponent<RectTransform>();
+                RectTransform transform = gO.AddComponent<RectTransform>();
+                transform.anchorMin = Vector2.zero;
+                transform.anchorMax = new Vector2(1,1);
+                transform.SetLeft(-50);
+                transform.SetTop(-50);
+                transform.SetRight(-50);
+                transform.SetBottom(-50);
+
                 gO.AddComponent<CanvasRenderer>();
                 UnityEngine.UI.Image img = gO.AddComponent<UnityEngine.UI.Image>();
-                img.sprite = this.SummoningCircleImage;
+                img.sprite = this.UI_PrefabData.SummoningCircleSprite;
                 img.color = SUMMONING_CIRCLE_COLOUR;
 
                 gO.AddComponent<UnityEngine.UI.Outline>();
@@ -98,10 +108,17 @@ namespace TurnBased
             {
                 GameObject.DestroyImmediate(obj);
             }
+            instanciatedItems.Clear();
+            instanciatedItems = new();
         }
 
-        private void CreateTurnOrderUI(System.Collections.Generic.List<UnitIndex> list)
+        private void CreateTurnOrderUI(UnitIndex? currentUnit, System.Collections.Generic.List<UnitIndex> subsequentUnits)
         {
+            if(currentUnit == null) { Debug.LogWarning("CURRENT UNIT IS NULL!"); return; }
+
+            List<UnitIndex> turnOrder = new List<UnitIndex>();
+            turnOrder.Add(currentUnit.Value);
+            turnOrder.AddRange(subsequentUnits);
             /*  For each entry in the list, we need to create a slot for each entry.
              *  The 0-index slot, needs to be on the Summoning Circle however.
              */
@@ -109,7 +126,7 @@ namespace TurnBased
             GameObject itemObject, slot, summoningCircleParent;
             RectTransform bgTransform;
             BaseBattleUnit battleUnit;
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < turnOrder.Count; i++)
             {
                 itemObject = CreateItem(this.scrollablePrefabData.ScrollableContentTransform);
                 bgTransform = GetBackgroundTransformOfItem(itemObject);
@@ -121,7 +138,7 @@ namespace TurnBased
                     slot = CreateSlot(summoningCircleParent.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(list[i]);
+                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(turnOrder[i]);
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
                 else
@@ -131,7 +148,7 @@ namespace TurnBased
                     slot = CreateSlot(bgTransform.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(list[i]);
+                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(turnOrder[i]);
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
 
@@ -142,7 +159,7 @@ namespace TurnBased
         private void BattleMediator_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
         {
             DeleteIcons();
-            CreateTurnOrderUI(list);
+            CreateTurnOrderUI(BattleMediator.Instance.GetCurrentUnit(), list);
         }
     }
 }

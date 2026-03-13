@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using TurnBased.UI;
 using Unity.Content;
 using UnityEngine;
 
@@ -145,7 +146,11 @@ public class UITaskBarManager
             // Find the Content child and instanciate the Scrollable Content prefab to it.
             RectTransform contentTransform = WindowDataDict[0].DialogueBox.GetContentGameObjectRoot();
             RectTransform scrollableRoot = (RectTransform)(GameObject.Instantiate(UI_PrefabData.ScrollableContentPrefab, contentTransform)).transform;
-            TurnOrderManagerUI = new(this.UI_PrefabData, contentTransform, scrollableRoot);
+            
+            if(scrollableRoot != null && scrollableRoot.gameObject.TryGetComponent(out ScrollableContentPrefabData data))
+            {
+                TurnOrderManagerUI = new(this.UI_PrefabData, data);
+            }
         }
     }
     public void CreateWindow(int index, Vector2 position, Vector2 size)
