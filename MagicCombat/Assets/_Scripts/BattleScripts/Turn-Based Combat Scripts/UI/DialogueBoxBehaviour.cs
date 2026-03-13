@@ -12,9 +12,12 @@ public interface IUISelectable
 public class MinimisableUI : MonoBehaviour
 {
     private int minimisableIndex;
-
+    bool isMinimised;
     public void SetMinimisableIndex(int index) {  this.minimisableIndex = index; }
+    protected void SetIsMinimised(bool minimised) { this.isMinimised = minimised;}
+    public bool GetIsMinimised() => isMinimised;
     public int GetMinimisableIndex() { return this.minimisableIndex; }
+    
 
     protected Vector2 GetMousePositionWithinRect(RectTransform rectTransform, Vector2 mousePos)
     {
@@ -47,7 +50,6 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
     [SerializeField] private CanvasGroup CanvasGroup;
     [SerializeField, Tooltip("Assign with the 'Content' GameObject")] private UnityEngine.RectTransform ContentGameObjectRoot;
     [SerializeField] private UnityEngine.RectTransform headerBufferTransform, minimiseButtonTransform, closeButtonTransform;
-    private BoxCollider2D[] BoxColliders;
 
     [Header("Debugging")]
     
@@ -201,29 +203,19 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     #endregion
 
-    private void SetColliderState(bool isActive)
-    {
-        foreach (Collider2D collider in this.BoxColliders)
-        {
-            collider.enabled = isActive;
-        }
-    }
-
     public void ApplyMinimised(bool isEnabled)
     {
         // Based if we are minimised, we want to disable colliders and set the CanvasGroup's settings accordingly.
         if (isEnabled)
         {
-            SetColliderState(true);
+            SetIsMinimised(false);
             this.CanvasGroup.alpha = 1;
             this.CanvasGroup.interactable = true;
             this.CanvasGroup.blocksRaycasts = true;
         }
         else
         {
-            // Disable Colliders
-            SetColliderState(false);
-
+            SetIsMinimised(true);
             // Set Canvas group settings
             this.CanvasGroup.alpha = 0;
             this.CanvasGroup.interactable = false;
@@ -260,6 +252,8 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     public void OnDrag(Vector2 mousePos)
     {
+        if (GetIsMinimised()) { return; }
+
         if (currentDialogueBoxState != DialogueBoxState.Idle && currentDialogueBoxState != DialogueBoxState.DragMoving)
         {
             ProcessResize(mousePos);
@@ -273,6 +267,8 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     public void OnHover(Vector2 mousePos)
     {
+        if (GetIsMinimised()) { return; }
+
         ProcessIfCursorIsWithinEdgeBounds(mousePos);
 
         ProcessIfCursorIsWithinTitleBar(mousePos);

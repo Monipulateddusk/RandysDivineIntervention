@@ -4,21 +4,53 @@ using UnityEngine;
 
 namespace TurnBased
 {
-    public class TurnOrderUIManager
+    public class DialogueBoxAttachment
+    {
+        public event System.Action OnDestroy;
+        private DialogueBoxBehaviour dialogueBoxOwner;
+
+        public DialogueBoxAttachment(DialogueBoxBehaviour dialogueBoxOwner)
+        {
+            this.dialogueBoxOwner = dialogueBoxOwner;
+        }
+        
+        public virtual void Destroy()
+        {
+            OnDestroy?.Invoke();
+        }
+
+        public void SetDialogueBoxOwner(DialogueBoxBehaviour dBB)
+        {
+            if (dBB == null)
+            {
+                Debug.Log("Attempting to assign a NULL referance");
+                return;
+            }
+            
+            this.dialogueBoxOwner = dBB;
+        }
+        public DialogueBoxBehaviour GetDialogueBoxOwner() => dialogueBoxOwner;
+    }
+
+    public class DefaultDialogueBoxAttachment : DialogueBoxAttachment
+    {
+        public DefaultDialogueBoxAttachment(DialogueBoxBehaviour dialogueBoxOwner) : base(dialogueBoxOwner)
+        {
+        }
+    }
+
+    public class TurnOrderUIManager : DialogueBoxAttachment
     {
         System.Collections.Generic.List<GameObject> instanciatedItems;
         private UICollection_SO UI_PrefabData;
         private ScrollableContentPrefabData scrollablePrefabData;
         private GameObject SummoningCirclePrefab;
 
-        private UnityEngine.Sprite SummoningCircleImage;
         private Color SUMMONING_CIRCLE_COLOUR = new(0.4941177f, 0.7372549f, 1);
-        public TurnOrderUIManager(UICollection_SO UI_PrefabData, ScrollableContentPrefabData contentData) 
+        public TurnOrderUIManager(DialogueBoxBehaviour dialogueBoxOwner, UICollection_SO UI_PrefabData, ScrollableContentPrefabData contentData) : base(dialogueBoxOwner)
         {
+            this.UI_PrefabData = UI_PrefabData;
             this.scrollablePrefabData = contentData;
-
-            this.UI_PrefabData = UI_PrefabData; 
-            this.SummoningCircleImage = UI_PrefabData.SummoningCircleSprite;
 
             this.instanciatedItems = new();
 
@@ -26,10 +58,16 @@ namespace TurnBased
             BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
         }
 
-        ~TurnOrderUIManager()
+        public override void Destroy()
         {
+            base.Destroy();
             DeleteIcons();
             BattleMediator.OnUpdateTurnOrder -= BattleMediator_OnUpdateTurnOrder;
+        }
+
+        ~TurnOrderUIManager()
+        {
+            Destroy();
         }
 
         private GameObject GetSummoningCircleUIPrefab()
@@ -116,7 +154,7 @@ namespace TurnBased
         {
             if(currentUnit == null) { Debug.LogWarning("CURRENT UNIT IS NULL!"); return; }
 
-            List<UnitIndex> turnOrder = new List<UnitIndex>();
+            List<UnitIndex> turnOrder = new();
             turnOrder.Add(currentUnit.Value);
             turnOrder.AddRange(subsequentUnits);
             /*  For each entry in the list, we need to create a slot for each entry.

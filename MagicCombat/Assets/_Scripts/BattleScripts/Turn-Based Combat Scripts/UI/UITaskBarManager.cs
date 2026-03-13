@@ -1,8 +1,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TurnBased.UI;
-using Unity.Content;
+using TurnBased;
 using UnityEngine;
+using UnityEngine.Assertions;
+
+public struct DialogueBoxWidgetPair
+{
+    public DialogueBoxAttachment DialogueBox;
+    public UITaskBarMinimisationWidget TaskBarWidget;
+}
 
 public struct WindowData
 {
@@ -31,38 +37,45 @@ public struct WindowData
             
         }
 
-        private void ToggleDialogueBoxVisibility(DialogueBoxBehaviour dialogueBox)
+        private void ToggleDialogueBoxVisibility(DialogueBoxWidgetPair pair)
         {
-            dialogueBox.ApplyMinimised(this.IsEnabled);
+            pair.DialogueBox.GetDialogueBoxOwner().ApplyMinimised(this.IsEnabled);
         }
 
-        private async Task EnlargeShrinkWindow(DialogueBoxBehaviour dialogueBox, UITaskBarMinimisationWidget taskbarWidget, float duration)
+        private async Task EnlargeShrinkWindow(DialogueBoxWidgetPair pair, float duration)
         {
             /*  If our target state is Shrunk, then we want to expand. Otherwise, we are already enlarged, and our target is to shrink. */
             // Item 1 of Touple: Start  Size
             // Item 2 of Touple: Target Size
             (Vector2, Vector2) sizes        = this.TargetState == WindowAnimationState.Shrunk ? (this.Size, Vector2.zero) : (Vector2.zero, this.Size);
-            (Vector2, Vector2) positions = this.TargetState == WindowAnimationState.Shrunk ? (this.Position, taskbarWidget.transform.position) : (taskbarWidget.transform.position, this.Position);
+            (Vector2, Vector2) positions = this.TargetState == WindowAnimationState.Shrunk ? (this.Position, pair.TaskBarWidget.transform.position) : (pair.TaskBarWidget.transform.position, this.Position);
 
             float startTime = Time.time;
             while (Time.time < startTime + duration)
             {
                 float t = (Time.time - startTime) / duration;
-                dialogueBox.ResizeDialogueBox(new Vector2(Mathf.Lerp(sizes.Item1.x, sizes.Item2.x, t), Mathf.Lerp(sizes.Item1.y, sizes.Item2.y, t)));
-                dialogueBox.transform.position = new Vector2(Mathf.Lerp(positions.Item1.x, positions.Item2.x, t), Mathf.Lerp(positions.Item1.y, positions.Item2.y, t));
+                pair.DialogueBox.GetDialogueBoxOwner().ResizeDialogueBox(new Vector2(Mathf.Lerp(sizes.Item1.x, sizes.Item2.x, t), Mathf.Lerp(sizes.Item1.y, sizes.Item2.y, t)));
+                pair.DialogueBox.GetDialogueBoxOwner().transform.position = new Vector2(Mathf.Lerp(positions.Item1.x, positions.Item2.x, t), Mathf.Lerp(positions.Item1.y, positions.Item2.y, t));
                 await Task.Yield();
             }
         }
 
-        public async Task PlayEnlargeShrinkAnimation(DialogueBoxBehaviour dialogueBox, UITaskBarMinimisationWidget taskbarWidget, float duration)
+        public async Task PlayEnlargeShrinkAnimation(DialogueBoxWidgetPair pair, float duration)
         {
             if (this.isAnimating) { return; }
             this.isAnimating = true;
 
-            await EnlargeShrinkWindow(dialogueBox, taskbarWidget, duration);      
+            await EnlargeShrinkWindow(pair, duration);
+            Debug.Log("Done enlarge Shrinking");
 
             ToggleEnabled();
-            ToggleDialogueBoxVisibility(dialogueBox);
+            Debug.Log("Done disabling enabling");
+
+
+            ToggleDialogueBoxVisibility(pair);
+
+            Debug.Log("Done toggling visibility");
+
             this.isAnimating = false;
         }
 
@@ -83,9 +96,8 @@ public struct WindowData
         }
     }
 
+    public DialogueBoxWidgetPair WindowPair;
 
-    public DialogueBoxBehaviour DialogueBox;
-    public UITaskBarMinimisationWidget TaskBarWidget;
     public WindowAnimationData WindowAnimData;
 }
 
@@ -105,7 +117,6 @@ public class UITaskBarManager
 
     private Dictionary<int, WindowData> WindowDataDict = new();
 
-    private TurnBased.TurnOrderUIManager TurnOrderManagerUI;
     public UITaskBarManager(RectTransform taskBarHomeBoxTransform, RectTransform windowGridTransform, RectTransform screenElementsTransform, UICollection_SO uiData)
     {
         this.TaskbarHomeBoxTransform = taskBarHomeBoxTransform;
@@ -113,8 +124,8 @@ public class UITaskBarManager
         this.ScreenElementsTransform = screenElementsTransform;
         this.UI_PrefabData = uiData;
 
-        CreateWindow(0, new Vector2(500, 500), new Vector2(300, 400));
-        CreateWindow(1, new Vector2(1000, 500), new Vector2(300, 400));
+        CreateWindow(WindowType.DialogueBox, 0, new Vector2(500, 500), new Vector2(300, 400));
+        CreateWindow(WindowType.DialogueBox,1, new Vector2(1000, 500), new Vector2(300, 400));
     }
 
     public void Update()
@@ -133,78 +144,33 @@ public class UITaskBarManager
         }
         if (Input.GetKeyDown(KeyCode.Z))
         {
-            CreateTurnOrderUIWindow();
+            CreateWindow(WindowType.TurnOrderWindow, 3, new Vector2(700, 700), new Vector2(300, 400));
         }
         
     }
 
-    private void CreateTurnOrderUIWindow()
-    {
-        // Testing script. Get the 0-index of the windowDataDict and set one of the dialogue boxes to be the turn-order manager.
-        if (WindowDataDict.ContainsKey(0))
-        {
-            // Find the Content child and instanciate the Scrollable Content prefab to it.
-            RectTransform contentTransform = WindowDataDict[0].DialogueBox.GetContentGameObjectRoot();
-            RectTransform scrollableRoot = (RectTransform)(GameObject.Instantiate(UI_PrefabData.ScrollableContentPrefab, contentTransform)).transform;
-            
-            if(scrollableRoot != null && scrollableRoot.gameObject.TryGetComponent(out ScrollableContentPrefabData data))
-            {
-                TurnOrderManagerUI = new(this.UI_PrefabData, data);
-            }
-        }
-    }
-    public void CreateWindow(int index, Vector2 position, Vector2 size)
+    public void CreateWindow(WindowType windowType, int index, Vector2 position, Vector2 size)
     {
         /*  Store the data of this Window.  */
         if (!WindowDataDict.ContainsKey(index))
         {
-            DialogueBoxBehaviour createdDialogueBox = UIWindowFactory.CreateWindow(WindowType.DialogueBox, UI_PrefabData, ref ScreenElementsTransform, index, position, size) as DialogueBoxBehaviour;
-            UITaskBarMinimisationWidget taskBarWidget = CreateTaskBarMinimisationWidget(index);
+            DialogueBoxWidgetPair createdWindowPair = UIWindowFactory.CreateWindow(windowType, UI_PrefabData, ScreenElementsTransform, WindowGridTransform, index, position, size);
 
             WindowDataDict.Add(index, new WindowData()
             {
-                DialogueBox = createdDialogueBox,
-                TaskBarWidget = taskBarWidget,
+                WindowPair = createdWindowPair,
 
                 WindowAnimData = new WindowData.WindowAnimationData(position, size)
 
             });
-
         }
     }
-
-    UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(int index)
-    {
-        GameObject gO = GameObject.Instantiate(this.UI_PrefabData.WindowMinimisationWidgetPrefab, this.ScreenElementsTransform.transform);
-        gO.transform.SetParent(WindowGridTransform.transform);
-        if(gO.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget))
-        {
-            minimisationWidget.SetMinimisableIndex(index);
-            return minimisationWidget;
-        }
-        return null;
-    }
-
-
 
     public async Task OnMinimiseClicked(int index)
     {
         if (WindowDataDict.ContainsKey(index))
         {
-            /*  Get the window data and corresponding animation data for this window. Set the window to be disabled.    */
-            WindowData data = WindowDataDict[index];
-
-            /*  Check to see if we are animating, if so, ABORT! */
-            if (data.WindowAnimData.isAnimating) { return; }
-
-            /*  Set the target state to the opposite that we are in. So if we are shrunk, we want to enlarge.   */
-            data.WindowAnimData.ToggleAnimationState();
-
-            /*  We want to check if we AREN'T animating, and that our target state is Enlarged. If so, then we want to save the size of the dialogue box.  */
-            data.WindowAnimData.SavePositionAndSize(data.DialogueBox.transform.position, data.DialogueBox.GetDialogueBoxSize());
-
-            /*  Play the animation as an asyncronous task. Only after ALL tasks are done, do we want to set isAnimating to false!   */
-            await data.WindowAnimData.PlayEnlargeShrinkAnimation(data.DialogueBox, data.TaskBarWidget, EXPAND_SHRINK_TIMER);
+            await UIWindowFactory.MinimiseWindow(WindowDataDict[index], EXPAND_SHRINK_TIMER);
         }
     }
 
@@ -212,9 +178,7 @@ public class UITaskBarManager
     {
         if (WindowDataDict.ContainsKey(index))
         {
-            /*  Destroy the window and the widget.  */
-            GameObject.Destroy(WindowDataDict[index].DialogueBox.gameObject);
-            GameObject.Destroy(WindowDataDict[index].TaskBarWidget.gameObject);
+            UIWindowFactory.DestroyWindow(WindowDataDict[index]);
 
             /*  Clear the dictionary entry. */
             WindowDataDict.Remove(index);
