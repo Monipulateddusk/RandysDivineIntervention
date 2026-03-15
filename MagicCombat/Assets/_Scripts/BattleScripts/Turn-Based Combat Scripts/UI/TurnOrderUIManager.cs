@@ -99,7 +99,7 @@ namespace TurnBased
         {
             if (itemGameObject != null && itemGameObject.TryGetComponent(out ItemPrefabData itemPrefabData))
             {
-                return itemPrefabData.BackgroundTransform;
+                return itemPrefabData.GetBackgroundTransform();
             }
 
             else
@@ -125,7 +125,7 @@ namespace TurnBased
         {
             if (slot != null && slot.TryGetComponent(out SlotPrefabData slotData))
             {
-                if(slotData.UnitImageTransform != null && slotData.UnitImageTransform.gameObject.TryGetComponent(out UnityEngine.UI.Image image))
+                if(slotData.GetUnitImageTransform().gameObject.TryGetComponent(out UnityEngine.UI.Image image))
                 {
                     image.sprite = img;
                 }
@@ -166,7 +166,7 @@ namespace TurnBased
             BaseBattleUnit battleUnit;
             for (int i = 0; i < turnOrder.Count; i++)
             {
-                itemObject = CreateItem(this.scrollablePrefabData.ScrollableContentTransform);
+                itemObject = CreateItem(this.scrollablePrefabData.GetScrollableContentTransform());
                 bgTransform = GetBackgroundTransformOfItem(itemObject);
 
                 if (i == 0)

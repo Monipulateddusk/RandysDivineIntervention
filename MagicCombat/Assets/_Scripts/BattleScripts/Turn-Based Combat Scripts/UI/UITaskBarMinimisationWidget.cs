@@ -21,8 +21,6 @@ public class UITaskBarMinimisationWidget : MinimisableUI, IUISelectable
 
     private bool IsMouseInsideRect(Vector2 mousePos)
     {
-        // Get the local mouse position within the UI rect
-
         /*  Get the mouse position inside each UI element. Yes, this is horribly inefficient. However, counterpoint: */
         Vector2 mousePositionInsideTitleBarRect = GetMousePositionWithinRect((RectTransform)this.transform, mousePos);
         if((this.transform as RectTransform).rect.Contains(mousePositionInsideTitleBarRect))
