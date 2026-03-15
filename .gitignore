@@ -51,6 +51,9 @@ sysinfo.txt
 *.unitypackage
 # Crashlytics generated file
 crashlytics-build.properties
+
 /MagicCombat/Logs
 MagicCombat/ProjectSettings
 /MagicCombat/UserSettings
+/MagicCombat/ProjectSettings
+/MagicCombat/Packages
