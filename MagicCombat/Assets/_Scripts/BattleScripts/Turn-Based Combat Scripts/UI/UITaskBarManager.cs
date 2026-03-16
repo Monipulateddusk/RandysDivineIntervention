@@ -51,11 +51,16 @@ public struct WindowData
             (Vector2, Vector2) positions = this.TargetState == WindowAnimationState.Shrunk ? (this.Position, pair.TaskBarWidget.transform.position) : (pair.TaskBarWidget.transform.position, this.Position);
 
             float startTime = Time.time;
+            bool doesMove = pair.DialogueBox.GetDialogueBoxOwner().DoesMoveMinimised();
             while (Time.time < startTime + duration)
             {
                 float t = (Time.time - startTime) / duration;
                 pair.DialogueBox.GetDialogueBoxOwner().Resize(new Vector2(Mathf.Lerp(sizes.Item1.x, sizes.Item2.x, t), Mathf.Lerp(sizes.Item1.y, sizes.Item2.y, t)));
-                pair.DialogueBox.GetDialogueBoxOwner().transform.position = new Vector2(Mathf.Lerp(positions.Item1.x, positions.Item2.x, t), Mathf.Lerp(positions.Item1.y, positions.Item2.y, t));
+
+                if (doesMove)
+                {
+                    pair.DialogueBox.GetDialogueBoxOwner().transform.position = new Vector2(Mathf.Lerp(positions.Item1.x, positions.Item2.x, t), Mathf.Lerp(positions.Item1.y, positions.Item2.y, t));
+                }
                 await Task.Yield();
             }
         }

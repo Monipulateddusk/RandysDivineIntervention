@@ -30,6 +30,7 @@ public class MinimisableUI : MonoBehaviour
 public abstract class SizableWindowBaseBehaviour : MinimisableUI
 {
     public abstract Vector2 GetDialogueBoxSize();
+    public abstract bool DoesMoveMinimised();
     public abstract void Resize(Vector2 newSize);
     public abstract void ApplyMinimised(bool isEnabled);
 
@@ -311,6 +312,8 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
     }
 
     public RectTransform GetContentGameObjectRoot() => ContentGameObjectRoot;
+
+    public override bool DoesMoveMinimised() => true;
 }
 
 

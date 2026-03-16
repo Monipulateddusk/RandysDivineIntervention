@@ -30,4 +30,6 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
     {
         rect.sizeDelta = newSize;
     }
+
+    public override bool DoesMoveMinimised() => false;
 }
