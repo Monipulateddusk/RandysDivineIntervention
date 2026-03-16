@@ -206,6 +206,5 @@ public class UserInterfaceManager : MonoBehaviour
         this.TaskBarManager?.Update();
     }
 
-
     public UITaskBarManager GetTaskBarManager() { return TaskBarManager; }
 }

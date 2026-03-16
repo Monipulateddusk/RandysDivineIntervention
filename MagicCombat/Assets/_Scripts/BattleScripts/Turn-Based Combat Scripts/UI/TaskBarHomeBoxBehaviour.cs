@@ -32,4 +32,21 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
     }
 
     public override bool DoesMoveMinimised() => false;
+
+
+    public void OnOptionsClick()
+    {
+        Debug.Log("Opening Options");
+        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.TurnOrderWindow, new Vector2(600, 200), new Vector2(300, 400));
+    }
+
+    public void OnShutDownClick()
+    {
+        Debug.Log("Shutting down");
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;    
+#endif
+    }
 }

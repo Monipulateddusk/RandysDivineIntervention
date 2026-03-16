@@ -16,7 +16,7 @@ MonoBehaviour:
   WindowMinimisationWidgetPrefab: {fileID: 2810197271432906295, guid: aa2d35e652cd6904dac884d7e69c37fe, type: 3}
   CursorPrefab: {fileID: 3221711187981998106, guid: c349a70b782884e4d89184e798c9e9d8, type: 3}
   OS_StartButtonPrefab: {fileID: 6160618957422364867, guid: 008259286f029584d98d929534539e04, type: 3}
-  TaskbarHomeBoxPrefab: {fileID: 388735685567369729, guid: 2aaecd4b2e7f3644ea1e1280fafd79b7, type: 3}
+  TaskbarHomeBoxPrefab: {fileID: 388735685567369729, guid: 87a3fd8b95de17b439392de2bdc21b90, type: 3}
   ScrollableContentPrefab: {fileID: 6520692245716291881, guid: eed3de752b4f94c4a84a57606443e0b8, type: 3}
   ScrollableSlotPrefab: {fileID: 2376954060107117144, guid: 2891739a49212104c9c43ef87dde970d, type: 3}
   ScrollableItemPrefab: {fileID: 6469300161972515841, guid: 055f2bd0455300c40896781b2cc9727a, type: 3}

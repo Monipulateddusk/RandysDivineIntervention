@@ -106,9 +106,8 @@ public class UITaskBarManager
     /*  Task Bar OS Home Variables and Referances.  */
     private RectTransform TaskbarHomeBoxPivotTransform;
     private RectTransform TaskbarButtonTransform;
-    const float MAX_TASKBAR_HOME_HEIGHT = 140;
     const float EXPAND_SHRINK_TIMER = 0.1f;
-    bool isExpandingShrinking = false;
+    const int MAX_WINDOW_COUNT = 20;
 
     /*  Minimised Window Variables and Referances   */
     UICollection_SO UI_PrefabData;
@@ -126,39 +125,38 @@ public class UITaskBarManager
         this.ScreenElementsTransform = screenElementsTransform;
         this.UI_PrefabData = uiData;
 
-        CreateWindow(WindowType.HomeStart,      0, Vector2.zero, Vector2.zero);
-
-        CreateWindow(WindowType.DialogueBox,    1, new Vector2(500, 500), new Vector2(300, 400));
-        CreateWindow(WindowType.DialogueBox,    2, new Vector2(1000, 500), new Vector2(300, 400));
+        AddWindow(WindowType.HomeStart, Vector2.zero, Vector2.zero);
     }
 
     public void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Y))
-        {
-            //_ = OnClickStartOS();
-        }
-
         if (Input.GetKeyDown(KeyCode.X))
         {
             foreach (var item in WindowDataDict.Values)
             {
                 Debug.Log(item.WindowAnimData.IsEnabled);
             }
-        }
-        if (Input.GetKeyDown(KeyCode.Z))
-        {
-            CreateWindow(WindowType.TurnOrderWindow, 3, new Vector2(700, 700), new Vector2(300, 400));
-        }
-        
+        }        
     }
 
-    public void CreateWindow(WindowType windowType, int index, Vector2 position, Vector2 size)
+    public void AddWindow(WindowType windowType, Vector2 position, Vector2 size)
+    {
+        for (int i = 0; i < MAX_WINDOW_COUNT; i++)
+        {
+            if (WindowDataDict.ContainsKey(i)) { continue; }
+
+            CreateWindow(windowType, i, position, size);
+            return;
+        }
+
+    }
+
+    private void CreateWindow(WindowType windowType, int index, Vector2 position, Vector2 size)
     {
         /*  Store the data of this Window.  */
         if (!WindowDataDict.ContainsKey(index))
         {
-            DialogueBoxWidgetPair createdWindowPair = new();
+            DialogueBoxWidgetPair createdWindowPair;
             if (windowType == WindowType.HomeStart)
             {
                 createdWindowPair = UIWindowFactory.CreateWindow(windowType, UI_PrefabData, TaskbarHomeBoxPivotTransform, TaskbarButtonTransform, index, position, size);
@@ -196,39 +194,4 @@ public class UITaskBarManager
             WindowDataDict.Remove(index);
         }
     }
-
-    //public async Task OnClickStartOS()
-    //{
-    //    if (TaskbarHomeBoxTransform != null && !isExpandingShrinking)
-    //    {
-    //        (float, float) homeBoxStartEnd = GetHomeBoxExpandShrinkParameters();
-    //        await ExpandShrinkHomeBox(homeBoxStartEnd.Item1, homeBoxStartEnd.Item2);
-    //    }
-    //}
-    //private (float, float) GetHomeBoxExpandShrinkParameters()
-    //{
-    //    if (this.TaskbarHomeBoxTransform.GetTop() > 0)
-    //    {
-    //        return (-MAX_TASKBAR_HOME_HEIGHT, 0);
-    //    }
-    //    else
-    //    {
-    //        return (0, -MAX_TASKBAR_HOME_HEIGHT);
-    //    }
-    //}
-
-    //async Task ExpandShrinkHomeBox(float startHeight, float targetHeight)
-    //{
-    //    isExpandingShrinking = true;
-    //    float startTime = Time.time;
-    //    while (Time.time < startTime + EXPAND_SHRINK_TIMER)
-    //    {
-    //        float t = (Time.time - startTime) / EXPAND_SHRINK_TIMER;
-    //        this.TaskbarHomeBoxTransform.SetTop(Mathf.Lerp(startHeight, targetHeight, t));
-    //        await Task.Yield();
-    //    }
-    
-    //    this.TaskbarHomeBoxTransform.SetTop(targetHeight);
-    //    isExpandingShrinking = false;
-    //}
 }
