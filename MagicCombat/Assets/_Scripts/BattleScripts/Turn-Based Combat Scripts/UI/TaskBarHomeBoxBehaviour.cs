@@ -2,17 +2,24 @@ using UnityEngine;
 
 public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
 {
+    [SerializeField] Vector2 sizeHeightWidth = Vector2.zero;
     RectTransform rect;
+    private void OnValidate()
+    {
+        rect = GetComponent<RectTransform>();
+        sizeHeightWidth = rect.sizeDelta;
+    }
     private void Awake()
     {
         rect = GetComponent<RectTransform>();
+        sizeHeightWidth = rect.sizeDelta;
     }
 
     public override void ApplyMinimised(bool isEnabled)
     {
         if (isEnabled)
         {
-            rect.sizeDelta = new Vector2(300, 140);
+            rect.sizeDelta = sizeHeightWidth;
         }
         else
         {
@@ -23,7 +30,7 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
 
     public override Vector2 GetDialogueBoxSize()
     {
-        return new Vector2(300, 140);
+        return sizeHeightWidth;
     }
 
     public override void Resize(Vector2 newSize)
