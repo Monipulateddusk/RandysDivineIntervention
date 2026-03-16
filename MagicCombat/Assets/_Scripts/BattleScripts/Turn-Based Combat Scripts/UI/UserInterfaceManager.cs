@@ -1,4 +1,5 @@
 using System;
+using TurnBased.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -48,7 +49,7 @@ public class UserInterfaceManager : MonoBehaviour
 
     [Header("Task bar Properties")]
     [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;
-    [SerializeField] GameObject taskBarObject;
+    [SerializeField] TaskbarPrefabData taskBarPrefabData;
     [SerializeField] GameObject ScreenElementsTransform;
     UITaskBarManager TaskBarManager;
 
@@ -83,11 +84,12 @@ public class UserInterfaceManager : MonoBehaviour
 
     private void InitaliseTaskBarManager()
     {
-        if (taskBarObject != null)
+        if (taskBarPrefabData != null)
         {
             this.TaskBarManager = new(
-                (RectTransform)this.taskBarObject.transform.Find("TaskBarHomeBox").transform,
-                (RectTransform)this.taskBarObject.transform.Find("Object_Elements").Find("WindowGrid").transform,
+                this.taskBarPrefabData.GetTaskbarHomeBoxPivotTransform(),
+                this.taskBarPrefabData.GetOS_StartButtonPivotTransform(),
+                this.taskBarPrefabData.GetWindowGridTransform(),
                 (RectTransform)this.ScreenElementsTransform.transform,
                 UI_PrefabData
                 );
@@ -201,7 +203,7 @@ public class UserInterfaceManager : MonoBehaviour
         ProcessCursorUISelection();
 
         this.CursorManager.Update();
-        this.TaskBarManager.Update();
+        this.TaskBarManager?.Update();
     }
 
 

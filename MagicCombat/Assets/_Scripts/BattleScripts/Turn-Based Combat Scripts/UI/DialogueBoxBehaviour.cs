@@ -24,9 +24,18 @@ public class MinimisableUI : MonoBehaviour
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, mousePos, null, out Vector2 localMousePos);
         return localMousePos;
     }
+
 }
 
-public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
+public abstract class SizableWindowBaseBehaviour : MinimisableUI
+{
+    public abstract Vector2 GetDialogueBoxSize();
+    public abstract void Resize(Vector2 newSize);
+    public abstract void ApplyMinimised(bool isEnabled);
+
+}
+
+public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 {
     enum DialogueBoxState
     {
@@ -117,7 +126,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         }
     }
     
-    public void ResizeDialogueBox(Vector2 newSize)
+    public override void Resize(Vector2 newSize)
     {
         if(newSize.x <= this.LayoutElement.minWidth) { newSize.x = this.LayoutElement.minWidth; }
         if(newSize.y <= this.LayoutElement.minHeight) { newSize.y = this.LayoutElement.minHeight; }
@@ -144,15 +153,15 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
         if (currentDialogueBoxState == DialogueBoxState.HorizontalResize)
         {
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, this.BoxCollider.size.y));
+            Resize(new Vector2(mouseDistanceFromCentreX, this.BoxCollider.size.y));
         }
         else if (currentDialogueBoxState == DialogueBoxState.VerticalResize)
         {
-            ResizeDialogueBox(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY));
+            Resize(new Vector2(this.BoxCollider.size.x, mouseDistanceFromCentreY));
         }
         else if (currentDialogueBoxState == DialogueBoxState.BothAxisResize)
         {
-            ResizeDialogueBox(new Vector2(mouseDistanceFromCentreX, mouseDistanceFromCentreY));
+            Resize(new Vector2(mouseDistanceFromCentreX, mouseDistanceFromCentreY));
         }
         else
         {
@@ -203,7 +212,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
 
     #endregion
 
-    public void ApplyMinimised(bool isEnabled)
+    public override void ApplyMinimised(bool isEnabled)
     {
         // Based if we are minimised, we want to disable colliders and set the CanvasGroup's settings accordingly.
         if (isEnabled)
@@ -296,7 +305,7 @@ public class DialogueBoxBehaviour : MinimisableUI, IUISelectable
         }
     }
 
-    public Vector2 GetDialogueBoxSize()
+    public override Vector2 GetDialogueBoxSize()
     {
         return new Vector2(this.LayoutElement.preferredWidth, this.LayoutElement.preferredHeight);
     }

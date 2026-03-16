@@ -7,9 +7,9 @@ namespace TurnBased
     public class DialogueBoxAttachment
     {
         public event System.Action OnDestroy;
-        private DialogueBoxBehaviour dialogueBoxOwner;
+        private SizableWindowBaseBehaviour dialogueBoxOwner;
 
-        public DialogueBoxAttachment(DialogueBoxBehaviour dialogueBoxOwner)
+        public DialogueBoxAttachment(SizableWindowBaseBehaviour dialogueBoxOwner)
         {
             this.dialogueBoxOwner = dialogueBoxOwner;
         }
@@ -19,7 +19,7 @@ namespace TurnBased
             OnDestroy?.Invoke();
         }
 
-        public void SetDialogueBoxOwner(DialogueBoxBehaviour dBB)
+        public void SetDialogueBoxOwner(SizableWindowBaseBehaviour dBB)
         {
             if (dBB == null)
             {
@@ -29,12 +29,12 @@ namespace TurnBased
             
             this.dialogueBoxOwner = dBB;
         }
-        public DialogueBoxBehaviour GetDialogueBoxOwner() => dialogueBoxOwner;
+        public SizableWindowBaseBehaviour GetDialogueBoxOwner() => dialogueBoxOwner;
     }
 
     public class DefaultDialogueBoxAttachment : DialogueBoxAttachment
     {
-        public DefaultDialogueBoxAttachment(DialogueBoxBehaviour dialogueBoxOwner) : base(dialogueBoxOwner)
+        public DefaultDialogueBoxAttachment(SizableWindowBaseBehaviour dialogueBoxOwner) : base(dialogueBoxOwner)
         {
         }
     }

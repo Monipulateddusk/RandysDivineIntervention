@@ -7,6 +7,9 @@ public class UICollection_SO : ScriptableObject
     public GameObject DialogueBoxPrefab;
     public GameObject WindowMinimisationWidgetPrefab;
     public GameObject CursorPrefab;
+    public GameObject OS_StartButtonPrefab;
+    public GameObject TaskbarHomeBoxPrefab;
+
 
     [Header("Scrollable UI")]
     public GameObject ScrollableContentPrefab;

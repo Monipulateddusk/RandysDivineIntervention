@@ -7,15 +7,15 @@ namespace TurnBased.UI
     public class TaskbarPrefabData : MonoBehaviour
     {
         [Header("Serialised Variables. Assign in Inspector so we aren't using 'Transform.Find()'!")]
-        [SerializeField] private RectTransform OS_StartButtonTransform;
+        [SerializeField] private RectTransform OS_StartButtonPivotTransform;
         [SerializeField] private RectTransform WindowGridTransform;
-        [SerializeField] private RectTransform TaskbarHomeBoxTransform;
+        [SerializeField] private RectTransform TaskbarHomeBoxPivotTransform;
 
 
-        public RectTransform GetOSStartButtonTransform()
+        public RectTransform GetOS_StartButtonPivotTransform()
         {
-            Assert.IsNotNull(OS_StartButtonTransform);
-            return OS_StartButtonTransform;
+            Assert.IsNotNull(OS_StartButtonPivotTransform);
+            return OS_StartButtonPivotTransform;
         }
 
         public RectTransform GetWindowGridTransform()
@@ -24,10 +24,10 @@ namespace TurnBased.UI
             return WindowGridTransform;
         }
 
-        public RectTransform GetTaskbarHomeBoxTransform()
+        public RectTransform GetTaskbarHomeBoxPivotTransform()
         {
-            Assert.IsNotNull(TaskbarHomeBoxTransform);
-            return TaskbarHomeBoxTransform;
+            Assert.IsNotNull(TaskbarHomeBoxPivotTransform);
+            return TaskbarHomeBoxPivotTransform;
         }
     }
 }
