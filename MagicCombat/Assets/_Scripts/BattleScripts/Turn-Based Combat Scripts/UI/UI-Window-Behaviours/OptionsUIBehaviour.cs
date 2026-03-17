@@ -2,15 +2,27 @@ using UnityEngine;
 
 public class OptionsUIBehaviour : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+
+
+    #region Voliume Slider Methods
+    /*  All methods here are called and attached within the Options Prefab. */
+    private float GetNormalisationOfValueFromSlider(UnityEngine.UI.Slider slider)
     {
-        
+        return (slider.minValue - slider.value) / (slider.minValue - slider.maxValue);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnMasterVolumeChange(UnityEngine.UI.Slider slider)
     {
-        
+        Debug.Log("Changed Master Voliume to: " + GetNormalisationOfValueFromSlider(slider));
     }
+    public void OnMusicVolumeChange(UnityEngine.UI.Slider slider)
+    {
+        Debug.Log("Changed Music Voliume to: " + GetNormalisationOfValueFromSlider(slider));
+    }
+    public void OnSoundEffectsVolumeChange(UnityEngine.UI.Slider slider)
+    {
+        Debug.Log("Changed Sound Effect Voliume to: " + GetNormalisationOfValueFromSlider(slider));
+    }
+
+    #endregion
 }
