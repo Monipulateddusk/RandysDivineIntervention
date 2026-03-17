@@ -49,7 +49,7 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
     public void OnOptionsClick()
     {
         Debug.Log("Opening Options");
-        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.TurnOrderWindow, new Vector2(600, 200), new Vector2(300, 400));
+        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.Options, new Vector2(600, 200), new Vector2(300, 400));
     }
 
     public void OnShutDownClick()

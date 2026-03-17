@@ -16,5 +16,8 @@ public class UICollection_SO : ScriptableObject
     public GameObject ScrollableSlotPrefab;
     public GameObject ScrollableItemPrefab;
     public UnityEngine.Sprite SummoningCircleSprite;
-    
+
+    [Header("Options UI")]
+    public GameObject OptionsMainPrefab;
+    public GameObject SliderElementPrefab;
 }

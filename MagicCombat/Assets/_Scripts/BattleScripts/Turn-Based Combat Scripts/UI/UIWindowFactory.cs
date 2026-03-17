@@ -1,12 +1,15 @@
 using System.Threading.Tasks;
 using TurnBased;
 using TurnBased.UI;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum WindowType
 {
     HomeStart,
     TurnOrderWindow,
+    Options,
     DialogueBox,
     Inspection
 }
@@ -120,6 +123,38 @@ public static class UIWindowFactory
         }
     }
 
+    private static GameObject CreateOptionsGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+    {
+        return GameObject.Instantiate(uiPrefabData.OptionsMainPrefab, parent);
+    }
+
+
+    private static DialogueBoxWidgetPair? CreateOptionsDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    {
+        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+        /*  Assign it's minimisable information and Size.    */
+        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        {
+            dBB.SetDialogueBoxName("Options");
+            dBB.Resize(size);
+            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+            GameObject instanciatedScrollableAddon = CreateOptionsGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+            if (instanciatedScrollableAddon != null)
+            {
+                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.OptionsUIAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+            }
+            else
+                return null;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
     public static DialogueBoxWidgetPair CreateWindow(WindowType windowType, UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
     {
         DialogueBoxWidgetPair? pair;
@@ -127,36 +162,33 @@ public static class UIWindowFactory
         {
             case WindowType.HomeStart:
                 pair = CreateHomeStartWindow(uiPrefabData, windowParent, widgetParent, index);
-                if (!pair.HasValue)
-                {
-                    Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
-                }
-                return pair.Value;
+                break;
 
             case WindowType.TurnOrderWindow:
                 pair = CreateScrollableDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                if(!pair.HasValue) 
-                { 
-                    Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
-                }
-                return pair.Value;
+                break;
+
+            case WindowType.Options:
+                pair = CreateOptionsDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
 
             case WindowType.DialogueBox:
                 pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                if (!pair.HasValue)
-                {
-                    Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
-                }
-                return pair.Value;
+                break;
 
             case WindowType.Inspection:
-
-                return new DialogueBoxWidgetPair();
+                pair = new();
+                break;
 
             default:
-
-                return new DialogueBoxWidgetPair();
+                pair = new();
+                break;
         }
+        if (!pair.HasValue)
+        {
+            Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
+        }
+        return pair.Value;
     }
 
     public static async Task MinimiseWindow(WindowData windowData, float expandShrinkTimer)
