@@ -154,8 +154,10 @@ namespace TurnBased
         {
             if(currentUnit == null) { Debug.LogWarning("CURRENT UNIT IS NULL!"); return; }
 
-            List<UnitIndex> turnOrder = new();
-            turnOrder.Add(currentUnit.Value);
+            List<UnitIndex> turnOrder = new()
+            {
+                currentUnit.Value
+            };
             turnOrder.AddRange(subsequentUnits);
             /*  For each entry in the list, we need to create a slot for each entry.
              *  The 0-index slot, needs to be on the Summoning Circle however.
