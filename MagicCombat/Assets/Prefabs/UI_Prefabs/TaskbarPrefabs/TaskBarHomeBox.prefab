@@ -1141,7 +1141,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3270213903252454931}
         m_TargetAssemblyTypeName: TaskBarHomeBoxBehaviour, Assembly-CSharp
-        m_MethodName: OnOptionsClick
+        m_MethodName: OnWindowManagerClicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

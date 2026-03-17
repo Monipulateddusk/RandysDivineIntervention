@@ -40,6 +40,11 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
 
     public override bool DoesMoveMinimised() => false;
 
+    public void OnWindowManagerClicked()
+    {
+        Debug.Log("Opening Window");
+        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.DialogueBox, new Vector2(600, 200), new Vector2(300, 400));
+    }
 
     public void OnOptionsClick()
     {
@@ -55,5 +60,10 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;    
 #endif
+    }
+
+    public override void SetDialogueBoxName(string newText)
+    {
+        throw new System.NotImplementedException();
     }
 }

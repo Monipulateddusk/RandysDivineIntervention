@@ -28,6 +28,7 @@ public static class UIWindowFactory
         /*  Assign it's minimisable information and Size.    */
         if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
         {
+            dBB.SetDialogueBoxName("Dialogue Box");
             dBB.Resize(size);
             instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
 
@@ -51,6 +52,7 @@ public static class UIWindowFactory
         /*  Assign it's minimisable information and Size.    */
         if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
         {
+            dBB.SetDialogueBoxName("Turn Order");
             dBB.Resize(size);
             instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
 

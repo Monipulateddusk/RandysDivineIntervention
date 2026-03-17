@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 
 public interface IUISelectable
@@ -33,7 +34,7 @@ public abstract class SizableWindowBaseBehaviour : MinimisableUI
     public abstract bool DoesMoveMinimised();
     public abstract void Resize(Vector2 newSize);
     public abstract void ApplyMinimised(bool isEnabled);
-
+    public abstract void SetDialogueBoxName(string newText);
 }
 
 public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
@@ -60,6 +61,7 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
     [SerializeField] private CanvasGroup CanvasGroup;
     [SerializeField, Tooltip("Assign with the 'Content' GameObject")] private UnityEngine.RectTransform ContentGameObjectRoot;
     [SerializeField] private UnityEngine.RectTransform headerBufferTransform, minimiseButtonTransform, closeButtonTransform;
+    [SerializeField] private TextMeshProUGUI titleNameText;
 
     [Header("Debugging")]
     
@@ -314,6 +316,14 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
     public RectTransform GetContentGameObjectRoot() => ContentGameObjectRoot;
 
     public override bool DoesMoveMinimised() => true;
+
+    public override void SetDialogueBoxName(string newText)
+    {
+        if(titleNameText != null)
+        {
+            titleNameText.text = newText;
+        }
+    }
 }
 
 
