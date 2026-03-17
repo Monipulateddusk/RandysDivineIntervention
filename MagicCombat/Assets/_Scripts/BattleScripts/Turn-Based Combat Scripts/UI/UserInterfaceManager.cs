@@ -159,17 +159,12 @@ public class UserInterfaceManager : MonoBehaviour
         }
     }
 
-    private void HandleRaycastUISelection()
-    {
-        PerformGraphicRaycastForSelectedObjects();
-    }
-
     void ProcessCursorUISelection()
     {
         /*  Do not do any unnessessary checks if the cursor hasn't moved.   */
         if (this.CursorManager.HasCursorMoved(Input.mousePosition))
         {
-            HandleRaycastUISelection();
+            PerformGraphicRaycastForSelectedObjects();
         }
 
         if (this.selectedUserInterfaceElement.hoveredUIObject != null)
@@ -198,7 +193,7 @@ public class UserInterfaceManager : MonoBehaviour
             if (Input.GetMouseButtonUp(0) && this.selectedUserInterfaceElement.isSelected)
             {
                 ClearSelectedUIElement();
-                HandleRaycastUISelection();
+                PerformGraphicRaycastForSelectedObjects();
             }
 
             if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
