@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using TurnBased.UI;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -40,8 +42,6 @@ public class UserInterfaceManager : MonoBehaviour
     private Canvas canvas;
     private CanvasScaler scaler;
     private GraphicRaycaster raycaster;
-    private EventSystem eventSystem;
-
 
     [Header("Selected User Interface Properties")]
     [SerializeField] SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
@@ -69,9 +69,8 @@ public class UserInterfaceManager : MonoBehaviour
         this.scaler.referenceResolution = new Vector2(1920.0f, 1080.0f);
         this.raycaster = GetComponent<GraphicRaycaster>();
 
-        if (this.eventSystem == null && !GameObject.Find("EventSystem")) {
-            eventSystem = new GameObject("EventSystem").AddComponent<EventSystem>();
-            eventSystem.gameObject.AddComponent<StandaloneInputModule>();
+        if (!GameObject.Find("EventSystem")) {
+            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
         }
     }
 
@@ -130,24 +129,39 @@ public class UserInterfaceManager : MonoBehaviour
         this.selectedUserInterfaceElement.SetCursorState(CursorManager.CursorIcons.Cursor);
     }
 
+    private void PerformGraphicRaycastForSelectedObjects()
+    {
+        /*  If something is already selected in the UI, we don't want to perform any checks. I.e. if we are resizing something, we don't want to try selecting something else.  */
+        if (this.selectedUserInterfaceElement.isSelected){  return; }
+
+        /*  Find the mouse position regardless of resolution and find what we are pointing at. Get the last result. */
+        List<RaycastResult> rayRes = new();
+        PointerEventData pointerData = new(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+
+        /*  Raycast out.    */
+        this.raycaster.Raycast(pointerData, rayRes);
+
+        /*  Loop through all results, if it inherits from IUISelectable, add it to the list. We only want to take the first result. */
+        List<IUISelectable> selectableUIElements = new();
+        foreach (var r in rayRes)
+        {
+            if(r.gameObject.TryGetComponent(out IUISelectable selectedUI))
+            {
+                selectableUIElements.Add(selectedUI);
+            }
+        }
+        if(selectableUIElements != null && selectableUIElements.FirstOrDefault() != null)
+        {
+            this.selectedUserInterfaceElement.hoveredUIObject = selectableUIElements.FirstOrDefault();        
+        }
+    }
+
     private void HandleRaycastUISelection()
     {
-        /*  Throw out a raycast from the camera to the point where the cursor is at scanning for UI elements. */
-        Collider2D hit = Physics2D.OverlapPoint(Input.mousePosition, LayerMask.GetMask("UI"));
-
-        /*  
-         *  If we got something that implements IUISelectable, save that locally. 
-         *  If we didn't hit something with the raycast, we should deselect anything we could have been selecting before. 
-         */
-        if (hit != null && hit.TryGetComponent(out IUISelectable selectedUI))
-        {
-            this.selectedUserInterfaceElement.hoveredUIObject = selectedUI;
-        }
-        /*  We only want to clear the selected UI IF it isn't selected. Something can be selected and not under the mouse via Dragging while holding down the click. */
-        else if (!this.selectedUserInterfaceElement.isSelected)
-        {
-            ClearSelectedUIElement();
-        }
+        PerformGraphicRaycastForSelectedObjects();
     }
 
     void ProcessCursorUISelection()
