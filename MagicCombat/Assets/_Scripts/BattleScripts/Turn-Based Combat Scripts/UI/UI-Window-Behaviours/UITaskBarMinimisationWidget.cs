@@ -34,11 +34,11 @@ public class UITaskBarMinimisationWidget : MinimisableUI, IUISelectable
     {
     }
 
-    public void OnSelect(Vector2 mousePos)
+    public async System.Threading.Tasks.Task OnSelect(Vector2 mousePos)
     {
         if (IsMouseInsideRect(mousePos))
         {
-            _ = UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+            await UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
         }
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public interface IUISelectable
 {
-    public void OnSelect(Vector2 mousePos);
+    public System.Threading.Tasks.Task OnSelect(Vector2 mousePos);
     public void OnDeselect(Vector2 mousePos);
     public void OnDrag(Vector2 mousePos);
     public void OnHover(Vector2 mousePos);
@@ -65,8 +65,8 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 
     [Header("Debugging")]
     
-    private ButtonSelection currentButtonSelection;
-    private DialogueBoxState currentDialogueBoxState;
+    [SerializeField] private ButtonSelection currentButtonSelection;
+    [SerializeField] private DialogueBoxState currentDialogueBoxState;
 
     //  Box Move and Resize.        
     private Vector3 MouseDragStartPosition;
@@ -234,9 +234,16 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
             this.CanvasGroup.blocksRaycasts = false;
 
         }
+        
     }
 
-    public void OnSelect(Vector2 mousePos)
+    private void ResetBoxState()
+    {
+        this.currentDialogueBoxState = DialogueBoxState.Idle;
+        this.currentButtonSelection = ButtonSelection.None;
+    }
+
+    public async System.Threading.Tasks.Task OnSelect(Vector2 mousePos)
     {
         if (currentDialogueBoxState == DialogueBoxState.DragMoving)
         {
@@ -247,7 +254,8 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 
             if (currentButtonSelection == ButtonSelection.Minimise)
             {
-                _ = UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+                await UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+                ResetBoxState();
             }
             else if (currentButtonSelection == ButtonSelection.Close)
             {
