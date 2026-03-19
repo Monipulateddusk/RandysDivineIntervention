@@ -4,7 +4,7 @@ using System.Linq;
 using Unity.VisualScripting;
 
 [Serializable] public struct UnitIndex     {  public int Index;   }
-[Serializable] public struct StationIndex  {   public int Index;   }
+[Serializable] public struct StationIndex  {  public int Index;   }
 
 public struct SoA_SceneUnitData
 {
