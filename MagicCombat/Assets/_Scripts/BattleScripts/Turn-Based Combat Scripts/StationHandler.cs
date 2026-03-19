@@ -191,6 +191,7 @@ public class SceneUnitData
     public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) => this.data.Units[index.Index];
     public UnitTeam GetUnitTeamOfIndex(UnitIndex index) => this.data.Teams[index.Index];
     public StationIndex? GetUnitStationOfIndex(UnitIndex index) => this.data.Stations[index.Index];
+    public StationIndex?[] GetStations() => this.data.Stations;
 
     public int GetAllyStationSlots() {  return this.data.AllyStationSlots;}
     public int GetEnemyStationSlots() {  return this.data.EnemyStationSlots; }
@@ -212,8 +213,7 @@ public struct SceneData_UnitTurn
 
 public class StationHandler
 {
-
-    private SceneUnitData SceneUnitData;
+    private readonly SceneUnitData SceneUnitData;
 
     public StationHandler(int allyStationSlots, int enemyStationSlots)
     {
@@ -310,11 +310,13 @@ public class StationHandler
         return new SceneData_UnitTurn(sourceUnitIndex, allyStationIndexes, enemyStationIndexes);
     }
 
+    public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex) { return this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex); }
     public UnitIndex[] GetUnitIndexesOfTeam(UnitTeam team) { return this.SceneUnitData.GetUnitIndexesOfTeam(team); }
     public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) {   return this.SceneUnitData.GetBattleUnitOfIndex(index); }
     public UnitTeam GetUnitTeamOfIndex(UnitIndex index) {   return this.SceneUnitData.GetUnitTeamOfIndex(index); }
 
     public StationIndex? GetStationOfIndex(UnitIndex index) { return this.SceneUnitData.GetUnitStationOfIndex(index); }
+    public StationIndex?[] GetStations() => this.SceneUnitData.GetStations();
 
     public int GetAllyStationSlots() { return this.SceneUnitData.GetAllyStationSlots(); }
     public int GetEnemyStationSlots() { return this.SceneUnitData.GetEnemyStationSlots(); }

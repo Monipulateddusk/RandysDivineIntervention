@@ -70,7 +70,6 @@ namespace TurnBased
             {
                 if (instance == null)
                 {
-                    // instance = GameObject.Instantiate(new GameObject("BattleMediator")).AddComponent<BattleMediator>();
                     Debug.Log("BattleMediator is NULL");
                 }
                 return instance;
@@ -218,10 +217,9 @@ namespace TurnBased
 
         public List<UnitIndex> GetTurnOrderList() { return this.UnitIndexTurnOrderList; }
 
-        public List<UnitIndex> GetAllUnitsOfTeam(UnitTeam team)
-        {
-            return this.StationHandler.GetUnitIndexesOfTeam(team).ToList();
-        }
+        public List<UnitIndex> GetAllUnitsOfTeam(UnitTeam team){ return this.StationHandler.GetUnitIndexesOfTeam(team).ToList();   }
+        public List<StationIndex?> GetStations() => this.StationHandler.GetStations().ToList();
+        public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex) { return this.StationHandler.GetUnitIndexOnStation(stationIndex); }
 
         #endregion
     }
