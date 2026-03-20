@@ -63,20 +63,22 @@ public class UnitSelectorManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// How this works: When we call to increment. 
-    /// Get the current index that our current value is in  the list. Then we want to do a for loop for the end of the max length of the list. 
-    /// If it has a value, then that is the  value  we go  with. If we reach the  end of  the loop, wrap back  around.
-    /// If  we reach the first index again,  we stop
-    /// </summary>
-    /// <param name="newIndex"></param>
     private void IncrementIndex()
     {
         // Get the current index
         FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
+        bool reattempted = false;
+        int start = currentIndex + 1, end = this.stationIndexes.Count;
 
-        for(int i = currentIndex + 1; i < this.stationIndexes.Count; i++)
+        reattempted: 
+
+        for (int i = start; i < end; i++)
         {
+            if (i > this.stationIndexes.Count)
+            {
+                Debug.Log("Index is: " + i + " which is greater than the size of the list, breaking out the loop.");
+                break;
+            }
             if (!this.stationIndexes[i].HasValue) {
                 continue; }
 
@@ -87,58 +89,54 @@ public class UnitSelectorManager : MonoBehaviour
 
         // If we have reached here, we have not found a new index, so we start at the start of the list.
         // If we reach our original currentIndex, then we clearly have no other options.  
-        for(int i = 0; i < currentIndex; i++)
+        if (!reattempted)
         {
-            if (!this.stationIndexes[i].HasValue) 
-            {
-                continue; }
-
-            // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            SetCurrentStationIndex(i);
-            return;
+            reattempted = true;
+            start = 0;
+            end = currentIndex;
+            goto reattempted;
         }
+        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
+        else { return; }
     }
 
     private void DecrementIndex()
     {
         // Get the current index
         FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
+        bool reattempted = false;
+        int start = currentIndex - 1, end = -1;
 
-        for (int i = currentIndex - 1; i > 0; i--)
+        reattempted:
+
+        for (int i = start; i > end; i--)
         {
-            if(i < 0) {
+            if (i < 0)
+            {
                 Debug.Log("Index is: " + i + " which is less than 0, breaking out the loop.");
-                break; }
+                break;
+            }
             if (!this.stationIndexes[i].HasValue)
             {
                 continue;
             }
-            
 
             // If this index has a value (Isn't null), then we want to take that as the new selected index.
             SetCurrentStationIndex(i);
-            Debug.Log("Setting station index to: "+ i);
-
             return;
         }
-
-        Debug.Log("Switching");
 
         // If we have reached here, we have not found a new index, so we start at the start of the list.
         // If we reach our original currentIndex, then we clearly have no other options.  
-        for (int i = this.stationIndexes.Count -1; i > currentIndex; i--)
+        if (!reattempted)
         {
-            Debug.Log("i in the second loop is: " + i);
-            if (!this.stationIndexes[i].HasValue)
-            {
-                continue;
-            }
-
-            // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            SetCurrentStationIndex(i);
-            Debug.Log("Setting station index to: " + i);
-            return;
+            reattempted = true;
+            start = this.stationIndexes.Count - 1;
+            end = currentIndex;
+            goto reattempted;
         }
+        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
+        else { return; }
     }
 
     private void SetCurrentStationIndex(int index)
@@ -151,27 +149,13 @@ public class UnitSelectorManager : MonoBehaviour
 
     private void Update()
     {
-        bool input = false;
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             DecrementIndex();
-            input = true;
         }
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             IncrementIndex();
-            input = true;
-        }
-
-        if (input)
-        {
-            FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int index);
-            Debug.LogWarning("Current index is: " + index);
-
-            if (this.currentSelectedStationIndex.HasValue)
-            {
-                Debug.Log("Current Selected station is: " + currentSelectedStationIndex.Value.Index);
-            }
         }
     }
 
