@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased
@@ -91,13 +90,13 @@ namespace TurnBased
 
 
 
-        void CreateUnit(GameObject objectWithUnitComponent, int index, UnitTeam unitTeam)
+        void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
         {
             BaseBattleUnit spawnedUnit = Instantiate(objectWithUnitComponent).GetComponent<BaseBattleUnit>();
             //  enemyUnit.SetMediator(this);
 
             /*  Initalise the Unit Slot.    */
-            this.StationHandler.AddUnit(spawnedUnit, unitTeam, new StationIndex() { Index = index});
+            this.StationHandler.AddUnit(spawnedUnit, unitTeam, new StationIndex() { Index = stationIndexValue });
         }
         public void CreateCombatEncounter()
         {

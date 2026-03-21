@@ -36,6 +36,29 @@ public class SceneUnitData
     public static int MAX_UNITS_PER_SIDE = 9;
     private SoA_SceneUnitData data;
 
+    /// <summary>
+    /// Invoked when a Unit is added. Normally at start of game.    
+    /// UnitIndex: Unit Index of the Unit being added.  
+    /// </summary>
+    public static event Action<UnitIndex> OnAddUnit;
+
+    /// <summary>
+    /// Invoked on Switching the stations of Units on the Same Team. 
+    /// 
+    /// Index 1: UnitIndex that is switching to the desired station. 
+    /// Index 2: UnitIndex that is being forced to the other Unit's Station.
+    /// </summary>
+    public static event Action<UnitIndex, UnitIndex> OnSwitchUnit;
+
+    /// <summary>
+    /// Invoked on Deploying from Resurves. 
+    /// 
+    /// UnitIndex 1: UnitIndex we are deploying. 
+    /// UnitIndex 2: UnitIndex of the unit that is going to resurves.
+    /// </summary>
+    public static event Action<UnitIndex, UnitIndex> OnDeployUnit;
+
+
     public SceneUnitData(int allyStationSlots, int enemyStationSlots)
     {
         if(allyStationSlots > MAX_UNITS_PER_SIDE) { throw new InvalidOperationException("ERROR — SCENEUNITDATA_SOA: CANNOT ASSIGN 'ALLY STATION SLOTS' TO A NUMBER GREATER THAN 'MAX_UNITS_PER_SIDE'"); }
@@ -66,6 +89,11 @@ public class SceneUnitData
                 this.data.Teams[i] = unitTeam;
                 this.data.Stations[i] = station;
 
+                if (station != null)
+                {
+                    OnAddUnit?.Invoke(new UnitIndex() { Index = station.Value.Index});
+                }
+
                 return true;
             }
         }
@@ -94,6 +122,8 @@ public class SceneUnitData
 
         this.data.Stations[unitIndexA.Index] = stationUnitB;
         this.data.Stations[unitIndexB.Index] = stationUnitA;
+
+        OnSwitchUnit?.Invoke(unitIndexA, unitIndexB);
 
         return true;
     }
@@ -128,6 +158,8 @@ public class SceneUnitData
 
         this.data.Stations[unitIndex.Index] = stationUnitB;
         this.data.Stations[switchingUnitIndex.Index] = stationUnitA;
+
+        OnDeployUnit?.Invoke(unitIndex, switchingUnitIndex);
 
         return true;
     }

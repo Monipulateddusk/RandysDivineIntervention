@@ -6,7 +6,19 @@ using UnityEngine;
 
 public class UnitSelectorManager : MonoBehaviour
 {
+    struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
+    static readonly Vector2[] ALLY_STATION_LOCATIONS = { 
+        new(0, 1),      new(-3, 1),         new(3, 1), 
+        new(1.5f, 3),   new(-1.5f,3),       new(4.5f,3), 
+        new(1.5f,-1),   new(-1.5f,-1),      new(4.5f,-1), 
+    };
+    static readonly Vector2[] ENEMY_STATION_LOCATIONS = {
+        new(1.5f,-6),   new(-1.5f,-6),      new(4.5f,-6),
+        new(0,-8),      new(-3,-8),         new(3,-8),
+        new(0,-4),      new(-3,-4),         new(3,-4),
+    };
     List<StationIndex?> stationIndexes = new();
+    List<StationLocationData> stationLocationData = new();
     StationIndex? currentSelectedStationIndex;
     private static UnitSelectorManager instance;
     public static UnitSelectorManager Instance
@@ -37,6 +49,58 @@ public class UnitSelectorManager : MonoBehaviour
     private void Start()
     {
         Initalise(BattleMediator.Instance.GetStations());
+        AddEachStationToDictionary();
+    }
+
+    void AddEachStationToDictionary()
+    {
+        foreach(StationIndex? index in this.stationIndexes)
+        {
+            AddStationToDictionary(index);
+        }
+    }
+
+    int GetStationCountOnTeam(UnitTeam team)
+    {
+        int count = 0;
+        for(int i = 0; i < this.stationLocationData.Count; i++)
+        {
+            if (this.stationLocationData[i].Team == team)
+            {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    void AddStationToDictionary(StationIndex? index)
+    {
+        if(index == null) { return; }
+        
+        UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
+        if(unitIndex == null) { return; }
+
+        // Look into the index, what team is it on?
+        UnitTeam team = BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value);
+
+        // Depending on the team, we want to find the next station not in use
+
+        if (team == UnitTeam.ALLY){
+            stationLocationData.Add(new()
+            {
+                StationIndex = index,
+               
+
+            });
+        }
+        else if (team == UnitTeam.ENEMY)
+        {
+
+        }
+        else
+        {
+            
+        }
     }
 
     public void Initalise(List<StationIndex?> stations)
