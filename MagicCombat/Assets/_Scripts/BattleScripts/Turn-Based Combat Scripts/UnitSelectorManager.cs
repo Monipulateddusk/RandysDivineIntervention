@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using TurnBased;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitSelectorManager : MonoBehaviour
@@ -37,10 +35,10 @@ public class UnitSelectorManager : MonoBehaviour
 
                 /*  Notify anyone listening that the selection changed. */
                 StationLocationData? stationLocationData = GetCurrentStationIndexStationLocationData();
-                if(stationLocationData != null)
+                if (stationLocationData != null)
                 {
                     OnSelectionChange?.Invoke(stationLocationData.Value);
-                    Debug.Log("New current Station index is: " + this.selectedStationIndex.Value.Index);
+                    //Debug.Log("New current Station index is: " + this.selectedStationIndex.Value.Index);
                 }
             }
         }
@@ -89,7 +87,7 @@ public class UnitSelectorManager : MonoBehaviour
     {
         /*  Get the StationIndex of this Unit   */
         StationIndex? stationIndex = BattleMediator.Instance.GetStationIndexOfUnitIndex(unitIndex);
-        if(stationIndex != null)
+        if (stationIndex != null)
         {
             AddStationToList(stationIndex);
         }
@@ -97,20 +95,20 @@ public class UnitSelectorManager : MonoBehaviour
     private void SceneUnitData_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationIndex, BaseBattleUnit bBU)
     {
         RemoveStationFromList(stationIndex);
-        
+
     }
 
     private void Start()
     {
-        Initalise(BattleMediator.Instance.GetStations());
+        Initalise();
     }
 
     List<Vector2> GetStationLocationsInUseOnTeam(UnitTeam team)
     {
         List<Vector2> locationsInUse = new();
-        foreach(StationLocationData data in this.stationLocationData)
+        foreach (StationLocationData data in this.stationLocationData)
         {
-            if(data.Team == team)
+            if (data.Team == team)
             {
                 locationsInUse.Add(data.Location);
             }
@@ -133,10 +131,10 @@ public class UnitSelectorManager : MonoBehaviour
     }
     bool AddStationToList(StationIndex? index)
     {
-        if(index == null) { return false; }
-        
+        if (index == null) { return false; }
+
         UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
-        if(unitIndex == null) { return false; ; }
+        if (unitIndex == null) { return false; ; }
 
         // Look into the index, what team is it on?
         UnitTeam team = BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value);
@@ -146,7 +144,7 @@ public class UnitSelectorManager : MonoBehaviour
         Vector2 nextLocation = GetNextLocationOnTeamFromLocationsInUse(team, locations);
 
         // After everything, there is a possibility there is no more locations on that team. If so, return false.   
-        if(nextLocation == null)
+        if (nextLocation == null)
         {
             Debug.Log("There is no more Locations to use on Team: " + team.ToString());
             return false;
@@ -159,6 +157,8 @@ public class UnitSelectorManager : MonoBehaviour
             Team = team,
         });
 
+        UpdateStationList();
+
         /*  For testing, set the game object positions of the basebattleunit of that index to be the location.  */
         BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
         bBU.gameObject.transform.position = new(nextLocation.x, 0, nextLocation.y);
@@ -168,7 +168,7 @@ public class UnitSelectorManager : MonoBehaviour
 
     bool RemoveStationFromList(StationIndex? index)
     {
-        if ( index == null) { return false; }
+        if (index == null) { return false; }
 
         /*  Find the Station Location in use for this Index.    */
         for (int i = 0; i < this.stationLocationData.Count; i++)
@@ -177,6 +177,8 @@ public class UnitSelectorManager : MonoBehaviour
             {
                 this.stationLocationData.RemoveAt(i);
 
+                UpdateStationList();
+
                 return true;
             }
         }
@@ -184,9 +186,9 @@ public class UnitSelectorManager : MonoBehaviour
     }
 
 
-    public void Initalise(List<StationIndex?> stations)
+    public void Initalise()
     {
-        this.stationIndexes = stations;
+        UpdateStationList();
 
         this.CurrentSelectedStationIndex = this.stationLocationData.FirstOrDefault().StationIndex;
     }
@@ -203,7 +205,7 @@ public class UnitSelectorManager : MonoBehaviour
         {
             if (this.stationIndexes[i]?.Index == this.CurrentSelectedStationIndex?.Index)
             {
-                value = i; 
+                value = i;
                 break;
             }
         }
@@ -216,7 +218,7 @@ public class UnitSelectorManager : MonoBehaviour
         bool reattempted = false;
         int start = currentIndex + 1, end = this.stationIndexes.Count;
 
-        reattempted: 
+    reattempted:
 
         for (int i = start; i < end; i++)
         {
@@ -253,7 +255,7 @@ public class UnitSelectorManager : MonoBehaviour
         bool reattempted = false;
         int start = currentIndex - 1, end = -1;
 
-        reattempted:
+    reattempted:
 
         for (int i = start; i > end; i--)
         {
@@ -285,6 +287,27 @@ public class UnitSelectorManager : MonoBehaviour
         else { return; }
     }
 
+    private List<StationIndex?> GetStationsOnTeam(UnitTeam team)
+    {
+        List<StationIndex?> stationsOnTeam = new();
+        foreach (StationIndex? index in this.stationIndexes)
+        {
+            if (!index.HasValue) continue;
+
+            /*  If the Unit is on that desired team, add it to the stationsOnTeam.  */
+            UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
+            if (unitIndex.HasValue && BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value) == team)
+            {
+                stationsOnTeam.Add(index.Value);
+            }
+        }
+        return stationsOnTeam;
+    }
+
+    private void UpdateStationList()
+    {
+        this.stationIndexes = BattleMediator.Instance.GetStations();
+    }
 
     private StationLocationData? GetCurrentStationIndexStationLocationData()
     {
