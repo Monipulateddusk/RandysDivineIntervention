@@ -1,26 +1,52 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using TurnBased;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitSelectorManager : MonoBehaviour
 {
-    [Serializable]struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
-    static readonly List<Vector2> ALLY_STATION_LOCATIONS = new(){ 
-        new(0, 1),      new(-3, 1),         new(3, 1), 
-        new(1.5f, 3),   new(-1.5f,3),       new(4.5f,3), 
-        new(1.5f,-1),   new(-1.5f,-1),      new(4.5f,-1), 
+    public struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
+    public static event Action<StationLocationData> OnSelectionChange;
+
+    [SerializeField] private List<StationLocationData> stationLocationData = new();
+
+    static readonly List<Vector2> ALLY_STATION_LOCATIONS = new(){
+        new(0, 1),      new(-3, 1),         new(3, 1),
+        new(1.5f, 3),   new(-1.5f,3),       new(4.5f,3),
+        new(1.5f,-1),   new(-1.5f,-1),      new(4.5f,-1),
     };
     static readonly List<Vector2> ENEMY_STATION_LOCATIONS = new(){
         new(1.5f,-6),   new(-1.5f,-6),      new(4.5f,-6),
         new(0,-8),      new(-3,-8),         new(3,-8),
         new(0,-4),      new(-3,-4),         new(3,-4),
     };
+
     List<StationIndex?> stationIndexes = new();
-    [SerializeField]List<StationLocationData> stationLocationData = new();
-    StationIndex? currentSelectedStationIndex;
+
+    private StationIndex? selectedStationIndex;
+    public StationIndex? CurrentSelectedStationIndex { get { return selectedStationIndex; }
+        set
+        {
+            /*  Only set the value if it isn't null and has a StationIndex (Which is a masked UnitIndex) of greater than 0. */
+            if (value.HasValue && value.Value.Index >= 0)
+            {
+                this.selectedStationIndex = this.stationIndexes[value.Value.Index];
+
+                /*  Notify anyone listening that the selection changed. */
+                StationLocationData? stationLocationData = GetCurrentStationIndexStationLocationData();
+                if(stationLocationData != null)
+                {
+                    OnSelectionChange?.Invoke(stationLocationData.Value);
+                    Debug.Log("New current Station index is: " + this.selectedStationIndex.Value.Index);
+                }
+            }
+        }
+    }
+
+
     private static UnitSelectorManager instance;
     public static UnitSelectorManager Instance
     {
@@ -61,19 +87,17 @@ public class UnitSelectorManager : MonoBehaviour
 
     private void SceneUnitData_OnAddUnit(UnitIndex unitIndex)
     {
-        Debug.Log("asdad");
         /*  Get the StationIndex of this Unit   */
         StationIndex? stationIndex = BattleMediator.Instance.GetStationIndexOfUnitIndex(unitIndex);
         if(stationIndex != null)
         {
-
             AddStationToList(stationIndex);
         }
-
     }
     private void SceneUnitData_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationIndex, BaseBattleUnit bBU)
     {
         RemoveStationFromList(stationIndex);
+        
     }
 
     private void Start()
@@ -144,17 +168,13 @@ public class UnitSelectorManager : MonoBehaviour
 
     bool RemoveStationFromList(StationIndex? index)
     {
-        Debug.Log("Called to remove station index: " + index);
         if ( index == null) { return false; }
-
-
 
         /*  Find the Station Location in use for this Index.    */
         for (int i = 0; i < this.stationLocationData.Count; i++)
         {
             if (this.stationLocationData[i].StationIndex.Value.Index == index.Value.Index)
             {
-                Debug.Log("Removing Unit at station Index: " + index);
                 this.stationLocationData.RemoveAt(i);
 
                 return true;
@@ -167,7 +187,8 @@ public class UnitSelectorManager : MonoBehaviour
     public void Initalise(List<StationIndex?> stations)
     {
         this.stationIndexes = stations;
-        this.currentSelectedStationIndex = this.stationIndexes.FirstOrDefault();
+
+        this.CurrentSelectedStationIndex = this.stationLocationData.FirstOrDefault().StationIndex;
     }
 
     /// <summary>
@@ -180,7 +201,7 @@ public class UnitSelectorManager : MonoBehaviour
         value = 0;
         for (int i = 0; i < this.stationIndexes.Count; i++)
         {
-            if (this.stationIndexes[i]?.Index == this.currentSelectedStationIndex?.Index)
+            if (this.stationIndexes[i]?.Index == this.CurrentSelectedStationIndex?.Index)
             {
                 value = i; 
                 break;
@@ -208,7 +229,7 @@ public class UnitSelectorManager : MonoBehaviour
                 continue; }
 
             // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            SetCurrentStationIndex(i);
+            this.CurrentSelectedStationIndex = this.stationIndexes[i];
             return;
         }
 
@@ -247,7 +268,7 @@ public class UnitSelectorManager : MonoBehaviour
             }
 
             // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            SetCurrentStationIndex(i);
+            this.CurrentSelectedStationIndex = this.stationIndexes[i];
             return;
         }
 
@@ -264,12 +285,19 @@ public class UnitSelectorManager : MonoBehaviour
         else { return; }
     }
 
-    private void SetCurrentStationIndex(int index)
+
+    private StationLocationData? GetCurrentStationIndexStationLocationData()
     {
-        if (index >= 0)
+        if (!this.CurrentSelectedStationIndex.HasValue) { return null; }
+
+        foreach(StationLocationData data in this.stationLocationData)
         {
-            this.currentSelectedStationIndex = this.stationIndexes[index];
+            if(data.StationIndex.HasValue && data.StationIndex.Value.Index == this.CurrentSelectedStationIndex.Value.Index)
+            {
+                return data;
+            }
         }
+        return null;
     }
 
     private void Update()
@@ -286,11 +314,10 @@ public class UnitSelectorManager : MonoBehaviour
 
     public UnitIndex? GetSelectedStationUnit()
     {
-        if (this.currentSelectedStationIndex != null)
+        if (this.CurrentSelectedStationIndex != null)
         {
-            return BattleMediator.Instance.GetUnitIndexOnStation(this.currentSelectedStationIndex.Value);
+            return BattleMediator.Instance.GetUnitIndexOnStation(this.CurrentSelectedStationIndex.Value);
         }
         return null;
     }
-    public StationIndex? GetCurrentSelectedStation() => this.currentSelectedStationIndex;
 }
