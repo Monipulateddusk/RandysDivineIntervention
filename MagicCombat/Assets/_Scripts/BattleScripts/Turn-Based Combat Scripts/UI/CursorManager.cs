@@ -62,7 +62,7 @@ public class CursorManager
         {
             previousCursorPosition = Input.mousePosition;
             this.cursorObject.transform.position = previousCursorPosition;
-            tmpUGUI.text = "XPos: " + this.cursorObject.transform.position.x + "YPos: " + this.cursorObject.transform.position.y;
+            //tmpUGUI.text = "XPos: " + this.cursorObject.transform.position.x + "YPos: " + this.cursorObject.transform.position.y;
 
            
         }

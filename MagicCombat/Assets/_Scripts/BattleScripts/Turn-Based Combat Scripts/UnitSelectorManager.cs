@@ -2,23 +2,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TurnBased;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnitSelectorManager : MonoBehaviour
 {
-    struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
-    static readonly Vector2[] ALLY_STATION_LOCATIONS = { 
+    [Serializable]struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
+    static readonly List<Vector2> ALLY_STATION_LOCATIONS = new(){ 
         new(0, 1),      new(-3, 1),         new(3, 1), 
         new(1.5f, 3),   new(-1.5f,3),       new(4.5f,3), 
         new(1.5f,-1),   new(-1.5f,-1),      new(4.5f,-1), 
     };
-    static readonly Vector2[] ENEMY_STATION_LOCATIONS = {
+    static readonly List<Vector2> ENEMY_STATION_LOCATIONS = new(){
         new(1.5f,-6),   new(-1.5f,-6),      new(4.5f,-6),
         new(0,-8),      new(-3,-8),         new(3,-8),
         new(0,-4),      new(-3,-4),         new(3,-4),
     };
     List<StationIndex?> stationIndexes = new();
-    List<StationLocationData> stationLocationData = new();
+    [SerializeField]List<StationLocationData> stationLocationData = new();
     StationIndex? currentSelectedStationIndex;
     private static UnitSelectorManager instance;
     public static UnitSelectorManager Instance
@@ -39,69 +40,129 @@ public class UnitSelectorManager : MonoBehaviour
 
     private void Awake()
     {
+        /*  Initalise the Singleton.    */
         if (instance != null && instance != this)
         {
             DestroyImmediate(this.gameObject);
         }
         instance = this;
+
+        /*  Subscribe to the events for Unit Data   */
+        SceneUnitData.OnAddUnit += SceneUnitData_OnAddUnit;
+        SceneUnitData.OnRemoveUnit += SceneUnitData_OnRemoveUnit;
+    }
+
+    private void OnDestroy()
+    {
+        /*  UnSubscribe to the events for Unit Data   */
+        SceneUnitData.OnAddUnit -= SceneUnitData_OnAddUnit;
+        SceneUnitData.OnRemoveUnit -= SceneUnitData_OnRemoveUnit;
+    }
+
+    private void SceneUnitData_OnAddUnit(UnitIndex unitIndex)
+    {
+        Debug.Log("asdad");
+        /*  Get the StationIndex of this Unit   */
+        StationIndex? stationIndex = BattleMediator.Instance.GetStationIndexOfUnitIndex(unitIndex);
+        if(stationIndex != null)
+        {
+
+            AddStationToList(stationIndex);
+        }
+
+    }
+    private void SceneUnitData_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationIndex, BaseBattleUnit bBU)
+    {
+        RemoveStationFromList(stationIndex);
     }
 
     private void Start()
     {
         Initalise(BattleMediator.Instance.GetStations());
-        AddEachStationToDictionary();
     }
 
-    void AddEachStationToDictionary()
+    List<Vector2> GetStationLocationsInUseOnTeam(UnitTeam team)
     {
-        foreach(StationIndex? index in this.stationIndexes)
+        List<Vector2> locationsInUse = new();
+        foreach(StationLocationData data in this.stationLocationData)
         {
-            AddStationToDictionary(index);
-        }
-    }
-
-    int GetStationCountOnTeam(UnitTeam team)
-    {
-        int count = 0;
-        for(int i = 0; i < this.stationLocationData.Count; i++)
-        {
-            if (this.stationLocationData[i].Team == team)
+            if(data.Team == team)
             {
-                count++;
+                locationsInUse.Add(data.Location);
             }
         }
-        return count;
+        return locationsInUse;
     }
 
-    void AddStationToDictionary(StationIndex? index)
+    Vector2 GetNextLocationOnTeamFromLocationsInUse(UnitTeam team, List<Vector2> locationsInUse)
     {
-        if(index == null) { return; }
+        List<Vector2> allLocationsOnTeam = team == UnitTeam.ALLY ? ALLY_STATION_LOCATIONS : ENEMY_STATION_LOCATIONS;
+
+        /*  Get the locations on the team (the constant vector 2s). Loop through them and remove each vector2 currently in use from the copied allLocationsOnTeam list. */
+        /*  The result is a new Vector2 list which we can take the first or default value to get the next new position from our allLocationsOnTeam list.    */
+        foreach (Vector2 location in locationsInUse)
+        {
+            allLocationsOnTeam.Remove(location);
+        }
+
+        return allLocationsOnTeam.FirstOrDefault();
+    }
+    bool AddStationToList(StationIndex? index)
+    {
+        if(index == null) { return false; }
         
         UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
-        if(unitIndex == null) { return; }
+        if(unitIndex == null) { return false; ; }
 
         // Look into the index, what team is it on?
         UnitTeam team = BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value);
 
-        // Depending on the team, we want to find the next station not in use
+        /*  Get the next location not in use for that team.     */
+        List<Vector2> locations = GetStationLocationsInUseOnTeam(team);
+        Vector2 nextLocation = GetNextLocationOnTeamFromLocationsInUse(team, locations);
 
-        if (team == UnitTeam.ALLY){
-            stationLocationData.Add(new()
-            {
-                StationIndex = index,
-               
-
-            });
-        }
-        else if (team == UnitTeam.ENEMY)
+        // After everything, there is a possibility there is no more locations on that team. If so, return false.   
+        if(nextLocation == null)
         {
+            Debug.Log("There is no more Locations to use on Team: " + team.ToString());
+            return false;
+        }
 
-        }
-        else
+        stationLocationData.Add(new()
         {
-            
-        }
+            StationIndex = index,
+            Location = nextLocation,
+            Team = team,
+        });
+
+        /*  For testing, set the game object positions of the basebattleunit of that index to be the location.  */
+        BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
+        bBU.gameObject.transform.position = new(nextLocation.x, 0, nextLocation.y);
+
+        return true;
     }
+
+    bool RemoveStationFromList(StationIndex? index)
+    {
+        Debug.Log("Called to remove station index: " + index);
+        if ( index == null) { return false; }
+
+
+
+        /*  Find the Station Location in use for this Index.    */
+        for (int i = 0; i < this.stationLocationData.Count; i++)
+        {
+            if (this.stationLocationData[i].StationIndex.Value.Index == index.Value.Index)
+            {
+                Debug.Log("Removing Unit at station Index: " + index);
+                this.stationLocationData.RemoveAt(i);
+
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public void Initalise(List<StationIndex?> stations)
     {

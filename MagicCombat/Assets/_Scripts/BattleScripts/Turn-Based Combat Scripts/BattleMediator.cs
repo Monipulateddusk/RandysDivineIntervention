@@ -146,10 +146,11 @@ namespace TurnBased
 
         private void Awake()
         {
-
             instance = this;
+        }
 
-
+        private void Start()
+        {
             int playerFieldSlots = 2, enemyFieldSlots = 4;
             this.StationHandler = new StationHandler(playerFieldSlots, enemyFieldSlots);
 
@@ -173,6 +174,11 @@ namespace TurnBased
         private void Update()
         {
             CurrentPhase?.Update();
+
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                this.StationHandler.RemoveUnit(currentUnit);
+            }
         }
 
         public void ChangeToNextStateInOrder()

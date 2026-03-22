@@ -43,6 +43,17 @@ public class SceneUnitData
     public static event Action<UnitIndex> OnAddUnit;
 
     /// <summary>
+    /// Invoked when a Unit is Removed. When a unit is destroyed.   
+    /// Unit Index: UnitIndex of the Destroyed Unit
+    /// Station Index: StationIndex that the Unit was on. Could be Null if it was destroyed off field.  
+    /// BaseBattleUnit: Main Script of the Unit, allows use of the GameObject.
+    /// 
+    /// IMPORTANT: As we remove the UnitIndex, StationIndex from arrays, you cannot use any method within SceneUnitData to retrieve further information on the Unit. 
+    /// However, you can use the StationIndex to consult another class to retrieve the Station's Location in worldSpace.
+    /// </summary>
+    public static event Action<UnitIndex, StationIndex?, BaseBattleUnit> OnRemoveUnit;
+
+    /// <summary>
     /// Invoked on Switching the stations of Units on the Same Team. 
     /// 
     /// Index 1: UnitIndex that is switching to the desired station. 
@@ -99,6 +110,28 @@ public class SceneUnitData
         }
 
         /*  If there wasn't an available slot available somehow, return false.*/
+        return false;
+    }
+
+    public bool RemoveUnit(UnitIndex unitIndex)
+    {
+        /*  Check that there is a valid Unit and it is on an appropriate team.  */
+        if (this.data.Units[unitIndex.Index]    == null) { return false; }
+        if (this.data.Teams[unitIndex.Index]    == UnitTeam.NULL) { return false; }
+        
+        /*  Remove the Unit from the Teams Array.   */
+        this.data.Teams[unitIndex.Index] = UnitTeam.NULL;
+
+        /*  Remove the Unit from the Units Array but store temporary referance to the BattleUnit for the event.   */
+        BaseBattleUnit battleUnit = this.data.Units[unitIndex.Index];
+        this.data.Units[unitIndex.Index] = null;
+
+        /*  Remove the Unit from the Stations Array but store temporary referance to the Station for the event.   */
+        StationIndex? stationIndex = this.data.Stations[unitIndex.Index];
+        this.data.Stations[unitIndex.Index] = null;
+
+        OnRemoveUnit?.Invoke(unitIndex, stationIndex, battleUnit);
+
         return false;
     }
 
@@ -267,6 +300,10 @@ public class StationHandler
     public bool AddUnit(BaseBattleUnit unit, UnitTeam team, StationIndex? station)
     {
         return SceneUnitData.AddUnit(unit, team, station);
+    }
+    public bool RemoveUnit(UnitIndex unitIndex)
+    {
+        return SceneUnitData.RemoveUnit(unitIndex);
     }
     public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
     {
