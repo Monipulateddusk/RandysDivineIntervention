@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BattlePresentationManager : MonoBehaviour
 {
-    [SerializeField]GameObject tempVisual;
+    [SerializeField] GameObject tempVisual;
     private void Awake()
     {
         UnitSelectorManager.OnSelectionChange           += UnitSelectorManager_OnSelectionChange;
@@ -13,7 +13,9 @@ public class BattlePresentationManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        UnitSelectorManager.OnSelectionChange -= UnitSelectorManager_OnSelectionChange;
+        UnitSelectorManager.OnSelectionChange           -= UnitSelectorManager_OnSelectionChange;
+        UnitSelectorManager.OnAddStationLocationData    -= UnitSelectorManager_OnAddStationLocationData;
+        UnitSelectorManager.OnRemoveStationLocationData -= UnitSelectorManager_OnRemoveStationLocationData;
     }
 
     private void GetUnitIndexAndBattleUnitOnStation(UnitSelectorManager.StationLocationData locationData, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
