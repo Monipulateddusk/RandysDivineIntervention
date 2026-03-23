@@ -37,6 +37,7 @@ public class CursorManager
 
         /*  Get the Image component and assign it */
         this.cursorObjectImageComp = this.cursorObject.transform.GetChild(0).GetComponent<UnityEngine.UI.Image>();
+        this.cursorObjectImageComp.raycastTarget = false;
         SetCursorImageState(CursorIcons.Cursor);
 
         tmpUGUI = this.cursorObject.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault();
