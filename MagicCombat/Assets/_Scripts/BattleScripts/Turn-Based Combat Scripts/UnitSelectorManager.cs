@@ -10,6 +10,7 @@ public class UnitSelectorManager : MonoBehaviour
     public static event Action<StationLocationData> OnSelectionChange;
 
     [SerializeField] private List<StationLocationData> stationLocationData = new();
+    public static event Action<StationLocationData> OnAddStationLocationData, OnRemoveStationLocationData;
 
     static readonly List<Vector2> ALLY_STATION_LOCATIONS = new(){
         new(0, 1),      new(-3, 1),         new(3, 1),
@@ -38,7 +39,6 @@ public class UnitSelectorManager : MonoBehaviour
                 if (stationLocationData != null)
                 {
                     OnSelectionChange?.Invoke(stationLocationData.Value);
-                    //Debug.Log("New current Station index is: " + this.selectedStationIndex.Value.Index);
                 }
             }
         }
@@ -150,18 +150,18 @@ public class UnitSelectorManager : MonoBehaviour
             return false;
         }
 
-        stationLocationData.Add(new()
+        StationLocationData data = new()
         {
             StationIndex = index,
             Location = nextLocation,
             Team = team,
-        });
+        };
+
+        stationLocationData.Add(data);
+
+        OnAddStationLocationData?.Invoke(data);
 
         UpdateStationList();
-
-        /*  For testing, set the game object positions of the basebattleunit of that index to be the location.  */
-        BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
-        bBU.gameObject.transform.position = new(nextLocation.x, 0, nextLocation.y);
 
         return true;
     }
@@ -175,7 +175,10 @@ public class UnitSelectorManager : MonoBehaviour
         {
             if (this.stationLocationData[i].StationIndex.Value.Index == index.Value.Index)
             {
+                StationLocationData data = this.stationLocationData[i];
                 this.stationLocationData.RemoveAt(i);
+
+                OnRemoveStationLocationData?.Invoke(data);
 
                 UpdateStationList();
 
@@ -285,23 +288,6 @@ public class UnitSelectorManager : MonoBehaviour
         }
         /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
         else { return; }
-    }
-
-    private List<StationIndex?> GetStationsOnTeam(UnitTeam team)
-    {
-        List<StationIndex?> stationsOnTeam = new();
-        foreach (StationIndex? index in this.stationIndexes)
-        {
-            if (!index.HasValue) continue;
-
-            /*  If the Unit is on that desired team, add it to the stationsOnTeam.  */
-            UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
-            if (unitIndex.HasValue && BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value) == team)
-            {
-                stationsOnTeam.Add(index.Value);
-            }
-        }
-        return stationsOnTeam;
     }
 
     private void UpdateStationList()
