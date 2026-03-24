@@ -295,7 +295,7 @@ public class UnitSelectorManager : MonoBehaviour
         this.stationIndexes = BattleMediator.Instance.GetStations();
     }
 
-    private StationLocationData? GetCurrentStationIndexStationLocationData()
+    public StationLocationData? GetCurrentStationIndexStationLocationData()
     {
         if (!this.CurrentSelectedStationIndex.HasValue) { return null; }
 

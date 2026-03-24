@@ -110,7 +110,7 @@ public class BaseBattleUnit : MonoBehaviour
     {
         if (unitAnimator != null)
         {
-            unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
+           // unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
         }
     }
 

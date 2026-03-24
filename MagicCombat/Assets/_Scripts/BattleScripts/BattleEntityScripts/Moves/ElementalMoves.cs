@@ -5,6 +5,7 @@ using TurnBased;
 public interface IElementalMoveAction
 {
     public abstract AttackResolutionInfo DoElementalMove(List<UnitData> usersInfo = null, UnitData userInfo = null, List<UnitData> targetsInfo = null, UnitData targetInfo = null);
+    public abstract string GetMoveName();
 }
 
 #region Fire Moves
@@ -30,7 +31,6 @@ public class EM_Inferno : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Inferno",
             Steps =
             {
                 new AttackStep()
@@ -46,6 +46,7 @@ public class EM_Inferno : IElementalMoveAction
         };
         return resolutionInfo;
     }
+    public string GetMoveName() => "Inferno";
 }
 
 /// <summary>
@@ -69,7 +70,6 @@ public class EM_Steam : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Steam",
             Steps =
             {
                 new AttackStep()
@@ -86,6 +86,7 @@ public class EM_Steam : IElementalMoveAction
         };
         return resolutionInfo;
     }
+    public string GetMoveName() => "Steam";
 }
 
 /// <summary>
@@ -97,7 +98,6 @@ public class EM_Frostburn : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Frostburn",
             Steps =
             {
                 new AttackStep()
@@ -114,6 +114,7 @@ public class EM_Frostburn : IElementalMoveAction
         };
         return resolutionInfo;
     }
+    public string GetMoveName() => "Frostburn";
 }
 
 /// <summary>
@@ -137,7 +138,6 @@ public class EM_Volcano : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Volcano",
             Steps =
             {
                 new AttackStep()
@@ -155,6 +155,7 @@ public class EM_Volcano : IElementalMoveAction
 
         return resolutionInfo;
     }
+    public string GetMoveName() => "Volcano";
 }
 
 #endregion
@@ -182,7 +183,6 @@ public class EM_Tsunami : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Tsunami",
             Steps =
             {
                 new AttackStep()
@@ -198,6 +198,7 @@ public class EM_Tsunami : IElementalMoveAction
 
         return resolutionInfo;
     }
+    public string GetMoveName() => "Tsunami";
 }
 
 /// <summary>
@@ -209,7 +210,6 @@ public class EM_Wellspring : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Wellspring",
             Steps =
             {
                 new AttackStep()
@@ -227,6 +227,7 @@ public class EM_Wellspring : IElementalMoveAction
 
         return resolutionInfo;
     }
+    public string GetMoveName() => "Wellspring";
 }
 
 #endregion
@@ -255,7 +256,6 @@ public class EM_IceAge : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Ice Age",
             Steps =
             {
                 new AttackStep()
@@ -270,6 +270,7 @@ public class EM_IceAge : IElementalMoveAction
         };
         return resolutionInfo;
     }
+    public string GetMoveName() => "Ice Age";
 }
 
 /// <summary>
@@ -281,7 +282,6 @@ public class EM_HailCloak : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Hail Cloak",
             Steps =
             {
                 new AttackStep()
@@ -298,6 +298,7 @@ public class EM_HailCloak : IElementalMoveAction
         };
         return resolutionInfo;
     }
+    public string GetMoveName() => "Hail Cloak";
 }
 
 #endregion
@@ -326,7 +327,6 @@ public class EM_Fissure : IElementalMoveAction
 
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Fissure",
             Steps =
             {
                 new AttackStep()
@@ -343,6 +343,7 @@ public class EM_Fissure : IElementalMoveAction
 
         return resolutionInfo;
     }
+    public string GetMoveName() => "Fissure";
 }
 
 /// <summary>
@@ -354,7 +355,6 @@ public class EM_FrostLock : IElementalMoveAction
     {
         AttackResolutionInfo resolutionInfo = new()
         {
-            moveName = "Frost Lock",
             Steps =
             {
                 new AttackStep()
@@ -372,6 +372,7 @@ public class EM_FrostLock : IElementalMoveAction
 
         return resolutionInfo;
     }
+    public string GetMoveName() => "Frost Lock";
 }
 
 #endregion

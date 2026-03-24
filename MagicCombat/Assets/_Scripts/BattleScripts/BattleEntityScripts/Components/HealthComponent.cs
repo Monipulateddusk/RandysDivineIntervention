@@ -4,7 +4,7 @@ public class HealthComponent : BaseComponent
 {
 
     HealthBarController hBC;
-    int health;
+    private int health;
 
 
     public HealthComponent()
@@ -51,4 +51,6 @@ public class HealthComponent : BaseComponent
         /*  Update the Health Bar to show new HP    */
         hBC.UpdateUI(health, unitData.maxHP);
     }
+
+    public int GetHealth() => health;
 }
