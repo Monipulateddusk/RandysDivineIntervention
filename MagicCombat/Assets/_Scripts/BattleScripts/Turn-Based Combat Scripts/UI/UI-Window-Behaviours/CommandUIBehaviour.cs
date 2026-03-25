@@ -8,12 +8,21 @@ public class CommandUIBehaviour : MonoBehaviour
     [SerializeField] private UnityEngine.UI.Image UnitImage;
     [SerializeField, Tooltip("Assign with the 'Health' Object in HealthBG")] private RectTransform HealthRectTransform;
     [SerializeField, Tooltip("Assign with the 'HealthValueString' Object in HealthBG")] TMPro.TextMeshProUGUI HealthText;
-    [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")] RectTransform CommandWrapperTransform;
+
+    [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")] GameObject CommandWrapperGameObject;
+    [SerializeField, Tooltip("Assign with the 'Inspection' Object in InspectionSubWindow")] GameObject InspectionGameObject;
+    [SerializeField, Tooltip("Assign with the 'PopupBuffer' Object in InspectionSubWindow")] GameObject PopupBufferGameObject;
+    [SerializeField, Tooltip("Assign with the 'UnitImageHealthWrapper' Object in VIew")] GameObject UnitImageHealthWrapperGameObject;
+    [SerializeField, Tooltip("Assign with the 'TargetSelection' Object in VIew")] GameObject TargetSelectionGameObject;
+
 
     [Header("Prefabs")]
     [SerializeField] private GameObject MoveUIPrefab;
 
     private List<MoveUIPrefabData> InstanciatedMoveUIElements = new();
+
+    enum CommandUIBehaviourStates { Default = 0, TargetSelection = 1, UnitEndTurn = 2};
+    private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.Default;
 
     private void Awake()
     {
@@ -25,6 +34,20 @@ public class CommandUIBehaviour : MonoBehaviour
         if (UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue)
         {
             UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
+        }
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Keypad0))
+        {
+            int stateValue = (int)currentState;
+            stateValue++;
+            Debug.LogWarning(stateValue);
+            if (stateValue > (int)CommandUIBehaviourStates.UnitEndTurn) { stateValue = 0; }
+
+            SetState((CommandUIBehaviourStates)stateValue);
+         
         }
     }
 
@@ -59,9 +82,9 @@ public class CommandUIBehaviour : MonoBehaviour
     }
     private void CreateMoveUIElement(string moveName)
     {
-        if(this.InstanciatedMoveUIElements == null || this.MoveUIPrefab == null || this.CommandWrapperTransform == null) { return; }
+        if(this.InstanciatedMoveUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
 
-        GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperTransform.transform);
+        GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperGameObject.transform);
         if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
         {
             instanciatedMoveUIData.Initalise(moveName);
@@ -112,5 +135,56 @@ public class CommandUIBehaviour : MonoBehaviour
         SetImage(bBU);
         SetHealthValues(bBU);
         SetMoves(bBU);
+    }
+
+    void DisableAllWindows()
+    {
+        if(this.InspectionGameObject == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null || this.TargetSelectionGameObject == null) { return; }
+        
+        this.InspectionGameObject.SetActive(false);
+        this.PopupBufferGameObject.SetActive(false);
+        this.UnitImageHealthWrapperGameObject.SetActive(false);
+        this.TargetSelectionGameObject.SetActive(false);
+    }
+
+    private void SetState(CommandUIBehaviourStates nextState)
+    {
+        this.currentState = nextState;
+        UpdateState();
+    }
+
+    private void UpdateState()
+    {
+        DisableAllWindows();
+        //switch (this.currentState)
+        //{
+        //    case CommandUIBehaviourStates.UnitEndTurn:
+        //        Debug.LogWarning("End Turn Enable");
+
+        //        this.InspectionGameObject.SetActive(true);
+        //        break;
+        //    case CommandUIBehaviourStates.TargetSelection:
+        //        Debug.LogWarning("Target Selection Enable");
+
+        //        this.InspectionGameObject.SetActive(true);
+        //        this.InspectionGameObject.SetActive(true);
+        //        break;
+        //    case CommandUIBehaviourStates.Default:
+        //        Debug.LogWarning("Default Enable");
+
+
+        //        this.InspectionGameObject.SetActive(true);
+        //        this.UnitImageHealthWrapperGameObject.SetActive(true);
+        //        break;
+
+        //    default:
+        //        Debug.LogWarning("Default Enable");
+
+
+        //        this.InspectionGameObject.SetActive(true);
+        //        this.UnitImageHealthWrapperGameObject.SetActive(true);
+        //        break;
+               
+        //}
     }
 }
