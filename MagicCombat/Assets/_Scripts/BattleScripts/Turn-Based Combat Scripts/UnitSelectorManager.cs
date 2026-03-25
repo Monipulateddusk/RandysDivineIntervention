@@ -330,3 +330,97 @@ public class UnitSelectorManager : MonoBehaviour
         return null;
     }
 }
+
+public class StationIntentionManager
+{
+    private static StationIntentionManager instance;
+    public static StationIntentionManager Instance {  
+        get { return instance; } 
+        set 
+        {
+            if (instance == null)
+            {
+                instance = value;
+            }
+        }
+    }    
+    Dictionary<StationIndex, UnitIntention> StationIntentionPairs = new();
+
+    public StationIntentionManager()
+    {
+        Instance = this;
+    }
+
+    public bool RemoveStationIndexAndIntention(StationIndex index)
+    {
+        if (this.StationIntentionPairs.ContainsKey(index))
+        {
+            return this.StationIntentionPairs.Remove(index);
+        }
+        return false;
+    }
+
+    public UnitIntention? GetIntentionOfStationIndex(StationIndex index)
+    {
+        if (this.StationIntentionPairs.ContainsKey(index))
+        {
+            return this.StationIntentionPairs[index];    
+        }
+        return null;
+    }
+
+    public UnitIntention? SetIntention(StationIndex index, UnitIntention value)
+    {
+        if (this.StationIntentionPairs.ContainsKey(index))
+        {
+            this.StationIntentionPairs[index] = value;
+            return this.StationIntentionPairs[index];
+        }
+        else
+        {
+            this.StationIntentionPairs.Add(index, value);
+            return this.StationIntentionPairs[index];
+        }
+    }
+
+    /// <summary>
+    /// Set the targets of the existing move selection. This maintains the Invarient. If, the pairs does not exist however, return null entirely.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="targets"></param>
+    /// <returns></returns>
+    public UnitIntention? SetIntention(StationIndex index, List<int?> targets)
+    {
+        if (this.StationIntentionPairs.ContainsKey(index))
+        {
+            // Get the intention stored here. If MoveSelection has a value, continue 
+            UnitIntention intention = this.StationIntentionPairs[index];
+            if(!intention.MoveSelection.HasValue) {return null;}
+
+            this.StationIntentionPairs[index] = new(intention.MoveSelection.Value, targets);
+            return this.StationIntentionPairs[index];
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// When we set pass in MoveSelectionData, we want to null target selection. 
+    /// So you can't do something wierd like target yourself with a multi-hit attack because the previous target was yourself.  
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="moveData"></param>
+    /// <returns></returns>
+    public UnitIntention? SetIntention(StationIndex index, MoveSelectionData moveData)
+    {
+        if (this.StationIntentionPairs.ContainsKey(index))
+        {
+            this.StationIntentionPairs[index] = new(moveData, null);
+            return this.StationIntentionPairs[index];
+        }
+        else
+        {
+            this.StationIntentionPairs.Add(index, new(moveData, null));
+            return this.StationIntentionPairs[index];
+        }
+    }
+}
