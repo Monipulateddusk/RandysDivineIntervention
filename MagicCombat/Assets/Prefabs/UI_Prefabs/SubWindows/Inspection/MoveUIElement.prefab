@@ -67,6 +67,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MoveUIElementClickableButton: {fileID: 8828473562136248050}
   MoveUIElementText: {fileID: 2358043563570617632}
+  whiteShadow: {fileID: 5589846887465486093}
+  blackShadow: {fileID: 1093649027580649078}
 --- !u!114 &8828473562136248050
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -37,6 +37,13 @@ public class CommandUIBehaviour : MonoBehaviour
     {
         return (current - minimum) / (maximum - minimum);
     }
+    private void SetImage(BaseBattleUnit battleUnit)
+    {
+        if (this.UnitImage == null) { return; }
+        this.UnitImage.sprite = battleUnit.GetBaseUnit().sprite;
+        this.UnitImage.color = battleUnit.GetBaseUnit().color;
+    }
+    
     private void SetHealthValues(BaseBattleUnit battleUnit)
     {
         if(this.HealthRectTransform != null && this.HealthText != null)
@@ -50,6 +57,28 @@ public class CommandUIBehaviour : MonoBehaviour
             this.HealthText.text = currentHealth.ToString() + "/" + maximumHealth.ToString();
         }
     }
+    private void CreateMoveUIElement(string moveName)
+    {
+        if(this.InstanciatedMoveUIElements == null || this.MoveUIPrefab == null || this.CommandWrapperTransform == null) { return; }
+
+        GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperTransform.transform);
+        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
+        {
+            instanciatedMoveUIData.Initalise(moveName);
+            instanciatedMoveUIData.OnButtonClicked += OnMoveButtonClick;
+            this.InstanciatedMoveUIElements.Add(instanciatedMoveUIData);
+        }
+    }
+
+    private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
+    {
+        foreach(MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
+        {
+            if(moveButtonData == buttonObject) { continue; }
+
+            moveButtonData.IsButtonClicked = false;
+        }
+    }
     private void DestroyMoveUIElements()
     {
         if (this.InstanciatedMoveUIElements == null) { return; }
@@ -59,17 +88,6 @@ public class CommandUIBehaviour : MonoBehaviour
             Destroy(obj.gameObject);
         }
         this.InstanciatedMoveUIElements.Clear();
-    }
-    private void CreateMoveUIElement(string moveName)
-    {
-        if(this.InstanciatedMoveUIElements == null || this.MoveUIPrefab == null || this.CommandWrapperTransform == null) { return; }
-
-        GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperTransform.transform);
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
-        {
-            instanciatedMoveUIData.Initalise(moveName);
-            this.InstanciatedMoveUIElements.Add(instanciatedMoveUIData);
-        }
     }
 
     private void SetMoves(BaseBattleUnit battleUnit)
@@ -91,10 +109,7 @@ public class CommandUIBehaviour : MonoBehaviour
 
         BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
 
-        if(this.UnitImage == null) { return; }
-        this.UnitImage.sprite = bBU.GetBaseUnit().sprite;
-        this.UnitImage.color = bBU.GetBaseUnit().color;
-
+        SetImage(bBU);
         SetHealthValues(bBU);
         SetMoves(bBU);
     }
