@@ -11,10 +11,108 @@ public enum WindowType
     TurnOrderWindow,
     Options,
     DialogueBox,
-    Inspection
+    Inspection,
+    WindowManager
 }
 public static class UIWindowFactory
 {
+    public static DialogueBoxWidgetPair CreateWindow(WindowType windowType, UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    {
+        DialogueBoxWidgetPair? pair;
+        switch (windowType)
+        {
+            case WindowType.HomeStart:
+                pair = CreateHomeStartWindow(uiPrefabData, windowParent, widgetParent, index);
+                break;
+
+            case WindowType.TurnOrderWindow:
+                pair = CreateScrollableDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
+
+            case WindowType.Options:
+                pair = CreateOptionsDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
+
+            case WindowType.DialogueBox:
+                pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
+
+            case WindowType.Inspection:
+                pair = CreateInspectionBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
+            case WindowType.WindowManager:
+                pair = CreateWindowManagerBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
+            default:
+                pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size); 
+                break;
+        }
+        if (!pair.HasValue)
+        {
+            Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
+        }
+        return pair.Value;
+    }
+
+    private static GameObject CreateWindowManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+    {
+        return GameObject.Instantiate(uiPrefabData.WindowManagerPrefab, parent);
+    }
+
+    private static DialogueBoxWidgetPair? CreateWindowManagerBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    {
+        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+        /*  Assign it's minimisable information and Size.    */
+        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        {
+            dBB.SetDialogueBoxName("Window Manager");
+            dBB.Resize(size);
+            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+            GameObject instanciatedWindowManagerAddon = CreateWindowManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+            if (instanciatedWindowManagerAddon != null)
+            {
+                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+            }
+            // If we failed, return null.   
+            return null;
+        }
+        return null;
+    }
+
+    private static GameObject CreateInspectionGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+    {
+        /*  Create the Dialogue box from the Prefab and assign it's position.   */
+        GameObject gO = GameObject.Instantiate(uiPrefabData.InspectionPrefab, parent);
+
+        return gO;
+    }
+
+    private static DialogueBoxWidgetPair? CreateInspectionBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    {
+        /*  Assign it's minimisable information and Size.    */
+        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+        /*  Assign it's minimisable information and Size.    */
+        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        {
+            dBB.SetDialogueBoxName("Inspect Unit");
+            dBB.Resize(size);
+            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+            GameObject instanciatedInspectionAddon = CreateInspectionGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+            if (instanciatedInspectionAddon != null)
+            {
+                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+            }
+            // If we failed, return null.   
+            return null;
+        }
+        return null;
+    }
 
     private static GameObject CreateDialogueBoxGameObject(UICollection_SO uiPrefabData, RectTransform parent, Vector2 position)
     {
@@ -153,42 +251,6 @@ public static class UIWindowFactory
         {
             return null;
         }
-    }
-
-    public static DialogueBoxWidgetPair CreateWindow(WindowType windowType, UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        DialogueBoxWidgetPair? pair;
-        switch (windowType)
-        {
-            case WindowType.HomeStart:
-                pair = CreateHomeStartWindow(uiPrefabData, windowParent, widgetParent, index);
-                break;
-
-            case WindowType.TurnOrderWindow:
-                pair = CreateScrollableDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.Options:
-                pair = CreateOptionsDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.DialogueBox:
-                pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.Inspection:
-                pair = new();
-                break;
-
-            default:
-                pair = new();
-                break;
-        }
-        if (!pair.HasValue)
-        {
-            Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
-        }
-        return pair.Value;
     }
 
     public static async Task MinimiseWindow(WindowData windowData, float expandShrinkTimer)

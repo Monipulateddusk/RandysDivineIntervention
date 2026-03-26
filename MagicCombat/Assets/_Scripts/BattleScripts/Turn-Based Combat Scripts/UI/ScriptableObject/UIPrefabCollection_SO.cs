@@ -20,4 +20,10 @@ public class UICollection_SO : ScriptableObject
     [Header("Options UI")]
     public GameObject OptionsMainPrefab;
     public GameObject SliderElementPrefab;
+
+    [Header("Inspection UI")]
+    public GameObject InspectionPrefab;
+
+    [Header("Window Manager UI")]
+    public GameObject WindowManagerPrefab;
 }

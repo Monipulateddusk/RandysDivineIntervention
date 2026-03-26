@@ -43,7 +43,7 @@ public class TaskBarHomeBoxBehaviour : SizableWindowBaseBehaviour
     public void OnWindowManagerClicked()
     {
         Debug.Log("Opening Window");
-        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.DialogueBox, new Vector2(600, 200), new Vector2(300, 400));
+        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.WindowManager, new Vector2(600, 200), new Vector2(300, 400));
     }
 
     public void OnOptionsClick()
