@@ -31,10 +31,10 @@ public class CommandUIBehaviour : MonoBehaviour
 
     private void Start()
     {
-        if (UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue)
-        {
-            UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
-        }
+        if (!UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue){ return; }
+
+        UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
+        SetState(CommandUIBehaviourStates.Default);
     }
 
     private void Update()
@@ -156,35 +156,35 @@ public class CommandUIBehaviour : MonoBehaviour
     private void UpdateState()
     {
         DisableAllWindows();
-        //switch (this.currentState)
-        //{
-        //    case CommandUIBehaviourStates.UnitEndTurn:
-        //        Debug.LogWarning("End Turn Enable");
+        switch (this.currentState)
+        {
+            case CommandUIBehaviourStates.UnitEndTurn:
+                Debug.LogWarning("End Turn Enable");
 
-        //        this.InspectionGameObject.SetActive(true);
-        //        break;
-        //    case CommandUIBehaviourStates.TargetSelection:
-        //        Debug.LogWarning("Target Selection Enable");
+                this.PopupBufferGameObject.SetActive(true);
+                break;
+            case CommandUIBehaviourStates.TargetSelection:
+                Debug.LogWarning("Target Selection Enable");
 
-        //        this.InspectionGameObject.SetActive(true);
-        //        this.InspectionGameObject.SetActive(true);
-        //        break;
-        //    case CommandUIBehaviourStates.Default:
-        //        Debug.LogWarning("Default Enable");
-
-
-        //        this.InspectionGameObject.SetActive(true);
-        //        this.UnitImageHealthWrapperGameObject.SetActive(true);
-        //        break;
-
-        //    default:
-        //        Debug.LogWarning("Default Enable");
+                this.InspectionGameObject.SetActive(true);
+                this.TargetSelectionGameObject.SetActive(true);
+                break;
+            case CommandUIBehaviourStates.Default:
+                Debug.LogWarning("Default Enable");
 
 
-        //        this.InspectionGameObject.SetActive(true);
-        //        this.UnitImageHealthWrapperGameObject.SetActive(true);
-        //        break;
-               
-        //}
+                this.InspectionGameObject.SetActive(true);
+                this.UnitImageHealthWrapperGameObject.SetActive(true);
+                break;
+
+            default:
+                Debug.LogWarning("Default Enable");
+
+
+                this.InspectionGameObject.SetActive(true);
+                this.UnitImageHealthWrapperGameObject.SetActive(true);
+                break;
+
+        }
     }
 }
