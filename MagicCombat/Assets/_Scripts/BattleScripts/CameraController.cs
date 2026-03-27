@@ -5,6 +5,17 @@ using UnityEngine.Rendering.Universal;
 
 public class CameraController : MonoBehaviour
 {
+    private static CameraController instance;
+    public static CameraController Instance { get { return instance; }
+        set
+        {
+            if (instance == null)
+            {
+                instance = value;
+            }
+        }
+    }
+
     UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
     GameObject cameraGameObject;
@@ -27,55 +38,72 @@ public class CameraController : MonoBehaviour
     private const int VERTICAL_FOV = 60, ANIMATE_DURATION = 1;
     private bool isAnimating;
 
-    private void Initalise()
-    {
-        Object cameraObject = FindFirstObjectByType(typeof(Camera));
-        if (cameraObject == null)
-        {
-            this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UniversalAdditionalCameraData));
-
-            this.sceneCamera = this.cameraGameObject.GetComponent<Camera>();
-
-            this.URP_CameraData = this.cameraGameObject.GetComponent<UniversalAdditionalCameraData>();
-            this.URP_CameraData.renderPostProcessing = true;
-
-            /*  Create the camera cover used in camera animations.  */
-            GameObject camCover = new("CameraCover", typeof(SpriteRenderer));
-            this.cameraCoverSprite = camCover.GetComponent<SpriteRenderer>();  
-            
-            /*  Attach the cover to the Camera GameObject as a child    */
-            this.cameraCoverSprite.gameObject.transform.SetParent(this.cameraGameObject.transform);
-
-            /*  Set the position and scale of the cover.    */
-            this.cameraCoverSprite.transform.localScale = new Vector3(10, 10, 10);
-            this.cameraCoverSprite.transform.localPosition = new Vector3(0, 0, 1);
-        }
-        else
-        {
-            this.cameraGameObject = cameraObject.GameObject();
-            this.sceneCamera = cameraObject.GetComponent<Camera>();
-
-            if(cameraObject.GameObject().TryGetComponent(out UniversalAdditionalCameraData cameraData))
-            {
-                this.URP_CameraData = cameraData;
-            }
-
-            if (this.cameraGameObject.transform.GetChild(0).TryGetComponent(out SpriteRenderer sprRender))
-            {
-                this.cameraCoverSprite = sprRender;
-            }
-        }
-    }
+    #region Initalisation
     private void Awake()
     {
         Initalise();
-        
-    }
-
-    private void Start()
-    {
         SetCameraIndex(0);
     }
+    private void Initalise()
+    {
+        InitaliseSingleton();
+
+        Object cameraObject = FindFirstObjectByType(typeof(Camera));
+        if (cameraObject == null)
+        {
+            CreateCameraObject();
+            CreateCameraCoverObject();
+        }
+        else
+        {
+            FindCameraAndCoverInScene(cameraObject);
+        }
+    }
+
+    private void InitaliseSingleton()
+    {
+        instance = this;
+    }
+    private void CreateCameraObject()
+    {
+        this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UniversalAdditionalCameraData));
+
+        this.sceneCamera = this.cameraGameObject.GetComponent<Camera>();
+
+        this.URP_CameraData = this.cameraGameObject.GetComponent<UniversalAdditionalCameraData>();
+        this.URP_CameraData.renderPostProcessing = true;
+    }
+
+    private void CreateCameraCoverObject()
+    {
+        /*  Create the camera cover used in camera animations.  */
+        GameObject camCover = new("CameraCover", typeof(SpriteRenderer));
+        this.cameraCoverSprite = camCover.GetComponent<SpriteRenderer>();
+
+        /*  Attach the cover to the Camera GameObject as a child    */
+        this.cameraCoverSprite.gameObject.transform.SetParent(this.cameraGameObject.transform);
+
+        /*  Set the position and scale of the cover.    */
+        this.cameraCoverSprite.transform.localScale = new Vector3(10, 10, 10);
+        this.cameraCoverSprite.transform.localPosition = new Vector3(0, 0, 1);
+    }
+    private void FindCameraAndCoverInScene(Object cameraObject)
+    {
+        this.cameraGameObject = cameraObject.GameObject();
+        this.sceneCamera = cameraObject.GetComponent<Camera>();
+
+        if (cameraObject.GameObject().TryGetComponent(out UniversalAdditionalCameraData cameraData))
+        {
+            this.URP_CameraData = cameraData;
+        }
+
+        if (this.cameraGameObject.transform.GetChild(0).TryGetComponent(out SpriteRenderer sprRender))
+        {
+            this.cameraCoverSprite = sprRender;
+        }
+    }
+
+    #endregion
 
     private void Update()
     {
@@ -89,6 +117,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    #region Camera Animation
     private async Task AnimateCameraFadeInOut(bool isFadingIn)
     {
         if(this.isAnimating) { return; }    
@@ -128,8 +157,9 @@ public class CameraController : MonoBehaviour
         return;
     }
 
+    #endregion
 
-    private async Task IncrementCameraIndex()
+    public async Task IncrementCameraIndex()
     {
         if (this.isAnimating) { return; }
 
@@ -142,7 +172,7 @@ public class CameraController : MonoBehaviour
 
         await AnimateCameraFadeInOut(false);
     }
-    private async Task DecrementCameraIndex()
+    public async Task DecrementCameraIndex()
     {
         if (this.isAnimating) { return; }
 
