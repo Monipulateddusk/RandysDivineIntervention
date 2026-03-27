@@ -1,75 +1,60 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine.Rendering.Universal;
 
 public class CameraController : MonoBehaviour
 {
-    [Header("Inspector Variables")]
-    [SerializeField] List<Transform> battlePositions = new List<Transform>();
+    GameObject cameraGameObject;
+    private readonly Vector3[] CameraPositions =
+    {
+        new (  -7,  6,  -9),
+        new (   8,  6,  -3),
+        new (   5,  7,   4),
+        new (  -8,  9,  -3),
+    };
+    private readonly Vector3[] CameraRotations =
+{
+        new (  30,   50,  0),
+        new (  40,  -90,  0),
+        new (  40,  -150, 0),
+        new (  45,  -270, 0),
+    };
+    private int currentCameraIndex;
 
-    Quaternion originalLocalRot;
-    Camera cam;
-    int index = 0;
-
+    private void Initalise()
+    {
+        Object cameraObject = FindFirstObjectByType(typeof(Camera));
+        if (cameraObject == null)
+        {
+            this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UniversalAdditionalCameraData));
+            UniversalAdditionalCameraData camComp = this.cameraGameObject.GetComponent<UniversalAdditionalCameraData>();
+            camComp.renderPostProcessing = true;
+        }
+        else
+        {
+            this.cameraGameObject = cameraObject.GameObject();    
+        }
+    }
     private void Awake()
     {
-        originalLocalRot = transform.rotation;
-        cam = Camera.main;
+        Initalise();
+        
     }
 
-    private void Update()
+    private void Start()
     {
-        if (Input.GetKeyUp(KeyCode.L))
+        currentCameraIndex = 0;
+        SetCameraPosition();
+    }
+
+    void SetCameraPosition()
+    {
+        if(this.cameraGameObject == null) { return; }
+        if(this.CameraPositions.Length != this.CameraRotations.Length) { return; }
+
+        if (currentCameraIndex < (CameraPositions.Length -1))
         {
-            MoveCameraToTransform(battlePositions[index]);
-            index++;
-            if(index >= 6)
-            {
-                index = 0;
-            }
+            this.cameraGameObject.transform.SetPositionAndRotation(this.CameraPositions[currentCameraIndex], Quaternion.Euler(this.CameraRotations[currentCameraIndex]));
         }
-        if (Input.GetKeyUp(KeyCode.R))
-        {
-            MoveCameraBackToOrigin();
-        }
- 
-    }
-    IEnumerator MoveCameraToTarget(Quaternion rot)
-    {
-        const float DURATION = 1f;
-        float timer = 0.0f;
-
-        while(timer < DURATION)
-        {
-            float v = timer / DURATION;
-
-            // Set the rotation over time so it is not a snap
-            cam.transform.rotation = Quaternion.Lerp(transform.rotation, rot, v);
-
-
-            timer += Time.deltaTime;
-            yield return null;
-        }
-    }
-
-
-    public void MoveCameraToTransform(Transform target)
-    {
-        // Calculate the target rot based on the transform of the camera and the target
-        Vector3 relativePos = target.localPosition - transform.position;
-        Quaternion rot = Quaternion.LookRotation(relativePos);
-
-        StartCoroutine(MoveCameraToTarget(rot));
-        cam.fieldOfView = 40;
-    }
-
-    public void MoveCameraBackToOrigin()
-    {
-        StartCoroutine(MoveCameraToTarget(originalLocalRot));
-
-        // Reset FOV back to 60
-        cam.fieldOfView = 60;
     }
 }
