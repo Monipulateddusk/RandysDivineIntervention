@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
 public class CameraController : MonoBehaviour
 {
     private static CameraController instance;
-    public static CameraController Instance { get { return instance; }
+    public static CameraController Instance
+    {
+        get { return instance; }
         set
         {
             if (instance == null)
@@ -16,7 +17,7 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    UniversalAdditionalCameraData URP_CameraData;
+    UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
     GameObject cameraGameObject;
     SpriteRenderer cameraCoverSprite;
@@ -34,7 +35,7 @@ public class CameraController : MonoBehaviour
         new (  40,  -150, 0),
         new (  45,  -270, 0),
     };
-    private int currentCameraIndex;
+    public int currentCameraIndex { get; private set; }
     private const int VERTICAL_FOV = 60, ANIMATE_DURATION = 1;
     private bool isAnimating;
 
@@ -66,11 +67,11 @@ public class CameraController : MonoBehaviour
     }
     private void CreateCameraObject()
     {
-        this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UniversalAdditionalCameraData));
+        this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UnityEngine.Rendering.Universal.UniversalAdditionalCameraData));
 
         this.sceneCamera = this.cameraGameObject.GetComponent<Camera>();
 
-        this.URP_CameraData = this.cameraGameObject.GetComponent<UniversalAdditionalCameraData>();
+        this.URP_CameraData = this.cameraGameObject.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
         this.URP_CameraData.renderPostProcessing = true;
     }
 
@@ -92,7 +93,7 @@ public class CameraController : MonoBehaviour
         this.cameraGameObject = cameraObject.GameObject();
         this.sceneCamera = cameraObject.GetComponent<Camera>();
 
-        if (cameraObject.GameObject().TryGetComponent(out UniversalAdditionalCameraData cameraData))
+        if (cameraObject.GameObject().TryGetComponent(out UnityEngine.Rendering.Universal.UniversalAdditionalCameraData cameraData))
         {
             this.URP_CameraData = cameraData;
         }
@@ -109,18 +110,18 @@ public class CameraController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Keypad6))
         {
-           _ = IncrementCameraIndex();
+            _ = IncrementCameraIndex();
         }
         if (Input.GetKeyDown(KeyCode.Keypad4))
         {
-           _ = DecrementCameraIndex();
+            _ = DecrementCameraIndex();
         }
     }
 
     #region Camera Animation
     private async Task AnimateCameraFadeInOut(bool isFadingIn)
     {
-        if(this.isAnimating) { return; }    
+        if (this.isAnimating) { return; }
         this.isAnimating = true;
 
         /*  Set local variables based on if we are fading out.    */
@@ -164,7 +165,7 @@ public class CameraController : MonoBehaviour
         if (this.isAnimating) { return; }
 
         int index = this.currentCameraIndex + 1;
-        if(index > this.CameraPositions.Length - 1) { index = 0; }
+        if (index > this.CameraPositions.Length - 1) { index = 0; }
 
         await AnimateCameraFadeInOut(true);
 
@@ -191,15 +192,15 @@ public class CameraController : MonoBehaviour
     {
         if (currentCameraIndex == index) return;
         if (index > this.CameraPositions.Length - 1) { return; }
-        
+
         currentCameraIndex = index;
         SetCameraPosition();
     }
 
     void SetCameraPosition()
     {
-        if(this.cameraGameObject == null) { return; }
-        if(this.CameraPositions.Length != this.CameraRotations.Length) { return; }
+        if (this.cameraGameObject == null) { return; }
+        if (this.CameraPositions.Length != this.CameraRotations.Length) { return; }
 
         if (currentCameraIndex < (CameraPositions.Length))
         {

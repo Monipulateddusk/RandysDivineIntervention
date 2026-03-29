@@ -214,7 +214,7 @@ public class UnitSelectorManager : MonoBehaviour
         }
     }
 
-    private void IncrementIndex()
+    public void IncrementIndex()
     {
         // Get the current index
         FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
@@ -251,7 +251,7 @@ public class UnitSelectorManager : MonoBehaviour
         else { return; }
     }
 
-    private void DecrementIndex()
+    public void DecrementIndex()
     {
         // Get the current index
         FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
@@ -307,18 +307,6 @@ public class UnitSelectorManager : MonoBehaviour
             }
         }
         return null;
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            DecrementIndex();
-        }
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            IncrementIndex();
-        }
     }
 
     public UnitIndex? GetSelectedStationUnit()
