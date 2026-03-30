@@ -26,4 +26,7 @@ public class UICollection_SO : ScriptableObject
 
     [Header("Window Manager UI")]
     public GameObject WindowManagerPrefab;
+
+    [Header("Selector Manager UI")]
+    public GameObject SelectorManagerPrefab;
 }

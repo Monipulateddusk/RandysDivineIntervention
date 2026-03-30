@@ -12,6 +12,6 @@ public class WindowManager : MonoBehaviour
     }
     public void OnCameraControllerButtonClicked()
     {
-        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.DialogueBox, new Vector2(600, 200), new Vector2(300, 400));
+        UserInterfaceManager.Instance.GetTaskBarManager().AddWindow(WindowType.Selector, new Vector2(600, 200), new Vector2(300, 400));
     }
 }

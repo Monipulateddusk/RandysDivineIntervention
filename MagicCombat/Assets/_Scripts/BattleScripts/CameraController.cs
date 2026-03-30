@@ -16,7 +16,7 @@ public class CameraController : MonoBehaviour
             }
         }
     }
-
+    UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
     GameObject cameraGameObject;
@@ -35,8 +35,13 @@ public class CameraController : MonoBehaviour
         new (  40,  -150, 0),
         new (  45,  -270, 0),
     };
-    public int currentCameraIndex { get; private set; }
-    private const int VERTICAL_FOV = 60, ANIMATE_DURATION = 1;
+    public int CurrentCameraIndex { get; private set; }
+    private const int VERTICAL_FOV = 60;
+    [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
+    [SerializeField] Sprite[] cameraStaticSprites;
+    [SerializeField] Color cameraStaticColor;
+    enum CameraAnimType { Fade, Shift, Static}
+    [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
     private bool isAnimating;
 
     #region Initalisation
@@ -57,7 +62,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            FindCameraAndCoverInScene(cameraObject);
+            FindCameraInfoInScene(cameraObject);
         }
     }
 
@@ -67,11 +72,12 @@ public class CameraController : MonoBehaviour
     }
     private void CreateCameraObject()
     {
-        this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UnityEngine.Rendering.Universal.UniversalAdditionalCameraData));
+        this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UnityEngine.Rendering.Universal.UniversalAdditionalCameraData), typeof(UnityEngine.Rendering.Volume));
 
         this.sceneCamera = this.cameraGameObject.GetComponent<Camera>();
 
         this.URP_CameraData = this.cameraGameObject.GetComponent<UnityEngine.Rendering.Universal.UniversalAdditionalCameraData>();
+        this.cameraLocalisedVolume = this.cameraGameObject.GetComponent<UnityEngine.Rendering.Volume>();
         this.URP_CameraData.renderPostProcessing = true;
     }
 
@@ -88,19 +94,26 @@ public class CameraController : MonoBehaviour
         this.cameraCoverSprite.transform.localScale = new Vector3(10, 10, 10);
         this.cameraCoverSprite.transform.localPosition = new Vector3(0, 0, 1);
     }
-    private void FindCameraAndCoverInScene(Object cameraObject)
+    private void FindCameraInfoInScene(Object cameraObject)
     {
         this.cameraGameObject = cameraObject.GameObject();
         this.sceneCamera = cameraObject.GetComponent<Camera>();
 
+        // Get the URP Data
         if (cameraObject.GameObject().TryGetComponent(out UnityEngine.Rendering.Universal.UniversalAdditionalCameraData cameraData))
         {
             this.URP_CameraData = cameraData;
         }
 
+        // Get the sprite renderer for the cover
         if (this.cameraGameObject.transform.GetChild(0).TryGetComponent(out SpriteRenderer sprRender))
         {
             this.cameraCoverSprite = sprRender;
+        }
+        
+        // Get the localised Rendering volume for PostProcessing
+        if(this.cameraGameObject.TryGetComponent(out UnityEngine.Rendering.Volume volume)){
+            this.cameraLocalisedVolume = volume;
         }
     }
 
@@ -153,47 +166,140 @@ public class CameraController : MonoBehaviour
 
         /*  Once we are done animating, set the values in the event of any floating points. */
         this.isAnimating = false;
-        this.cameraCoverSprite.color = new(0f, 0f, 0f, colorAlphaEnd);
+       // this.cameraCoverSprite.color = new(0f, 0f, 0f, colorAlphaEnd);
         this.sceneCamera.fieldOfView = fieldOfViewEnd;
         return;
     }
 
+    private async Task AnimateCameraMoveToNextPosition(Vector3 currentPosition, Vector3 nextPosition, Vector3 currentRotation, Vector3 nextRotation)
+    {
+        if (this.isAnimating) { return; }
+        this.isAnimating = true;
+
+        float startTime = Time.time;
+        while (Time.time < startTime + ANIMATE_DURATION)
+        {
+            float t = (Time.time - startTime) / ANIMATE_DURATION;
+
+            /*  Next incremental rotation and position values.  */
+            Vector3 pos = new(
+                Mathf.Lerp(currentPosition.x, nextPosition.x, t), 
+                Mathf.Lerp(currentPosition.y, nextPosition.y, t), 
+                Mathf.Lerp(currentPosition.z, nextPosition.z, t)
+                            );
+            Vector3 rot = new(
+                Mathf.Lerp(currentRotation.x, nextRotation.x, t),
+                Mathf.Lerp(currentRotation.y, nextRotation.y, t),
+                Mathf.Lerp(currentRotation.z, nextRotation.z, t)
+                            );
+
+            this.cameraGameObject.transform.SetPositionAndRotation(pos, Quaternion.Euler(rot));
+
+            await Task.Yield();
+        }
+
+        /*  Once we are done animating, set the values in the event of any floating points. */
+        this.isAnimating = false;
+        this.cameraGameObject.transform.SetPositionAndRotation(nextPosition, Quaternion.Euler(nextRotation));
+        return;
+    }
+
+    private async Task AnimateCameraStatic()
+    {
+        if(this.cameraStaticSprites == null || this.cameraStaticSprites.Length == 0) { return; }
+        if (this.isAnimating) { return; }
+        this.isAnimating = true;
+        this.cameraCoverSprite.color = cameraStaticColor;
+
+        float startTime = Time.time;
+        while (Time.time < startTime + ANIMATE_DURATION)
+        {
+            float t = (Time.time - startTime) / ANIMATE_DURATION;
+
+            int frame = Mathf.Min(Mathf.FloorToInt(t / 0.15f), this.cameraStaticSprites.Length - 1);
+            this.cameraCoverSprite.sprite = this.cameraStaticSprites[frame];
+
+            await Task.Yield();
+        }
+
+        /*  Once we are done animating, set the values in the event of any floating points. */
+        this.isAnimating = false;
+        this.cameraCoverSprite.color = new(0,0,0,0);
+
+        return;
+    }
     #endregion
 
     public async Task IncrementCameraIndex()
     {
         if (this.isAnimating) { return; }
 
-        int index = this.currentCameraIndex + 1;
+        int index = this.CurrentCameraIndex + 1;
         if (index > this.CameraPositions.Length - 1) { index = 0; }
 
-        await AnimateCameraFadeInOut(true);
+        if (isFadingInAndOut == CameraAnimType.Fade)
+        {
+            await AnimateCameraFadeInOut(true);
 
-        SetCameraIndex(index);
+            SetCameraIndex(index);
 
-        await AnimateCameraFadeInOut(false);
+            await AnimateCameraFadeInOut(false);
+        }
+        else if(isFadingInAndOut == CameraAnimType.Shift)
+        {
+            Vector3 curPos  = this.CameraPositions[this.CurrentCameraIndex];
+            Vector3 nextPos = this.CameraPositions[index];
+            Vector3 curRot  = this.CameraRotations[this.CurrentCameraIndex];
+            Vector3 nextRot = this.CameraRotations[index];
+
+            await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
+            SetCameraIndex(index);
+        }
+        else
+        {
+            SetCameraIndex(index);
+            await AnimateCameraStatic();
+        }
     }
     public async Task DecrementCameraIndex()
     {
         if (this.isAnimating) { return; }
 
-        int index = this.currentCameraIndex - 1;
+        int index = this.CurrentCameraIndex - 1;
         if (index < 0) { index = this.CameraPositions.Length - 1; }
 
-        await AnimateCameraFadeInOut(true);
+        if (isFadingInAndOut == CameraAnimType.Fade)
+        {
+            await AnimateCameraFadeInOut(true);
 
-        SetCameraIndex(index);
+            SetCameraIndex(index);
 
-        await AnimateCameraFadeInOut(false);
+            await AnimateCameraFadeInOut(false);
+        }
+        else if (isFadingInAndOut == CameraAnimType.Shift)
+        {
+            Vector3 curPos = this.CameraPositions[this.CurrentCameraIndex];
+            Vector3 nextPos = this.CameraPositions[index];
+            Vector3 curRot = this.CameraRotations[this.CurrentCameraIndex];
+            Vector3 nextRot = this.CameraRotations[index];
+
+            await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
+            SetCameraIndex(index);
+        }
+        else
+        {
+            SetCameraIndex(index);
+            await AnimateCameraStatic();
+        }
     }
 
 
     private void SetCameraIndex(int index)
     {
-        if (currentCameraIndex == index) return;
+        if (CurrentCameraIndex == index) return;
         if (index > this.CameraPositions.Length - 1) { return; }
 
-        currentCameraIndex = index;
+        CurrentCameraIndex = index;
         SetCameraPosition();
     }
 
@@ -202,9 +308,9 @@ public class CameraController : MonoBehaviour
         if (this.cameraGameObject == null) { return; }
         if (this.CameraPositions.Length != this.CameraRotations.Length) { return; }
 
-        if (currentCameraIndex < (CameraPositions.Length))
+        if (CurrentCameraIndex < (CameraPositions.Length))
         {
-            this.cameraGameObject.transform.SetPositionAndRotation(this.CameraPositions[currentCameraIndex], Quaternion.Euler(this.CameraRotations[currentCameraIndex]));
+            this.cameraGameObject.transform.SetPositionAndRotation(this.CameraPositions[CurrentCameraIndex], Quaternion.Euler(this.CameraRotations[CurrentCameraIndex]));
         }
     }
 }

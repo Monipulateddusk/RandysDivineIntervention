@@ -12,7 +12,8 @@ public enum WindowType
     Options,
     DialogueBox,
     Inspection,
-    WindowManager
+    WindowManager,
+    Selector
 }
 public static class UIWindowFactory
 {
@@ -43,6 +44,9 @@ public static class UIWindowFactory
             case WindowType.WindowManager:
                 pair = CreateWindowManagerBox(uiPrefabData, windowParent, widgetParent, index, position, size);
                 break;
+            case WindowType.Selector:
+                pair = CreateSelectorBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                break;
             default:
                 pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size); 
                 break;
@@ -52,6 +56,34 @@ public static class UIWindowFactory
             Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
         }
         return pair.Value;
+    }
+
+    private static GameObject CreateSelectorManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+    {
+        return GameObject.Instantiate(uiPrefabData.SelectorManagerPrefab, parent);
+    }
+
+    private static DialogueBoxWidgetPair? CreateSelectorBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    {
+        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+        /*  Assign it's minimisable information and Size.    */
+        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        {
+            dBB.SetDialogueBoxName("Selector Manager");
+            dBB.Resize(size);
+            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+            GameObject instanciatedWindowManagerAddon = CreateSelectorManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+            if (instanciatedWindowManagerAddon != null)
+            {
+                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+            }
+            // If we failed, return null.   
+            return null;
+        }
+        return null;
     }
 
     private static GameObject CreateWindowManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)

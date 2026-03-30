@@ -380,7 +380,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Camera Manager
+  m_text: Selector Manager
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1c35ffb5add2d8045b578f5ee0206a91, type: 2}
   m_sharedMaterial: {fileID: -5110106324484608386, guid: 1c35ffb5add2d8045b578f5ee0206a91, type: 2}

@@ -68,7 +68,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
     private void SetTextElementText()
     {
         string stateText  = "Camera";
-        string numberText = CameraController.Instance.currentCameraIndex.ToString();
+        string numberText = CameraController.Instance.CurrentCameraIndex.ToString();
 
         /*  Override the strings if we are in Unit Selection.   */
         if (currentSelectionState == SelectionWindowState.Units)
