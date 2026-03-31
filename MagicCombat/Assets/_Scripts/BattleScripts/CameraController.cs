@@ -19,6 +19,7 @@ public class CameraController : MonoBehaviour
     UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
+    [SerializeField]Camera blendCamera;
     GameObject cameraGameObject;
     SpriteRenderer cameraCoverSprite;
     private readonly Vector3[] CameraPositions =
