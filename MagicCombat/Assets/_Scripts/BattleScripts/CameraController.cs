@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,7 +22,6 @@ public class CameraController : MonoBehaviour
     UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
-    [SerializeField]Camera blendCamera;
     GameObject cameraGameObject;
     SpriteRenderer cameraCoverSprite;
     private readonly Vector3[] CameraPositions =
@@ -38,17 +40,43 @@ public class CameraController : MonoBehaviour
     };
     public int CurrentCameraIndex { get; private set; }
     private const int VERTICAL_FOV = 60;
+    [SerializeField] RawImage GameScreen;
+    [SerializeField] VolumeProfile volumeProfile;
+
+    [SerializeField, Range(0, 100)] float horizontalShake, VerticalShake; 
+
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    enum CameraAnimType { Fade, Shift, Static}
+    enum CameraAnimType { Fade, Shift, Static, Shader}
     [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
     private bool isAnimating;
+
+    #region Shader
+    ChromaticAberration volumeChromaticAberration;
+    DepthOfField volumeDepthOfField;
+
+    private void InitialiseShader()
+    {
+        if (this.volumeProfile == null) { return; }
+        
+        if(this.volumeProfile.TryGet(out ChromaticAberration chromaticAberration))
+        {
+            this.volumeChromaticAberration = chromaticAberration;
+        }
+        if(this.volumeProfile.TryGet(out DepthOfField depthOfField))
+        {
+            this.volumeDepthOfField = depthOfField;
+        }
+    }
+
+    #endregion
 
     #region Initalisation
     private void Awake()
     {
         Initalise();
+        InitialiseShader();
         SetCameraIndex(0);
     }
     private void Initalise()
@@ -229,6 +257,73 @@ public class CameraController : MonoBehaviour
 
         return;
     }
+    private async Task AnimateCameraShader(Material shaderMaterial)
+    {
+        if (this.isAnimating) { return; }
+        this.isAnimating = true;
+
+        /*  Enable the postprocessing effects and reset them.   */
+        this.volumeChromaticAberration.active = true;
+        this.volumeChromaticAberration.intensity.Override(0);
+        this.volumeDepthOfField.active = true;
+        this.volumeDepthOfField.focalLength.Override(0);
+
+        float startTime = Time.time;
+        while (Time.time < startTime + ANIMATE_DURATION)
+        {
+            float t = (Time.time - startTime) / ANIMATE_DURATION;
+
+            int frame = Mathf.Min(Mathf.FloorToInt(t / 0.1f), 10);
+
+    
+
+            // over the course of 0-0.3, add the chromatic aberration and dept of field
+            if (frame < 3)
+            {
+                float normalisation = (t - 0) / (0.3f - 0);
+
+  
+
+                this.volumeChromaticAberration.intensity.Override(normalisation);
+                this.volumeDepthOfField.focalLength.Override(180.0f / normalisation);
+
+                await Task.Yield();
+            }
+            else if(frame < 6)
+            {
+                this.GameScreen.rectTransform.anchoredPosition = new()
+                {
+                    x = Mathf.Sin(Time.time * horizontalShake) * 3f,
+                    y = Mathf.Cos(Time.time * VerticalShake) * 3f
+                };
+
+                await Task.Yield();
+            }
+            else
+            {
+                float normalisation = (t - 0.3f) / (0.6f - 0.3f);
+
+                this.volumeChromaticAberration.intensity.Override(normalisation);
+                this.volumeDepthOfField.focalLength.Override(180.0f / normalisation);
+
+                await Task.Yield();
+            }
+        }
+
+        /*  Once we are done animating, set the values in the event of any floating points. */
+        this.isAnimating = false;
+
+        this.volumeChromaticAberration.active = false;
+        this.volumeDepthOfField.active = false;
+
+        this.GameScreen.rectTransform.anchoredPosition = new()
+        {
+            x = 0,
+            y = 0
+        };
+
+        return;
+    }
     #endregion
 
     public async Task IncrementCameraIndex()
@@ -256,10 +351,17 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else
+        else if (isFadingInAndOut == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();
+        }
+        else if (isFadingInAndOut == CameraAnimType.Shader)
+        {
+            SetCameraIndex(index);
+
+            Material blendShaderMaterial = this.GameScreen.material;
+            await AnimateCameraShader(blendShaderMaterial);
         }
     }
     public async Task DecrementCameraIndex()
@@ -287,13 +389,19 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else
+        else if (isFadingInAndOut == CameraAnimType.Static)
         {
             SetCameraIndex(index);
-            await AnimateCameraStatic();
+            await AnimateCameraStatic();            
+        }
+        else if(isFadingInAndOut == CameraAnimType.Shader)
+        {
+            SetCameraIndex(index);
+
+            //Material blendShaderMaterial = this.GameScreen.material;
+            //await AnimateCameraShader(blendShaderMaterial);
         }
     }
-
 
     private void SetCameraIndex(int index)
     {
