@@ -589,7 +589,7 @@ public class StationManager
         return new SceneData_UnitTurn(sourceUnitIndex, allyStationIndexes, enemyStationIndexes);
     }
     /// <summary>
-    /// This is called by the Concrete Mediator to take what Units we have Created and to deploy them in order of station index per their team. 
+    /// This takes all created units and assigns them their station index if they are null. We could consider adding a keyword or something to a Unit to determine if it stays in resurve until later.  
     /// </summary>
     public void DeployUnitsForStartOfBattle()
     {
