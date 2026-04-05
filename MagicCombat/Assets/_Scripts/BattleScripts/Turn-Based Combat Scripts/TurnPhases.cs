@@ -24,15 +24,21 @@ public class BeginRoundPhase : Phase
 
     public override void OnEnter()
     {
-        /*  Check if the Turn-Order List is empty. If not, we don't want to be here.    */
-        if (ConcreteMediator.GetTurnOrderList().Count > 0)
+        /*  If the turn order list is not empty, move past here.    */
+        if (ConcreteMediator.GetTurnOrderList().Count < 0)
         {
             ConcreteMediator.ChangeToNextStateInOrder();
             return;
         }
 
         /*  When we enter this phase, we want to create the Turn Order List awaiting any Tasks that need to be done from external classes.  */
-        ConcreteMediator.CreateTurnOrderList();
+        this.ConcreteMediator.CreateTurnOrderList();
+
+        /*  If the turn order list is less than 0 because there is not enough units to make a turn order with. Stop!!!! */
+        if (this.ConcreteMediator.GetTurnOrderList().Count >= 0)
+        {
+            return;
+        }
 
         /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
 
@@ -143,18 +149,19 @@ public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
     public UnitTurnPhase_MoveSelection(BattleMediator concreteMediator, UnitTurnPhase UnitTurnPhase_main, UnitIndex currentUnit) : base(concreteMediator, UnitTurnPhase_main, currentUnit)
     {
     }
+    
 
     public override void OnEnter()
     {
         /*  Get the Current Unit's Move Selection Intention.    */
-        SceneData_UnitTurn sceneData = ConcreteMediator.GetCombatSceneDataForSourceUnitIndex(currentUnitIndex);
-        MoveSelectionData moveSelectionData = ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).GetMoveSelectorComponent().SelectMove(sceneData);
+        //SceneData_UnitTurn sceneData = ConcreteMediator.GetCombatSceneDataForSourceUnitIndex(currentUnitIndex);
+        //MoveSelectionData moveSelectionData = ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).GetMoveSelectorComponent().SelectMove(sceneData);
 
-        if (moveSelectionData.SelectedMove != null)
-        {
+        //if (moveSelectionData.SelectedMove != null)
+        //{
 
-            MonoBehaviour.print("Unit of name: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name + " has chosen move: " + moveSelectionData.SelectedMove.ToString());
-        }
+        //    MonoBehaviour.print("Unit of name: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name + " has chosen move: " + moveSelectionData.SelectedMove.ToString());
+        //}
     }
 
     public override void OnExit()
@@ -231,7 +238,6 @@ public class UnitTurnPhase : Phase
     private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
     private MAIN_TURN_STATE currentState = new();
 
-    private SceneData_UnitTurn currentCombatSceneData = new();
     UnitIndex currentUnitIndex;
 
     public UnitTurnPhase(BattleMediator concreteMediator) : base(concreteMediator)

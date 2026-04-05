@@ -1,6 +1,9 @@
 using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,7 +22,7 @@ public class CameraController : MonoBehaviour
     UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
-    GameObject cameraGameObject;
+    [SerializeField]GameObject cameraGameObject, blendCameraGameObject;
     SpriteRenderer cameraCoverSprite;
     private readonly Vector3[] CameraPositions =
     {
@@ -36,25 +39,54 @@ public class CameraController : MonoBehaviour
         new (  45,  -270, 0),
     };
     public int CurrentCameraIndex { get; private set; }
-    private const int VERTICAL_FOV = 60;
+    private const int VERTICAL_FOV = 60, SCREEN_SHAKE_INTENSITY = 2;
+    [SerializeField] RawImage GameScreen;
+    [SerializeField] VolumeProfile volumeProfile;
+    [SerializeField] Material shaderMaterial;
+
+    [SerializeField, Range(0, 100)] float horizontalShake, VerticalShake; 
+
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    enum CameraAnimType { Fade, Shift, Static}
+    enum CameraAnimType { Fade, Shift, Static, Shader}
     [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
     private bool isAnimating;
+
+    #region Shader
+    ChromaticAberration volumeChromaticAberration;
+    DepthOfField volumeDepthOfField;
+
+    private void InitialiseShader()
+    {
+        if (this.volumeProfile == null) { return; }
+        
+        if(this.volumeProfile.TryGet(out ChromaticAberration chromaticAberration))
+        {
+            this.volumeChromaticAberration = chromaticAberration;
+        }
+        if(this.volumeProfile.TryGet(out DepthOfField depthOfField))
+        {
+            this.volumeDepthOfField = depthOfField;
+        }
+
+        this.shaderMaterial = this.GameScreen.material;
+    }
+
+    #endregion
 
     #region Initalisation
     private void Awake()
     {
         Initalise();
+        InitialiseShader();
         SetCameraIndex(0);
     }
     private void Initalise()
     {
         InitaliseSingleton();
 
-        Object cameraObject = FindFirstObjectByType(typeof(Camera));
+        UnityEngine.Object cameraObject = FindFirstObjectByType(typeof(Camera));
         if (cameraObject == null)
         {
             CreateCameraObject();
@@ -94,7 +126,7 @@ public class CameraController : MonoBehaviour
         this.cameraCoverSprite.transform.localScale = new Vector3(10, 10, 10);
         this.cameraCoverSprite.transform.localPosition = new Vector3(0, 0, 1);
     }
-    private void FindCameraInfoInScene(Object cameraObject)
+    private void FindCameraInfoInScene(UnityEngine.Object cameraObject)
     {
         this.cameraGameObject = cameraObject.GameObject();
         this.sceneCamera = cameraObject.GetComponent<Camera>();
@@ -228,6 +260,135 @@ public class CameraController : MonoBehaviour
 
         return;
     }
+    private async Task AnimateCameraShader(int nextIndex, bool isMovingLeft)
+    {
+        if (this.isAnimating) { return; }
+        this.isAnimating = true;
+
+        /*  Enable the postprocessing effects and reset them.   */
+        this.volumeChromaticAberration.active = true;
+        this.volumeChromaticAberration.intensity.Override(0);
+        this.volumeDepthOfField.active = true;
+        this.volumeDepthOfField.focalLength.Override(0);
+
+        /*  Set the main camera to this position, set the blend camera to the next position.    */
+        SetGameObjectPosition(this.cameraGameObject, this.CameraPositions[this.CurrentCameraIndex], this.CameraRotations[this.CurrentCameraIndex]);
+        SetGameObjectPosition(this.blendCameraGameObject, this.CameraPositions[nextIndex], this.CameraRotations[nextIndex]);
+
+        float startTime = Time.time;
+        while (Time.time < startTime + ANIMATE_DURATION)
+        {
+            float t = (Time.time - startTime) / ANIMATE_DURATION;
+            float shaderNormalisation = (t - 0) / (1 - 0);
+
+            Debug.Log(shaderNormalisation);
+
+
+            int frame = Mathf.Min(Mathf.FloorToInt(t / 0.1f), 10);
+
+            /*  Set the Blend shader's blend value. */
+            this.shaderMaterial.SetFloat("_BlendModifier", shaderNormalisation);
+
+            // over the course of start-0.3, add the chromatic aberration and depth of field fade in
+            if (frame < 3)
+            {
+                float normalisation = (t - 0) / (0.3f - 0); 
+
+                this.volumeChromaticAberration.intensity.Override(normalisation);
+                this.volumeDepthOfField.focalLength.Override(180.0f / normalisation);
+
+                await Task.Yield();
+            }
+            // over the course of 0.3-0.6, Stretch the screen to the Right / Left depending on if we are incrementing or decrementing
+            else if (frame < 6)
+            {
+                // Pull to the right
+                if (isMovingLeft)
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(0, -1000, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(0, -2000, Time.deltaTime));
+                }
+                else
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(0, -2000, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(0, -1000, Time.deltaTime));
+                }
+
+                // Screen shake loosely on the Y
+                this.GameScreen.rectTransform.anchoredPosition = new()
+                {
+                    x = this.GameScreen.rectTransform.anchoredPosition.x,
+                    y = Mathf.Cos(Time.time * VerticalShake) * SCREEN_SHAKE_INTENSITY
+                };
+                await Task.Yield();
+            }
+            else if(frame < 8)
+            {
+                // Pull to the right
+                if (isMovingLeft)
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(-1000, -1400, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(-2000, -200, Time.deltaTime));
+                }
+                else
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(-2000, -200, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(-1000, -1400, Time.deltaTime));
+                }
+
+                // Screen shake loosely on the Y
+                this.GameScreen.rectTransform.anchoredPosition = new()
+                {
+                    x = this.GameScreen.rectTransform.anchoredPosition.x,
+                    y = Mathf.Cos(Time.time * VerticalShake) * SCREEN_SHAKE_INTENSITY
+                };
+                await Task.Yield();
+            }
+
+            // over the course of 0.6-end, add the chromatic aberration and depth of field fade out
+            else
+            {
+                if (isMovingLeft)
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(-1400, 0, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(-200, 0, Time.deltaTime));
+                }
+                else
+                {
+                    this.GameScreen.rectTransform.SetRight(Mathf.Lerp(-200, 0, Time.deltaTime));
+                    this.GameScreen.rectTransform.SetLeft(Mathf.Lerp(-1400, 0, Time.deltaTime));
+                }
+     
+
+
+                float normalisation = (t - 0.3f) / (0.6f - 0.3f);
+
+                this.volumeChromaticAberration.intensity.Override(normalisation);
+                this.volumeDepthOfField.focalLength.Override(180.0f / normalisation);
+
+                await Task.Yield();
+            }
+        }
+
+        /*  Once we are done animating, set the values in the event of any floating points. */
+        this.isAnimating = false;
+
+        this.volumeChromaticAberration.active = false;
+        this.volumeDepthOfField.active = false;
+
+        /*  Reset the screen shake to defaults. */
+        this.GameScreen.rectTransform.anchoredPosition = Vector2.zero;
+
+        this.GameScreen.rectTransform.SetRight(0);
+        this.GameScreen.rectTransform.SetLeft(0);
+
+
+        /*  Set main camera to the next camera position and reset the blend.    */
+        SetCameraIndex(nextIndex);
+        this.shaderMaterial.SetFloat("_BlendModifier", 0);
+
+        return;
+    }
     #endregion
 
     public async Task IncrementCameraIndex()
@@ -255,10 +416,14 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else
+        else if (isFadingInAndOut == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();
+        }
+        else if (isFadingInAndOut == CameraAnimType.Shader)
+        {
+            await AnimateCameraShader(index, false);
         }
     }
     public async Task DecrementCameraIndex()
@@ -286,20 +451,23 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else
+        else if (isFadingInAndOut == CameraAnimType.Static)
         {
             SetCameraIndex(index);
-            await AnimateCameraStatic();
+            await AnimateCameraStatic();            
+        }
+        else if(isFadingInAndOut == CameraAnimType.Shader)
+        {
+            await AnimateCameraShader(index, true);
         }
     }
-
 
     private void SetCameraIndex(int index)
     {
         if (CurrentCameraIndex == index) return;
         if (index > this.CameraPositions.Length - 1) { return; }
 
-        CurrentCameraIndex = index;
+        this.CurrentCameraIndex = index;
         SetCameraPosition();
     }
 
@@ -312,5 +480,12 @@ public class CameraController : MonoBehaviour
         {
             this.cameraGameObject.transform.SetPositionAndRotation(this.CameraPositions[CurrentCameraIndex], Quaternion.Euler(this.CameraRotations[CurrentCameraIndex]));
         }
+    }
+
+    void SetGameObjectPosition(GameObject gameObject, Vector3 position, Vector3 rotation)
+    {
+        if (gameObject == null) { return; }
+
+        gameObject.transform.SetPositionAndRotation(position, Quaternion.Euler(rotation));
     }
 }

@@ -39,28 +39,9 @@ namespace TurnBased
         public bool requiresMovement;
     }
 
-    #region Combat Events
 
-    public class CombatEvent { }
 
-    public class CombatAttackEvent : CombatEvent
-    {
-        public AttackResolutionInfo AttackInfo { get; set; }
-        public UnitIntention IntentData { get; set; }
-
-        public CombatAttackEvent(AttackResolutionInfo attackInfo, UnitIntention intentData)
-        {
-            AttackInfo = attackInfo;
-            IntentData = intentData;
-        }
-    }
-    #endregion
-    public interface ICombatMediator
-    {
-        void NotifyConcreteMediator(BaseBattleUnit sender, CombatEvent ev);
-    }
-
-    public class BattleMediator : MonoBehaviour, ICombatMediator
+    public class BattleMediator : MonoBehaviour
     {
         private static BattleMediator instance;
         public static BattleMediator Instance
@@ -75,7 +56,7 @@ namespace TurnBased
             }
 
         }
-        private StationHandler StationHandler;
+        private StationManager StationHandler;
         [SerializeField] private List<UnitIndex> UnitIndexTurnOrderList = new();
         [SerializeField] private UnitIndex currentUnit;
 
@@ -93,10 +74,9 @@ namespace TurnBased
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
         {
             BaseBattleUnit spawnedUnit = Instantiate(objectWithUnitComponent).GetComponent<BaseBattleUnit>();
-            //  enemyUnit.SetMediator(this);
 
             /*  Initalise the Unit Slot.    */
-            this.StationHandler.AddUnit(spawnedUnit, unitTeam, new StationIndex() { Index = stationIndexValue });
+            this.StationHandler.CreateUnit(spawnedUnit);
         }
         public void CreateCombatEncounter()
         {
@@ -120,29 +100,33 @@ namespace TurnBased
             }
         }
 
-        public void CreateTurnOrderList()
+        public List<UnitIndex> CreateTurnOrderList()
         {
-            UnitIndexTurnOrderList = this.StationHandler.GetAllActiveUnits();
+            this.UnitIndexTurnOrderList = this.StationHandler.GetAllActiveUnits();
 
             /*  Sort the List so that slowest Units are processed last. */
-            UnitIndexTurnOrderList.Sort((g1, g2) => this.StationHandler.GetBattleUnitOfIndex(g1).GetBaseUnit().speed.CompareTo(this.StationHandler.GetBattleUnitOfIndex(g2).GetBaseUnit().speed));
-            UnitIndexTurnOrderList.Reverse();
+            this.UnitIndexTurnOrderList.Sort((g1, g2) => this.StationHandler.GetBattleUnitOfIndex(g1).GetBaseUnit().speed.CompareTo(this.StationHandler.GetBattleUnitOfIndex(g2).GetBaseUnit().speed));
+            this.UnitIndexTurnOrderList.Reverse();
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
+            return this.UnitIndexTurnOrderList;
         }
 
         public UnitIndex? PopNextUnitInTurnOrder()
         {
+            if(!(this.UnitIndexTurnOrderList.Count > 0)){ return null;  }
+
             currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
             UnitIndexTurnOrderList.RemoveAt(0);
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
-            return currentUnit;
+            return currentUnit;     
+   
         }
 
-        public SceneData_UnitTurn GetCombatSceneDataForSourceUnitIndex(UnitIndex sourceUnitIndex)
-        {
-            return this.StationHandler.CreateCombatSceneDataForUnitIndex(sourceUnitIndex);
-        }
+        //public SceneData_UnitTurn GetCombatSceneDataForSourceUnitIndex(UnitIndex sourceUnitIndex)
+        //{
+        //    return this.StationHandler.CreateCombatSceneDataForUnitIndex(sourceUnitIndex);
+        //}
 
         private void Awake()
         {
@@ -151,8 +135,7 @@ namespace TurnBased
 
         private void Start()
         {
-            int playerFieldSlots = 2, enemyFieldSlots = 4;
-            this.StationHandler = new StationHandler(playerFieldSlots, enemyFieldSlots);
+            this.StationHandler = new StationManager();
 
             CreateCombatEncounter();
 
@@ -206,24 +189,16 @@ namespace TurnBased
             CurrentPhase?.OnEnter();
         }
 
-        public void NotifyConcreteMediator(BaseBattleUnit sender, CombatEvent ev)
-        {
-            throw new System.NotImplementedException();
-        }
-
         #region Getter Methods
         public BaseBattleUnit GetBattleUnitOfUnitIndex(UnitIndex index) { return this.StationHandler.GetBattleUnitOfIndex(index); }
         public UnitTeam GetUnitTeamOfUnitIndex(UnitIndex index) { return this.StationHandler.GetUnitTeamOfIndex(index); }
         public StationIndex? GetStationIndexOfUnitIndex(UnitIndex index) { return this.StationHandler.GetStationOfIndex(index); }
-
-        public int GetPlayerSlotsCount() { return this.StationHandler.GetAllyStationSlots(); }
-        public int GetEnemySlotsCount() { return this.StationHandler.GetEnemyStationSlots(); }
         public UnitIndex? GetCurrentUnit() => currentUnit;
 
         public List<UnitIndex> GetTurnOrderList() { return this.UnitIndexTurnOrderList; }
 
         public List<UnitIndex> GetAllUnitsOfTeam(UnitTeam team){ return this.StationHandler.GetUnitIndexesOfTeam(team).ToList();   }
-        public List<StationIndex?> GetStations() => this.StationHandler.GetStations().ToList();
+        public List<StationIndex?> GetStations() => this.StationHandler.GetStationsIndex().ToList();
         public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex) { return this.StationHandler.GetUnitIndexOnStation(stationIndex); }
 
         #endregion
