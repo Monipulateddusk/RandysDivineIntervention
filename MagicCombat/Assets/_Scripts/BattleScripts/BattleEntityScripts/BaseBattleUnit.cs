@@ -42,8 +42,6 @@ public class BaseBattleUnit : MonoBehaviour
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
 
-    protected ICombatMediator concreteMediator;
-
     private void Awake()
     {
         /*  Get Unity Components and Attach them    */
@@ -95,11 +93,6 @@ public class BaseBattleUnit : MonoBehaviour
         }
     }
 
-    public void NotifyMediator(CombatAttackEvent ev)
-    {
-        concreteMediator?.NotifyConcreteMediator(this, ev);
-    }
-
     #region Animation Methods
 
 
@@ -120,7 +113,7 @@ public class BaseBattleUnit : MonoBehaviour
     /// </summary>
     public void OnAttackActionAnimationTrigger()
     {
-        NotifyMediator(new CombatAttackEvent(GetCombatComponent().GetCurrentAttackInformation(), unitIntentData));
+       
     }
 
 
@@ -145,8 +138,6 @@ public class BaseBattleUnit : MonoBehaviour
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
     public void SetTeam(UnitTeam team) { this.team = team; }
     public UnitTeam GetTeam() { return team; }
-
-    public void SetMediator(ICombatMediator mediator) { concreteMediator = mediator; }
 
     #endregion
 

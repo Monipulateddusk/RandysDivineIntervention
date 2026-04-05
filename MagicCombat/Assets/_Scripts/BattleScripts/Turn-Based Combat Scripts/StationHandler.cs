@@ -3,39 +3,371 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 
-[Serializable] public struct UnitIndex     {  public int Index;   }
-[Serializable] public struct StationIndex  {  public int Index;   }
+public struct UnitIndex     
+{  
+    public int Index;   
+}
 
-public struct SoA_SceneUnitData
+public struct StationIndex
 {
-    /*  These arrays will be linked per Unit. 
-     *  So Unit 1 will be Element 0 of Units.
-     *  Their Team will be stored at Element 0 of Teams
-     *  Their Station will be stored at Element 0 of Stations.  
-     *  Stations can be Nullable do determine if an Unit is on the Field or not.
-    */
-    public BaseBattleUnit[] Units;
-    public UnitTeam[] Teams;
-    public StationIndex?[] Stations;
+    public int Index;
+}
 
-    public int AllyStationSlots { get; private set; }
-    public int EnemyStationSlots { get; private set; }
-
-    public SoA_SceneUnitData(BaseBattleUnit[] units, UnitTeam[] teams, StationIndex?[] stations, int allySlots, int enemySlots)
-    {
-        this.Units = units;
-        this.Teams = teams;
-        this.Stations = stations;
-        this.AllyStationSlots = allySlots;
-        this.EnemyStationSlots = enemySlots;
-    }
+public class Station
+{
+    public StationIndex         StationIndex;       
+    public UnitIndex?           UnitOnStation;
+    public UnitTeam             StationTeam;    
+    public UnityEngine.Vector3  Position;
+    public bool                 IsTemporary;
 }
 
 public class SceneUnitData
 {
-    public static int MAX_UNITS_PER_SIDE = 9;
-    private SoA_SceneUnitData data;
+    public Dictionary<int,  BaseBattleUnit> Units = new();           
+    public Dictionary<int,  Station>        Stations = new();
 
+    public static int MAX_UNITS_PER_SIDE = 9;
+    private int nextUnitId = 0, nextStationId = 0;
+
+    public SceneUnitData()
+    {
+        this.nextUnitId = 0;
+        this.Units      = new();
+        this.Stations   = new();
+    }
+
+    /// <summary>
+    /// There will be two versions of this method. 1st is, do we know the Unit that will be on this station? I.e. will there be a Unit on this station on Station Creation. Sometimes no, sometimes yes.    
+    /// If the game first is loading, then yes, we will supply a Unit that will sit on this station.
+    /// </summary>
+    /// <returns></returns>
+    public bool CreateStation(UnityEngine.Vector3 stationPosition, UnitTeam stationTeam, bool isTemp)
+    {
+        /*  Only add the station if it is not a duplicate station position. */
+        if (IsDuplicateStationPosition(stationPosition)) { return false;}
+
+        int stationId = this.nextStationId;
+        this.Stations.Add(stationId,
+            new()
+            {
+                StationIndex = new StationIndex() { Index = stationId },
+                UnitOnStation = null,
+                Position = stationPosition,
+                IsTemporary = isTemp,
+                StationTeam = stationTeam,
+            }
+        );
+
+        IncrementStationID();
+        return true;
+    }
+
+    public bool RemoveStation(StationIndex stationIndex)
+    {
+        if (this.Stations.ContainsKey(stationIndex.Index))
+        {
+            this.Stations.Remove(stationIndex.Index);
+            return true;
+        }
+        return false;
+    }
+
+    private bool IsDuplicateStationPosition(UnityEngine.Vector3 stationPosition)
+    {
+        foreach(KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
+        {
+            Station station = stationKeyValuePair.Value;    
+
+            if(station.Position == stationPosition)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// When adding a Unit to the combat Scene. We aren't defining station here. All units start in resurve until placed.
+    /// </summary>
+    /// <param name="baseBattleUnit"></param>
+    /// <param name="unitTeam"></param>
+    /// <param name="station"></param>
+    /// <returns>True if the Unit was sucessfully added to the combat Scene.    </returns>
+    public UnitIndex? CreateUnit(BaseBattleUnit baseBattleUnit)
+    {
+        /*  Is this a valid Unit? If not, fail creation.    */
+        if(baseBattleUnit == null) { return null; }
+
+        /*  Find the next index to use for the Dictionary.  */
+        int unitId = this.nextUnitId;
+        this.IncrementUnitID();
+
+        /*  Add this Unit to the Dictionary. */
+        this.Units.Add(unitId, baseBattleUnit);
+
+        /*  Once Sucessful, return the UnitIndex and notify any listeners to the OnAddUnitEvent.    */
+        UnitIndex createdUnitIndex = new() { Index = unitId };
+
+        return createdUnitIndex;
+    }
+
+    /// <summary>
+    /// Swaps one unit on the battlefield with another unit on the battlefield on the same team.
+    /// </summary>
+    /// <param name="stationIndexA"></param>
+    /// <param name="stationIndexB"></param>
+    /// <returns>True if the swap with sucessful. Additionally, OnSwapUnits will be Invoked on sucessful switch, whereas OnFailSwapUnits is invoked if we fail. </returns>
+    public bool SwapUnitsOnStations(StationIndex stationIndexA, StationIndex stationIndexB)
+    {
+        /*  Check to see if these are valid station indexes!    */
+        if (!this.IsStationIndexValid(stationIndexA)) {  return false; }
+        if (!this.IsStationIndexValid(stationIndexB)) {  return false; }
+
+        /*  Are the selected stations on the same team?     */
+        if (this.Stations[stationIndexA.Index].StationTeam != this.Stations[stationIndexB.Index].StationTeam) { return false; }
+
+        /*  Get the stations and swap their Units on them.  */
+        UnitIndex? unitOnStationA = this.Stations[stationIndexA.Index].UnitOnStation;
+        UnitIndex? unitOnStationB = this.Stations[stationIndexB.Index].UnitOnStation;
+
+        // If either Station don't have a Unit on them. Then we want to notify anyone subscribed to the event and not switch.
+        if(!unitOnStationA.HasValue || !unitOnStationB.HasValue)
+        {
+            return false;
+        }
+
+        /*  Swap the Units to each other's Stations.    */
+        this.Stations[stationIndexA.Index].UnitOnStation = unitOnStationB;
+        this.Stations[stationIndexB.Index].UnitOnStation = unitOnStationA;
+
+        return true;
+    }
+
+    public bool RemoveUnit(UnitIndex unitIndex)
+    {
+        /*  Find if this UnitIndex is related to a Unit we have information on. If not, exit out.   */
+        if (!this.Units.ContainsKey(unitIndex.Index)) { return false;   }
+
+        /*  Before we remove, gain a referance to the BaseBattleUnit we are destroying to pass to the event.    */
+        BaseBattleUnit removedUnit = this.Units[unitIndex.Index];
+
+        /*  Remove that Unit. Notify any Listeners. How do we want to handle notifying the station? Do we simply loop through every station, find the one we are on (if at all) and pass that along to the event?   */
+        this.Units.Remove(unitIndex.Index);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Deploy a Unit from resurves.
+    /// </summary>
+    /// <param name="unitIndex"></param>
+    /// <param name="stationIndex"></param>
+    /// <returns></returns>
+    public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex)
+    {
+        /*  Is the Unit already on the battlefield? I.e. Does a station already have that same UnitIndex supplied?  */
+        if (IsUnitIndexOnBattlefield(unitIndex)) { return false;}
+
+        /*  Is this a valid station ID? If not, stop!   */
+        if (!IsStationIndexValid(stationIndex)) { return false; }
+
+
+        /*  Is the Unit Index we are deploying onto this station on the same team as the station? 
+         *  I.e. The Unit and the Station need to be on the Ally team in order for this to work. We can't have an enemy on an ally's Station
+         */
+        if (this.Stations[stationIndex.Index].StationTeam != this.Units[unitIndex.Index].GetTeam()) {  return false; }
+
+        // Is there a Unit already on that StationIndex? If so, we want to recall that Unit to resurves
+        UnitIndex? unitPreviouslyOnStation = this.Stations[stationIndex.Index].UnitOnStation;
+
+        // Replace this previous Unit with the one we want to Deploy.          
+        this.Stations[stationIndex.Index].UnitOnStation = unitIndex;
+
+        return true;
+    }
+
+    public UnitIndex[] GetUnitsInReserve(UnitTeam team)
+    {
+        List<UnitIndex> reserveUnitIndexes = new();
+        foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        {
+            UnitIndex unitIndex = new() { Index = unitKeyValuePair.Key };
+
+            // Only add the UnitIndexes if they aren't on the battlefield and on the same team as the one we request.
+            if (!IsUnitIndexOnBattlefield(unitIndex) && unitKeyValuePair.Value.GetTeam() == team)
+            {
+                reserveUnitIndexes.Add(unitIndex);
+            }
+        }
+        return reserveUnitIndexes.ToArray();
+    }
+
+    public List<UnitIndex> GetUnitIndexesOfTeam(UnitTeam team)
+    {
+        // Loop through our Units. Look into them and determine which team they are on. Add those into a list and return the completed list.    
+        List<UnitIndex> unitIndexesOnTeam = new();
+        foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        {
+            BaseBattleUnit battleUnit = unitKeyValuePair.Value;
+
+            if (battleUnit.GetTeam() == team)
+            {
+                unitIndexesOnTeam.Add(new UnitIndex() { Index = unitKeyValuePair.Key });
+            }
+        }
+
+        return unitIndexesOnTeam;
+    }
+
+    public UnitIndex? GetUnitIndexOfStationIndex(StationIndex stationIndex)
+    {
+        /*  Is this a valid station ID? If not, stop!   */
+        if (!IsStationIndexValid(stationIndex)) { return null; }
+
+        return this.Stations[stationIndex.Index].UnitOnStation;
+    }
+
+    public StationIndex? GetStationIndexOfUnitIndex(UnitIndex unitIndex)
+    {
+        foreach (KeyValuePair<int,Station> stationKeyValuePairs in this.Stations)
+        {
+            Station station = stationKeyValuePairs.Value;
+            if (!station.UnitOnStation.HasValue) { continue; }
+            if(station.UnitOnStation.Value.Index != unitIndex.Index)
+            {
+                return station.StationIndex;
+            }
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// Get a collection of all Units on a team both on the field and not.
+    /// </summary>
+    /// <param name="team"></param>
+    /// <returns></returns>
+    public List<UnitIndex> GetUnitsOnTeam(UnitTeam team)
+    {
+        List<UnitIndex> unitIndexesOnTeam = new();
+        foreach (KeyValuePair<int, BaseBattleUnit> unitsKeyValuePair in this.Units)
+        {
+            BaseBattleUnit battleUnit = unitsKeyValuePair.Value;
+
+            if(battleUnit.GetTeam() == team)
+            {
+                unitIndexesOnTeam.Add(new UnitIndex() { Index = unitsKeyValuePair.Key });
+            }
+        }
+
+        return unitIndexesOnTeam;
+    }
+
+    public List<UnitIndex> GetAllActiveUnits()
+    {
+        // Loop through our stations. All the ones without a NULL UnitOnStation have a Unit on them. 
+        List<UnitIndex> activeUnits = new();
+        if (this.Stations.Count < 0) { return new(); }
+        foreach(KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        {
+            Station station = stationKeyValuePairs.Value;
+
+            if (station.UnitOnStation.HasValue)
+            {
+                activeUnits.Add(station.UnitOnStation.Value);
+            }
+        }
+        return activeUnits;
+    }
+
+    /// <summary>
+    /// Gets all active units on the defined Team
+    /// </summary>
+    /// <param name="team"></param>
+    /// <returns></returns>
+    public List<UnitIndex> GetAllActiveUnits(UnitTeam team)
+    {
+        // Loop through our stations. All the ones without a NULL UnitOnStation have a Unit on them. 
+        List<UnitIndex> activeUnits = new();
+        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        {
+            Station station = stationKeyValuePairs.Value;
+
+            if (station.UnitOnStation.HasValue && station.StationTeam == team)
+            {
+                activeUnits.Add(station.UnitOnStation.Value);
+            }
+        }
+        return activeUnits;
+    }
+
+    public List<StationIndex?> GetStationIndexes()
+    {
+        List<StationIndex?> stationIndexes = new();
+        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        {
+            int stationIndexInt = stationKeyValuePairs.Key;
+            stationIndexes.Add(
+                new StationIndex (){ Index = stationIndexInt }
+            );
+        }
+        return stationIndexes;
+    }
+    public UnitTeam GetUnitTeamOfUnitIndex(UnitIndex unitIndex)
+    {
+        BaseBattleUnit unit = this.GetBattleUnitOfIndex(unitIndex);
+        return unit.GetTeam();
+    }
+
+    private bool IsUnitIndexOnBattlefield(UnitIndex unitIndex)
+    {
+        foreach (KeyValuePair<int, Station> stationsKeyValuePair in this.Stations)
+        {
+            Station station = stationsKeyValuePair.Value;
+            if (!DoesStationHaveUnit(station)) { continue; }
+
+            if (station.UnitOnStation.Value.Index == unitIndex.Index)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Station Indexes need to be a value between 0 and whatever the current size of the Stations list is. Ordinarally, between 0-17 but temporary stations exist. 
+    /// </summary>
+    /// <returns></returns>
+    private bool IsStationIndexValid(StationIndex stationIndex)
+    {
+        // Ensure that the station index is less than the size of the stations count and not less than 0
+        return stationIndex.Index >= 0 && stationIndex.Index < this.Stations.Count;
+    }
+
+    private bool DoesStationHaveUnit(StationIndex stationIndex) => this.Stations[stationIndex.Index].UnitOnStation.HasValue;
+    private bool DoesStationHaveUnit(Station station) => station.UnitOnStation.HasValue;
+    private void IncrementUnitID() { this.nextUnitId++; }
+    private void IncrementStationID() { this.nextStationId++; }
+
+    /*  
+     *  We will need to look into this one eventually. As we return the BaseBattleUnit class, we can change the information on the fly which is not advised. 
+     *  Eventually, we'd want to make it so only certain code places can actually change the BaseBattleUnit. 
+    */
+    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) => this.Units[index.Index];
+    public Station GetStationOfStationIndex(StationIndex stationIndex)
+    {
+        if (this.Stations.TryGetValue(stationIndex.Index, out Station station))
+        {
+            return station;
+        }
+        return null;
+    }
+    public List<Station> GetStations() => this.Stations.Values.ToList();
+}
+
+public class StationManager
+{
+    #region Events
     /// <summary>
     /// Invoked when a Unit is added. Normally at start of game.    
     /// UnitIndex: Unit Index of the Unit being added.  
@@ -44,14 +376,13 @@ public class SceneUnitData
 
     /// <summary>
     /// Invoked when a Unit is Removed. When a unit is destroyed.   
-    /// Unit Index: UnitIndex of the Destroyed Unit
-    /// Station Index: StationIndex that the Unit was on. Could be Null if it was destroyed off field.  
+    /// Station Index: StationIndex of the Destroyed Unit. Could be null if they were removed in resurve.
     /// BaseBattleUnit: Main Script of the Unit, allows use of the GameObject.
     /// 
     /// IMPORTANT: As we remove the UnitIndex, StationIndex from arrays, you cannot use any method within SceneUnitData to retrieve further information on the Unit. 
     /// However, you can use the StationIndex to consult another class to retrieve the Station's Location in worldSpace.
     /// </summary>
-    public static event Action<UnitIndex, StationIndex?, BaseBattleUnit> OnRemoveUnit;
+    public static event Action<StationIndex?, BaseBattleUnit> OnRemoveUnit;
 
     /// <summary>
     /// Invoked on Switching the stations of Units on the Same Team. 
@@ -59,259 +390,138 @@ public class SceneUnitData
     /// Index 1: UnitIndex that is switching to the desired station. 
     /// Index 2: UnitIndex that is being forced to the other Unit's Station.
     /// </summary>
-    public static event Action<UnitIndex, UnitIndex> OnSwitchUnit;
+    public static event Action<UnitIndex?, UnitIndex?> OnSwapUnits;
+
+
+    /// <summary>
+    /// Invoked on failing Switching the stations of Units on the Same Team. 
+    /// 
+    /// StationIndex 1: StationIndex that would be switching to the desired station. 
+    /// StationIndex 2: StationIndex that would be forced to the other Unit's Station.
+    /// UnitIndex 1: UnitIndex that would be switching to the desired station. 
+    /// UnitIndex 2: UnitIndex that would be forced to the other Unit's Station.
+    /// </summary>
+    public static event Action<StationIndex, StationIndex, UnitIndex, UnitIndex> OnFailSwapUnits;
 
     /// <summary>
     /// Invoked on Deploying from Resurves. 
     /// 
     /// UnitIndex 1: UnitIndex we are deploying. 
-    /// UnitIndex 2: UnitIndex of the unit that is going to resurves.
+    /// UnitIndex 2: UnitIndex of the unit that is going to resurves. Null if there was nothing on that Deployment station.
     /// </summary>
-    public static event Action<UnitIndex, UnitIndex> OnDeployUnit;
+    public static event Action<UnitIndex, UnitIndex?> OnDeployUnit;
 
+    #endregion
 
-    public SceneUnitData(int allyStationSlots, int enemyStationSlots)
-    {
-        if(allyStationSlots > MAX_UNITS_PER_SIDE) { throw new InvalidOperationException("ERROR — SCENEUNITDATA_SOA: CANNOT ASSIGN 'ALLY STATION SLOTS' TO A NUMBER GREATER THAN 'MAX_UNITS_PER_SIDE'"); }
-        if (enemyStationSlots > MAX_UNITS_PER_SIDE) { throw new InvalidOperationException("ERROR — SCENEUNITDATA_SOA: CANNOT ASSIGN 'ENEMY STATION SLOTS' TO A NUMBER GREATER THAN 'MAX_UNITS_PER_SIDE'"); }
-
-        this.data = new(new BaseBattleUnit[MAX_UNITS_PER_SIDE * 2], new UnitTeam[MAX_UNITS_PER_SIDE * 2], new StationIndex?[MAX_UNITS_PER_SIDE * 2], allyStationSlots, enemyStationSlots);
-    }
-
-    private int GetTeamCount(UnitTeam sampleTeam)
-    {
-        UnitTeam[] sampleTeamArr = this.data.Teams.Where(unitTeam => unitTeam == sampleTeam).ToArray();
-        return sampleTeamArr.Length;
-    }
-
-    public bool AddUnit(BaseBattleUnit baseBattleUnit, UnitTeam unitTeam, StationIndex? station)
-    {
-        if(baseBattleUnit == null) { return false; }
-
-        /*  Check if there is enough slots on the Team for the new Unit. If not, get out of here.   */
-        if (GetTeamCount(unitTeam) >= MAX_UNITS_PER_SIDE) { return false; }
-
-        for(int i = 0; i < (MAX_UNITS_PER_SIDE * 2); i++)
-        {
-            /*  If there is an empty Unit in this index, assign everything to this index.   */
-            if (this.data.Units[i] == null)
-            {
-                this.data.Units[i] = baseBattleUnit;
-                this.data.Teams[i] = unitTeam;
-                this.data.Stations[i] = station;
-
-                if (station != null)
-                {
-                    OnAddUnit?.Invoke(new UnitIndex() { Index = station.Value.Index});
-                }
-
-                return true;
-            }
-        }
-
-        /*  If there wasn't an available slot available somehow, return false.*/
-        return false;
-    }
-
-    public bool RemoveUnit(UnitIndex unitIndex)
-    {
-        /*  Check that there is a valid Unit and it is on an appropriate team.  */
-        if (this.data.Units[unitIndex.Index]    == null) { return false; }
-        if (this.data.Teams[unitIndex.Index]    == UnitTeam.NULL) { return false; }
-        
-        /*  Remove the Unit from the Teams Array.   */
-        this.data.Teams[unitIndex.Index] = UnitTeam.NULL;
-
-        /*  Remove the Unit from the Units Array but store temporary referance to the BattleUnit for the event.   */
-        BaseBattleUnit battleUnit = this.data.Units[unitIndex.Index];
-        this.data.Units[unitIndex.Index] = null;
-
-        /*  Remove the Unit from the Stations Array but store temporary referance to the Station for the event.   */
-        StationIndex? stationIndex = this.data.Stations[unitIndex.Index];
-        this.data.Stations[unitIndex.Index] = null;
-
-        OnRemoveUnit?.Invoke(unitIndex, stationIndex, battleUnit);
-
-        return false;
-    }
-
-    /// <summary>
-    /// Switch one Unit's Station with one on it's own team. If the indexes are not on the same team, this will fail.
-    /// </summary>
-    /// <param name="unitIndexA"></param>
-    /// <param name="unitIndexB"></param>
-    /// <returns></returns>
-    public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
-    {
-        /*  Confirm both Units are on the same team.    */
-        UnitTeam teamUnitA = this.data.Teams[unitIndexA.Index];
-        UnitTeam teamUnitB = this.data.Teams[unitIndexB.Index];
-        
-        if(teamUnitA != teamUnitB) {  return false; }
-
-        /*  Get the station of each Unit, assign each station to the other Unit's station.  */
-        StationIndex? stationUnitA = this.data.Stations[unitIndexA.Index];
-        StationIndex? stationUnitB = this.data.Stations[unitIndexB.Index];
-
-        this.data.Stations[unitIndexA.Index] = stationUnitB;
-        this.data.Stations[unitIndexB.Index] = stationUnitA;
-
-        OnSwitchUnit?.Invoke(unitIndexA, unitIndexB);
-
-        return true;
-    }
-
-    /// <summary>
-    /// Deploy a Unit from resurves. Will fail if the Unit is already on the field and if the Station Index doesn't belong to the Deployed Unit's Team.
-    /// </summary>
-    /// <param name="unitIndex"></param>
-    /// <param name="stationIndex"></param>
-    /// <returns></returns>
-    public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex)
-    {
-        /*  Get the current station of the Unit, if it is not NULL, then they are already on the field and therefore do not deployment. */
-        StationIndex? deployedUnitStation = this.data.Stations[unitIndex.Index];
-        if (deployedUnitStation?.Index != unitIndex.Index) { return false; }
-
-
-        /*  Check that the Unit Index is on the same team as the UnitIndex found using the Station Index. If not, fail deployment.  */
-        UnitIndex switchingUnitIndex = GetUnitIndexOfStationIndex(stationIndex);
-        if(switchingUnitIndex.Index == -1) { return false; }
-
-
-        UnitTeam teamDeployUnit = this.data.Teams[unitIndex.Index];
-        UnitTeam teamSwitchUnit = this.data.Teams[switchingUnitIndex.Index];
-        if (teamDeployUnit != teamSwitchUnit) { return false; }
-
-
-        /*  Assign each Unit to the other's Station.    */
-        StationIndex? stationUnitA = this.data.Stations[unitIndex.Index];
-        StationIndex? stationUnitB = this.data.Stations[switchingUnitIndex.Index];
-
-
-        this.data.Stations[unitIndex.Index] = stationUnitB;
-        this.data.Stations[switchingUnitIndex.Index] = stationUnitA;
-
-        OnDeployUnit?.Invoke(unitIndex, switchingUnitIndex);
-
-        return true;
-    }
-
-    public UnitIndex[] GetUnitIndexesOfTeam(UnitTeam team)
-    {
-        List<UnitIndex> indexes = new();
-        for (int i = 0; i < this.data.Teams.Length; i++)
-        {
-            if(this.data.Teams[i] == team)
-            {
-                indexes.Add(new UnitIndex() { Index = i});
-            }
-        }
-
-        return indexes.ToArray();
-    }
-
-    public UnitIndex GetUnitIndexOfStationIndex(StationIndex? stationIndex)
-    {
-        UnitIndex unitIndex;
-        for (int i = 0; i < this.data.Stations.Length; i++)
-        {
-            if (this.data.Stations[i]?.Index == stationIndex?.Index)
-            {
-                unitIndex = new()
-                {
-                    Index = i
-                };
-                return unitIndex;
-            }
-        }
-
-        unitIndex = new()
-        {
-            Index = -1
-        };
-        return unitIndex;
-    }
-
-    public UnitIndex[] GetActiveUnitsOfTeam(UnitTeam team)
-    {
-        List<UnitIndex> indexes = new();
-        UnitIndex[] unitIndexes = GetUnitIndexesOfTeam(team);
-
-        for (int i = 0;i < unitIndexes.Length; i++)
-        {
-            /*  Get the Station Index of this UnitIndex. If it isn't NULL, it is on the field and so add it to our Indexes List.    */
-            if (this.data.Stations[unitIndexes[i].Index] != null)
-            {
-                indexes.Add(unitIndexes[i]);
-            }
-        }
-        return indexes.ToArray();
-    }
-
-    /*  
-     *  We will need to look into this one eventually. As we return the BaseBattleUnit class, we can change the information on the fly which is not advised. 
-     *  Eventually, we'd want to make it so only certain code places can actually change the BaseBattleUnit. 
-    */
-    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) => this.data.Units[index.Index];
-    public UnitTeam GetUnitTeamOfIndex(UnitIndex index) => this.data.Teams[index.Index];
-    public StationIndex? GetUnitStationOfIndex(UnitIndex index) => this.data.Stations[index.Index];
-    public StationIndex?[] GetStations() => this.data.Stations;
-
-    public int GetAllyStationSlots() {  return this.data.AllyStationSlots;}
-    public int GetEnemyStationSlots() {  return this.data.EnemyStationSlots; }
-}
-
-public struct SceneData_UnitTurn
-{
-    public UnitIndex SourceUnitIndex;
-    public List<StationIndex?> AllyStationIndexes;
-    public List<StationIndex?> EnemyStationIndexes;
-
-    public SceneData_UnitTurn(UnitIndex source, List<StationIndex?> allyStationIndexes, List<StationIndex?> enemyStationIndexes)
-    {
-        this.SourceUnitIndex = source;
-        this.AllyStationIndexes = allyStationIndexes;
-        this.EnemyStationIndexes = enemyStationIndexes;
-    }
-}
-
-public class StationHandler
-{
     private readonly SceneUnitData SceneUnitData;
 
-    public StationHandler(int allyStationSlots, int enemyStationSlots)
+    public StationManager()
     {
-        this.SceneUnitData = new(allyStationSlots, enemyStationSlots);
+        this.SceneUnitData = new();
     }
 
-    public List<UnitIndex> GetAllActiveUnits()
-    {
-        UnitIndex[] allyUnitIndexes = this.SceneUnitData.GetActiveUnitsOfTeam(UnitTeam.ALLY);
-        UnitIndex[] enemyUnitIndexes = this.SceneUnitData.GetActiveUnitsOfTeam(UnitTeam.ENEMY);
+    public List<UnitIndex> GetAllActiveUnits()                          => this.SceneUnitData.GetAllActiveUnits();
+    public List<UnitIndex> GetUnitsOnTeam(UnitTeam team)                => this.SceneUnitData.GetUnitsOnTeam(team);
+    public List<UnitIndex> GetUnitIndexesOfTeam(UnitTeam team)          => this.SceneUnitData.GetUnitIndexesOfTeam(team);
+    public List<StationIndex?> GetStationsIndex()                       => this.SceneUnitData.GetStationIndexes();
+    public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex)  => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex);
+    public StationIndex? GetStationOfIndex(UnitIndex index)             => this.SceneUnitData.GetStationIndexOfUnitIndex(index); 
+    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index)         => this.SceneUnitData.GetBattleUnitOfIndex(index); 
+    public UnitTeam GetUnitTeamOfIndex(UnitIndex index)                 => this.SceneUnitData.GetUnitTeamOfUnitIndex(index); 
+    public bool IsStationEmpty(StationIndex stationIndex)               => !this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex).HasValue;
 
-        List<UnitIndex> activeUnits = new();
-        activeUnits.AddRange(allyUnitIndexes);
-        activeUnits.AddRange(enemyUnitIndexes);
 
-        return activeUnits;
-    }
 
-    public bool AddUnit(BaseBattleUnit unit, UnitTeam team, StationIndex? station)
+    public UnitIndex? CreateUnit(BaseBattleUnit unit)
     {
-        return SceneUnitData.AddUnit(unit, team, station);
-    }
-    public bool RemoveUnit(UnitIndex unitIndex)
-    {
-        return SceneUnitData.RemoveUnit(unitIndex);
-    }
-    public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
-    {
-        return SceneUnitData.SwitchUnitStations(unitIndexA, unitIndexB);
+        UnitIndex? createdUnitIndex = this.SceneUnitData.CreateUnit(unit);
+        if (createdUnitIndex.HasValue)
+        {
+            OnAddUnit?.Invoke(createdUnitIndex.Value);
+            return createdUnitIndex;
+        }
+        else
+        {
+            return null;
+        }
     }
     public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex)
     {
-        return SceneUnitData.DeployUnit(unitIndex, stationIndex);
+        Station station     = this.SceneUnitData.GetStationOfStationIndex(stationIndex);
+        BaseBattleUnit unit = this.SceneUnitData.GetBattleUnitOfIndex(unitIndex);
+
+        /*  When deploying a unit, check that the baseBattleUnit and the station match Teams.   */
+        if(unit.GetTeam() != station.StationTeam) { return false; }
+
+        /*  If so, send the Unit on the Station to resurve and replace it with the new Unit.    */
+        UnitIndex? previousUnitIndex = station.UnitOnStation;
+        station.UnitOnStation = unitIndex;  
+
+        /*  Notify any listeners that the deployment took place.    */
+        OnDeployUnit?.Invoke(unitIndex, previousUnitIndex);
+
+        return true;
+    }
+    public bool RemoveUnit(UnitIndex unitIndex)
+    {
+        StationIndex? removedUnitStationIndex   = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex);
+        BaseBattleUnit removedUnit              = this.SceneUnitData.GetBattleUnitOfIndex(unitIndex); 
+
+        bool sucess = this.SceneUnitData.RemoveUnit(unitIndex);
+        if (sucess) 
+        {
+            OnRemoveUnit?.Invoke(removedUnitStationIndex, removedUnit);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
+    {   
+        /*  Get each of the stations of the selected Units. */
+        StationIndex? stationIndexA = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexA);
+        StationIndex? stationIndexB = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexB);
+
+        /*  If either of the stations is invalid, then we don't even want to notify that we failed swapping as one of the stations is invalid.  */
+        if (stationIndexA == null || stationIndexB == null) {   return false;   }
+
+        bool sucess = this.SceneUnitData.SwapUnitsOnStations(stationIndexA.Value, stationIndexB.Value);
+
+        if (sucess) 
+        {
+            OnSwapUnits?.Invoke(unitIndexA, unitIndexB);
+            return true;
+        }
+        else
+        {
+            OnFailSwapUnits?.Invoke(stationIndexA.Value, stationIndexB.Value, unitIndexA, unitIndexB);
+            return false;
+        }
+    }
+
+    public bool SwitchUnitStations(StationIndex stationIndexA, StationIndex stationIndexB)
+    {
+        /*  Get each of the stations of the selected Units. */
+        UnitIndex? unitIndexA = this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexA);
+        UnitIndex? unitIndexB = this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexB);
+
+        /*  If either of the stations is invalid, then we don't even want to notify that we failed swapping as one of the stations is invalid.  */
+        if (unitIndexA == null || unitIndexA == null) { return false; }
+
+        bool sucess = this.SceneUnitData.SwapUnitsOnStations(stationIndexA, stationIndexB);
+
+        if (sucess)
+        {
+            OnSwapUnits?.Invoke(unitIndexA, unitIndexB);
+            return true;
+        }
+        else
+        {
+            OnFailSwapUnits?.Invoke(stationIndexA, stationIndexB, unitIndexA.Value, unitIndexB.Value);
+            return false;
+        }
     }
 
     private UnitTeam GetOppositeTeamType(UnitTeam team)
@@ -328,48 +538,48 @@ public class StationHandler
         }
     }
 
-    private UnitIndex[] GetUnitIndexCollectionRemovingSourceIndex(UnitIndex[] unitIndexes, UnitIndex sourceIndex)
+    private List<UnitIndex> GetUnitIndexCollectionRemovingSourceIndex(List<UnitIndex> unitIndexes, UnitIndex sourceIndex)
     {
-        UnitIndex[] indexCollection = new UnitIndex[unitIndexes.Length];
-        for (int i = 0; i < unitIndexes.Length; i++)
+        List<UnitIndex> indexCollection = new();
+        foreach (UnitIndex unitIndex in unitIndexes)
         {
-            if (unitIndexes[i].Index != sourceIndex.Index)
+            if(unitIndex.Index != sourceIndex.Index)
             {
-                indexCollection[i] = new UnitIndex() { Index = i };
+                indexCollection.Add(unitIndex);
             }
         }
         return indexCollection;
     }
 
-    public List<StationIndex?> GetStationIndexesFromUnitIndexes(UnitIndex[] indexes)
+    public List<StationIndex?> GetStationIndexesFromUnitIndexes(List<UnitIndex> indexes)
     {
         List<StationIndex?> stationIndexes = new();
-        for (int i = 0; i < indexes.Length; i++)
+        foreach (UnitIndex unitIndex in indexes)
         {
-            stationIndexes.Add(this.SceneUnitData.GetUnitStationOfIndex(indexes[i]));
-        }
+            stationIndexes.Add(this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex));
 
+        }
         return stationIndexes;
     }
 
     public SceneData_UnitTurn CreateCombatSceneDataForUnitIndex(UnitIndex sourceUnitIndex)
     {
         /*  Get a list of all UnitIndexes on the opposite team. */
-        UnitTeam oppositeTeam = GetOppositeTeamType(this.SceneUnitData.GetUnitTeamOfIndex(sourceUnitIndex));
+        UnitTeam sourceTeam = this.SceneUnitData.GetUnitTeamOfUnitIndex(sourceUnitIndex);
+        UnitTeam oppositeTeam = GetOppositeTeamType(this.SceneUnitData.GetUnitTeamOfUnitIndex(sourceUnitIndex));
 
         /*  Get a list of all UnitIndexes that are on the team. */
-        UnitIndex[] allIUnitIndexesOnAlliedTeam = this.SceneUnitData.GetUnitIndexesOfTeam(this.SceneUnitData.GetUnitTeamOfIndex(sourceUnitIndex));
-
-        UnitIndex[] unitIndexesOfOppositeTeam = this.SceneUnitData.GetUnitIndexesOfTeam(oppositeTeam);
+        List<UnitIndex> allIUnitIndexesOnAlliedTeam = this.SceneUnitData.GetUnitIndexesOfTeam(sourceTeam);
+        List<UnitIndex> unitIndexesOfOppositeTeam   = this.SceneUnitData.GetUnitIndexesOfTeam(oppositeTeam);
 
         /*  Confirm that the sourceUnitIndex is contained within UnitIndexesOnTeam. If not, something broke.    */
         if (!allIUnitIndexesOnAlliedTeam.Contains(sourceUnitIndex)) { throw new InvalidOperationException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX NOT PRESENT INSIDE TEAMED INDEXES!"); }
 
         /*  Confirm that we have a teamedIndex array of length greater than 0. If it is 0, we don't want to proceed.    */
-        if (allIUnitIndexesOnAlliedTeam.Length <= 0) { throw new InvalidOperationException("ERROR — STATION_HANDLER: TEAMED UNIT INDEX LIST IS LESS THAN 0!"); }
+        if (allIUnitIndexesOnAlliedTeam.Count <= 0) { throw new InvalidOperationException("ERROR — STATION_HANDLER: TEAMED UNIT INDEX LIST IS LESS THAN 0!"); }
 
         /*  Remove the source Unit Index from the TeamedIndexes Array.  */
-        UnitIndex[] TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
+        List<UnitIndex> TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
 
         /*  Convert UnitIndex of both allied and enemy lists to the StationIndex of that Unit. */
         List<StationIndex?> allyStationIndexes = GetStationIndexesFromUnitIndexes(TeamedIndexes);
@@ -378,15 +588,11 @@ public class StationHandler
         // TO DO: PASS IN ENVIRONMENT DATA
         return new SceneData_UnitTurn(sourceUnitIndex, allyStationIndexes, enemyStationIndexes);
     }
+    /// <summary>
+    /// This is called by the Concrete Mediator to take what Units we have Created and to deploy them in order of station index per their team. 
+    /// </summary>
+    public void DeployUnitsForStartOfBattle()
+    {
 
-    public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex) { return this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex); }
-    public UnitIndex[] GetUnitIndexesOfTeam(UnitTeam team) { return this.SceneUnitData.GetUnitIndexesOfTeam(team); }
-    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) {   return this.SceneUnitData.GetBattleUnitOfIndex(index); }
-    public UnitTeam GetUnitTeamOfIndex(UnitIndex index) {   return this.SceneUnitData.GetUnitTeamOfIndex(index); }
-
-    public StationIndex? GetStationOfIndex(UnitIndex index) { return this.SceneUnitData.GetUnitStationOfIndex(index); }
-    public StationIndex?[] GetStations() => this.SceneUnitData.GetStations();
-
-    public int GetAllyStationSlots() { return this.SceneUnitData.GetAllyStationSlots(); }
-    public int GetEnemyStationSlots() { return this.SceneUnitData.GetEnemyStationSlots(); }
+    }
 }

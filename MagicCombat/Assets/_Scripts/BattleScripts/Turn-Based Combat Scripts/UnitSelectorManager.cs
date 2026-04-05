@@ -72,15 +72,15 @@ public class UnitSelectorManager : MonoBehaviour
         instance = this;
 
         /*  Subscribe to the events for Unit Data   */
-        SceneUnitData.OnAddUnit += SceneUnitData_OnAddUnit;
-        SceneUnitData.OnRemoveUnit += SceneUnitData_OnRemoveUnit;
+        StationManager.OnAddUnit += SceneUnitData_OnAddUnit;
+        StationManager.OnRemoveUnit += SceneUnitData_OnRemoveUnit;
     }
 
     private void OnDestroy()
     {
         /*  UnSubscribe to the events for Unit Data   */
-        SceneUnitData.OnAddUnit -= SceneUnitData_OnAddUnit;
-        SceneUnitData.OnRemoveUnit -= SceneUnitData_OnRemoveUnit;
+        StationManager.OnAddUnit -= SceneUnitData_OnAddUnit;
+        StationManager.OnRemoveUnit -= SceneUnitData_OnRemoveUnit;
     }
 
     private void SceneUnitData_OnAddUnit(UnitIndex unitIndex)
@@ -92,7 +92,7 @@ public class UnitSelectorManager : MonoBehaviour
             AddStationToList(stationIndex);
         }
     }
-    private void SceneUnitData_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationIndex, BaseBattleUnit bBU)
+    private void SceneUnitData_OnRemoveUnit(StationIndex? stationIndex, BaseBattleUnit unit)
     {
         RemoveStationFromList(stationIndex);
 
