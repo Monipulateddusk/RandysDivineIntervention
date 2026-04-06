@@ -23,7 +23,7 @@ public class UnitSelectorManager : MonoBehaviour
         new(0,-4),      new(-3,-4),         new(3,-4),
     };
 
-    List<StationIndex?> stationIndexes = new();
+    [SerializeField]List<StationIndex> stationIndexes = new();
 
     private StationIndex? selectedStationIndex;
     public StationIndex? CurrentSelectedStationIndex { get { return selectedStationIndex; }
@@ -201,12 +201,12 @@ public class UnitSelectorManager : MonoBehaviour
     /// Returns 0 if the index is somehow not found.    
     /// </summary>
     /// <returns></returns>
-    private void FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int value)
+    private void FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int value)
     {
         value = 0;
         for (int i = 0; i < this.stationIndexes.Count; i++)
         {
-            if (this.stationIndexes[i]?.Index == this.CurrentSelectedStationIndex?.Index)
+            if (this.stationIndexes[i].Index == this.CurrentSelectedStationIndex?.Index)
             {
                 value = i;
                 break;
@@ -217,11 +217,11 @@ public class UnitSelectorManager : MonoBehaviour
     public void IncrementIndex()
     {
         // Get the current index
-        FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
-        bool reattempted = false;
-        int start = currentIndex + 1, end = this.stationIndexes.Count;
+        FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentListIndex);
+        bool looped = false;
+        int start = currentListIndex + 1, end = this.stationIndexes.Count;
 
-    reattempted:
+    looped:
 
         for (int i = start; i < end; i++)
         {
@@ -230,44 +230,10 @@ public class UnitSelectorManager : MonoBehaviour
                 Debug.Log("Index is: " + i + " which is greater than the size of the list, breaking out the loop.");
                 break;
             }
-            if (!this.stationIndexes[i].HasValue) {
-                continue; }
 
-            // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            this.CurrentSelectedStationIndex = this.stationIndexes[i];
-            return;
-        }
+            Station station = BattleMediator.Instance.GetStationOfStationIndex(this.stationIndexes[i]);
 
-        // If we have reached here, we have not found a new index, so we start at the start of the list.
-        // If we reach our original currentIndex, then we clearly have no other options.  
-        if (!reattempted)
-        {
-            reattempted = true;
-            start = 0;
-            end = currentIndex;
-            goto reattempted;
-        }
-        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
-        else { return; }
-    }
-
-    public void DecrementIndex()
-    {
-        // Get the current index
-        FindIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentIndex);
-        bool reattempted = false;
-        int start = currentIndex - 1, end = -1;
-
-    reattempted:
-
-        for (int i = start; i > end; i--)
-        {
-            if (i < 0)
-            {
-                Debug.Log("Index is: " + i + " which is less than 0, breaking out the loop.");
-                break;
-            }
-            if (!this.stationIndexes[i].HasValue)
+            if (station.UnitOnStation == null)
             {
                 continue;
             }
@@ -279,12 +245,53 @@ public class UnitSelectorManager : MonoBehaviour
 
         // If we have reached here, we have not found a new index, so we start at the start of the list.
         // If we reach our original currentIndex, then we clearly have no other options.  
-        if (!reattempted)
+        if (!looped)
         {
-            reattempted = true;
+            looped = true;
+            start = 0;
+            end = currentListIndex;
+            goto looped;
+        }
+        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
+        else { return; }
+    }
+
+    public void DecrementIndex()
+    {
+        // Get the current index
+        FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentListIndex);
+        bool looped = false;
+        int start = currentListIndex - 1, end = -1;
+
+    looped:
+
+        for (int i = start; i > end; i--)
+        {
+            if (i < 0)
+            {
+                Debug.Log("Index is: " + i + " which is less than 0, breaking out the loop.");
+                break;
+            }
+            Station station = BattleMediator.Instance.GetStationOfStationIndex(this.stationIndexes[i]);
+
+            if (station.UnitOnStation == null)
+            {
+                continue;
+            }
+
+            // If this index has a value (Isn't null), then we want to take that as the new selected index.
+            this.CurrentSelectedStationIndex = this.stationIndexes[i];
+            return;
+        }
+
+        // If we have reached here, we have not found a new index, so we start at the start of the list.
+        // If we reach our original currentIndex, then we clearly have no other options.  
+        if (!looped)
+        {
+            looped = true;
             start = this.stationIndexes.Count - 1;
-            end = currentIndex;
-            goto reattempted;
+            end = currentListIndex;
+            goto looped;
         }
         /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
         else { return; }
@@ -292,7 +299,7 @@ public class UnitSelectorManager : MonoBehaviour
 
     private void UpdateStationList()
     {
-        this.stationIndexes = BattleMediator.Instance.GetStations();
+        this.stationIndexes = BattleMediator.Instance.GetStationIndexes();
     }
 
     public StationLocationData? GetCurrentStationIndexStationLocationData()

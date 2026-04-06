@@ -8,7 +8,7 @@ public struct UnitIndex
     public int Index;   
 }
 
-public struct StationIndex
+[Serializable]public struct StationIndex
 {
     public int Index;
 }
@@ -42,16 +42,17 @@ public class SceneUnitData
     /// If the game first is loading, then yes, we will supply a Unit that will sit on this station.
     /// </summary>
     /// <returns></returns>
-    public bool CreateStation(UnityEngine.Vector3 stationPosition, UnitTeam stationTeam, bool isTemp)
+    public StationIndex? CreateStation(UnityEngine.Vector3 stationPosition, UnitTeam stationTeam, bool isTemp)
     {
         /*  Only add the station if it is not a duplicate station position. */
-        if (IsDuplicateStationPosition(stationPosition)) { return false;}
+        if (IsDuplicateStationPosition(stationPosition)) { return null;}
 
         int stationId = this.nextStationId;
+        StationIndex createdStationIndex = new() { Index = stationId };
         this.Stations.Add(stationId,
             new()
             {
-                StationIndex = new StationIndex() { Index = stationId },
+                StationIndex = createdStationIndex,
                 UnitOnStation = null,
                 Position = stationPosition,
                 IsTemporary = isTemp,
@@ -60,7 +61,7 @@ public class SceneUnitData
         );
 
         IncrementStationID();
-        return true;
+        return createdStationIndex;
     }
 
     public bool RemoveStation(StationIndex stationIndex)
@@ -301,9 +302,9 @@ public class SceneUnitData
         return activeUnits;
     }
 
-    public List<StationIndex?> GetStationIndexes()
+    public List<StationIndex> GetStationIndexes()
     {
-        List<StationIndex?> stationIndexes = new();
+        List<StationIndex> stationIndexes = new();
         foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
             int stationIndexInt = stationKeyValuePairs.Key;
@@ -362,7 +363,6 @@ public class SceneUnitData
         }
         return null;
     }
-    public List<Station> GetStations() => this.Stations.Values.ToList();
 }
 
 public class StationManager
@@ -415,20 +415,34 @@ public class StationManager
 
     private readonly SceneUnitData SceneUnitData;
 
+    readonly List<UnityEngine.Vector3> ALLY_STATION_LOCATIONS = new(){
+        new(0,      0,  1),         new(-3,         0,      1),         new(3,      0,      1),
+        new(1.5f,   0,  3),         new(-1.5f,      0,      3),         new(4.5f,   0,      3),
+        new(1.5f,   0, -1),         new(-1.5f,      0,     -1),         new(4.5f,   0,     -1),
+    };
+    readonly List<UnityEngine.Vector3> ENEMY_STATION_LOCATIONS = new(){
+        new(1.5f,   0, -6),         new(-1.5f,      0,     -6),         new(4.5f,   0,     -6),
+        new(0,      0, -8),         new(-3,         0,     -8),         new(3,      0,     -8),
+        new(0,      0, -4),         new(-3,         0,     -4),         new(3,      0,     -4),
+    };
+    private const int MAX_STATIONS_PER_SIDE = 9;
+
     public StationManager()
     {
         this.SceneUnitData = new();
+        CreateStartingStations();
     }
 
-    public List<UnitIndex> GetAllActiveUnits()                          => this.SceneUnitData.GetAllActiveUnits();
-    public List<UnitIndex> GetUnitsOnTeam(UnitTeam team)                => this.SceneUnitData.GetUnitsOnTeam(team);
-    public List<UnitIndex> GetUnitIndexesOfTeam(UnitTeam team)          => this.SceneUnitData.GetUnitIndexesOfTeam(team);
-    public List<StationIndex?> GetStationsIndex()                       => this.SceneUnitData.GetStationIndexes();
-    public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex)  => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex);
-    public StationIndex? GetStationOfIndex(UnitIndex index)             => this.SceneUnitData.GetStationIndexOfUnitIndex(index); 
-    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index)         => this.SceneUnitData.GetBattleUnitOfIndex(index); 
-    public UnitTeam GetUnitTeamOfIndex(UnitIndex index)                 => this.SceneUnitData.GetUnitTeamOfUnitIndex(index); 
-    public bool IsStationEmpty(StationIndex stationIndex)               => !this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex).HasValue;
+    public List<UnitIndex>      GetAllActiveUnits()                                                 => this.SceneUnitData.GetAllActiveUnits();
+    public List<UnitIndex>      GetUnitsOnTeam          (UnitTeam team)                             => this.SceneUnitData.GetUnitsOnTeam(team);
+    public List<UnitIndex>      GetUnitIndexesOfTeam    (UnitTeam team)                             => this.SceneUnitData.GetUnitIndexesOfTeam(team);
+    public List<StationIndex>   GetStationsIndex()                                                  => this.SceneUnitData.GetStationIndexes();
+    public UnitIndex?           GetUnitIndexOnStation   (StationIndex stationIndex)                 => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex);
+    public StationIndex?        GetStationOfIndex       (UnitIndex index)                           => this.SceneUnitData.GetStationIndexOfUnitIndex(index); 
+    public BaseBattleUnit       GetBattleUnitOfIndex    (UnitIndex index)                           => this.SceneUnitData.GetBattleUnitOfIndex(index);
+    public Station              GetStationOfStationIndex(StationIndex stationIndex)                 => this.SceneUnitData.GetStationOfStationIndex(stationIndex);
+    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                           => this.SceneUnitData.GetUnitTeamOfUnitIndex(index); 
+    public bool                 IsStationEmpty          (StationIndex stationIndex)                 => !this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex).HasValue;
 
 
 
@@ -500,7 +514,6 @@ public class StationManager
             return false;
         }
     }
-
     public bool SwitchUnitStations(StationIndex stationIndexA, StationIndex stationIndexB)
     {
         /*  Get each of the stations of the selected Units. */
@@ -588,11 +601,61 @@ public class StationManager
         // TO DO: PASS IN ENVIRONMENT DATA
         return new SceneData_UnitTurn(sourceUnitIndex, allyStationIndexes, enemyStationIndexes);
     }
+    
+    /// <summary>
+    /// Called on Construction of the StationHandler. Will create each Station with corresponding index.    
+    /// </summary>
+    private void CreateStartingStations()
+    {
+        /*  Do Ally Stations turns.     */
+        for (int i = 0; i < MAX_STATIONS_PER_SIDE; i++)
+        {
+            StationIndex? resultantStationIndex = this.SceneUnitData.CreateStation(this.ALLY_STATION_LOCATIONS[i], UnitTeam.ALLY, isTemp: false);
+
+            if (resultantStationIndex == null){ UnityEngine.Debug.LogWarning("ERROR — CREATE_STARTING_STATIONS: INVALID OR DUPLICATE STATION LOCATION!");   }
+        }
+
+        /*  Do Enemy Stations turns.    */
+        for (int i = 0; i < MAX_STATIONS_PER_SIDE; i++)
+        {
+            StationIndex? resultantStationIndex = this.SceneUnitData.CreateStation(this.ENEMY_STATION_LOCATIONS[i], UnitTeam.ENEMY, isTemp: false);
+
+            if (resultantStationIndex == null) { UnityEngine.Debug.LogWarning("ERROR — CREATE_STARTING_STATIONS: INVALID OR DUPLICATE STATION LOCATION!"); }
+        }
+    }
+    
     /// <summary>
     /// This takes all created units and assigns them their station index if they are null. We could consider adding a keyword or something to a Unit to determine if it stays in resurve until later.  
     /// </summary>
     public void DeployUnitsForStartOfBattle()
     {
+        /*  Deploy the Units so that the first units in the list go onto the first empty station on their team. */
+        foreach (KeyValuePair<int, BaseBattleUnit> battleUnitKeyValuePairs in this.SceneUnitData.Units)
+        {
+            UnitIndex battleUnitIndex = new() { Index = battleUnitKeyValuePairs.Key };
+            BaseBattleUnit battleUnit = battleUnitKeyValuePairs.Value;
 
+            /*  Get the team of the Unit, loop through the stations to find the first empty station on that team.   */
+            UnitTeam battleUnitTeam = battleUnit.GetTeam();
+            Station emptyStationOnTeam = FindFirstEmptyStationOnTeam(battleUnitTeam);
+            if (emptyStationOnTeam == null) { UnityEngine.Debug.LogWarning("WARNING — DEPLOY_UNITS_FOR_START_OF_BATTLE: UNABLE TO FIND EMPTY STATION ON TEAM. UNIT IS IN RESERVE!"); }
+            else
+            {
+                /*  If we found a valid station, assign this BattleUnit's UnitIndex to this station!    */
+                emptyStationOnTeam.UnitOnStation = battleUnitIndex;
+            }
+        }
+    }
+
+    private Station FindFirstEmptyStationOnTeam(UnitTeam unitTeam)
+    {
+        foreach (KeyValuePair<int, Station> stationsKeyValuePairs in this.SceneUnitData.Stations)
+        {
+            Station station = stationsKeyValuePairs.Value;
+            if(station == null) continue;
+
+            if(station.StationTeam == unitTeam && station.UnitOnStation == null) return station;
+        }
+        return null;
     }
 }

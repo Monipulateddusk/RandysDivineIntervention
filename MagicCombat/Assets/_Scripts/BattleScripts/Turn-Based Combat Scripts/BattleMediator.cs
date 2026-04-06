@@ -74,6 +74,7 @@ namespace TurnBased
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
         {
             BaseBattleUnit spawnedUnit = Instantiate(objectWithUnitComponent).GetComponent<BaseBattleUnit>();
+            spawnedUnit.SetTeam(unitTeam);
 
             /*  Initalise the Unit Slot.    */
             this.StationHandler.CreateUnit(spawnedUnit);
@@ -138,7 +139,7 @@ namespace TurnBased
             this.StationHandler = new StationManager();
 
             CreateCombatEncounter();
-
+            this.StationHandler.DeployUnitsForStartOfBattle();
 
 
             PhaseDictionary = new()
@@ -190,17 +191,15 @@ namespace TurnBased
         }
 
         #region Getter Methods
-        public BaseBattleUnit GetBattleUnitOfUnitIndex(UnitIndex index) { return this.StationHandler.GetBattleUnitOfIndex(index); }
-        public UnitTeam GetUnitTeamOfUnitIndex(UnitIndex index) { return this.StationHandler.GetUnitTeamOfIndex(index); }
-        public StationIndex? GetStationIndexOfUnitIndex(UnitIndex index) { return this.StationHandler.GetStationOfIndex(index); }
-        public UnitIndex? GetCurrentUnit() => currentUnit;
-
-        public List<UnitIndex> GetTurnOrderList() { return this.UnitIndexTurnOrderList; }
-
-        public List<UnitIndex> GetAllUnitsOfTeam(UnitTeam team){ return this.StationHandler.GetUnitIndexesOfTeam(team).ToList();   }
-        public List<StationIndex?> GetStations() => this.StationHandler.GetStationsIndex().ToList();
-        public UnitIndex? GetUnitIndexOnStation(StationIndex stationIndex) { return this.StationHandler.GetUnitIndexOnStation(stationIndex); }
-
+        public BaseBattleUnit GetBattleUnitOfUnitIndex  (UnitIndex index)               =>  this.StationHandler.GetBattleUnitOfIndex(index);
+        public List<StationIndex> GetStationIndexes()                                   =>  this.StationHandler.GetStationsIndex();
+        public StationIndex? GetStationIndexOfUnitIndex (UnitIndex index)               =>  this.StationHandler.GetStationOfIndex(index); 
+        public Station GetStationOfStationIndex         (StationIndex stationIndex)     =>  this.StationHandler.GetStationOfStationIndex(stationIndex);
+        public List<UnitIndex> GetAllUnitsOfTeam        (UnitTeam team)                 =>  this.StationHandler.GetUnitIndexesOfTeam(team);
+        public List<UnitIndex> GetTurnOrderList()                                       =>  this.UnitIndexTurnOrderList;
+        public UnitIndex? GetUnitIndexOnStation         (StationIndex stationIndex)     =>  this.StationHandler.GetUnitIndexOnStation(stationIndex);
+        public UnitIndex? GetCurrentUnit()                                              =>  this.currentUnit;
+        public UnitTeam GetUnitTeamOfUnitIndex          (UnitIndex index)               =>  this.StationHandler.GetUnitTeamOfIndex(index);
         #endregion
     }
 }
