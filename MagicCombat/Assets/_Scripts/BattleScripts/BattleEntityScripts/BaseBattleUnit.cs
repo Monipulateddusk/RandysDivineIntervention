@@ -1,25 +1,8 @@
 using System;
 using System.Collections.Generic;
-using TurnBased;
 using UnityEngine;
 
 public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
-public struct UnitIntention
-{
-    public MoveSelectionData? MoveSelection;
-    public List<int?> TargetIndexList;
-
-    public UnitIntention(MoveSelectionData moveData, List<int?> targetIndex)
-    {
-        this.MoveSelection = moveData;
-        this.TargetIndexList = targetIndex;
-    }
-
-    public bool IsMoveSelectionEmpty()
-    {
-        return MoveSelection != null;
-    }
-}
 
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
@@ -41,8 +24,6 @@ public class BaseBattleUnit : MonoBehaviour
     HealthComponent unitHealthComponent;
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
-
-    protected ICombatMediator concreteMediator;
 
     private void Awake()
     {
@@ -95,11 +76,6 @@ public class BaseBattleUnit : MonoBehaviour
         }
     }
 
-    public void NotifyMediator(CombatAttackEvent ev)
-    {
-        concreteMediator?.NotifyConcreteMediator(this, ev);
-    }
-
     #region Animation Methods
 
 
@@ -110,7 +86,7 @@ public class BaseBattleUnit : MonoBehaviour
     {
         if (unitAnimator != null)
         {
-            unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
+           // unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
         }
     }
 
@@ -120,7 +96,7 @@ public class BaseBattleUnit : MonoBehaviour
     /// </summary>
     public void OnAttackActionAnimationTrigger()
     {
-        NotifyMediator(new CombatAttackEvent(GetCombatComponent().GetCurrentAttackInformation(), unitIntentData));
+       
     }
 
 
@@ -145,8 +121,6 @@ public class BaseBattleUnit : MonoBehaviour
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
     public void SetTeam(UnitTeam team) { this.team = team; }
     public UnitTeam GetTeam() { return team; }
-
-    public void SetMediator(ICombatMediator mediator) { concreteMediator = mediator; }
 
     #endregion
 

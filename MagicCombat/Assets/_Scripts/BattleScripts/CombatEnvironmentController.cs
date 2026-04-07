@@ -95,7 +95,7 @@ public class CombatEnvironmentController
 
         AttackResolutionInfo info = action.DoElementalMove(usersInfo: baseUnitsUsers, targetsInfo: baseUnitsTargets);
 
-        Debug.Log("PROCESSING MOVE: " + info.moveName);
+        Debug.Log("PROCESSING MOVE: " + action.GetMoveName());
 
         //CombatAttackHandler.ProcessAttackStep(this, info, users.FirstOrDefault().GetUnitIntentData());
 

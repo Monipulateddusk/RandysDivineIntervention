@@ -48,7 +48,6 @@ namespace TurnBased
 
     public class AttackResolutionInfo
     {
-        public string moveName;
         public List<AttackStep> Steps { get; private set; }
 
         public AttackResolutionInfo()
@@ -64,6 +63,7 @@ namespace TurnBased
         public MoveTarget GetMoveTargetType();
         public int GetMaxTargets();
         public bool DoesSourceUnitMove();
+        public string GetMoveName();
     }
 
     /// <summary>
@@ -75,7 +75,6 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
-                moveName = "HeavyAttack",
                 Steps =
                 {
                     new AttackStep()
@@ -92,7 +91,9 @@ namespace TurnBased
 
         public int GetMaxTargets() => 1;
         public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
-        public bool DoesSourceUnitMove() => true;   
+        public bool DoesSourceUnitMove() => true;
+
+        public string GetMoveName() => "HeavyAttack";
     }
 
     /// <summary>
@@ -104,8 +105,7 @@ namespace TurnBased
         {
             int damage = userInfo.attack / 3;
             AttackResolutionInfo resolutionInfo = new()
-            {
-                moveName = "LightAttack",
+            { 
                 Steps =
                 {
                     new AttackStep()
@@ -139,6 +139,8 @@ namespace TurnBased
         public int GetMaxTargets() => 1;
         public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
         public bool DoesSourceUnitMove() => true;
+
+        public string GetMoveName() => "LightAttack";
     }
 
     /// <summary>
@@ -150,7 +152,6 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
-                moveName = "ImbueEnvironment",
                 Steps =
                 {
                     new AttackStep()
@@ -169,5 +170,6 @@ namespace TurnBased
         public int GetMaxTargets() => 0;
         public MoveTarget GetMoveTargetType() => MoveTarget.Area;
         public bool DoesSourceUnitMove() => false;
+        public string GetMoveName() => "ImbueEnvironment";
     }
 }

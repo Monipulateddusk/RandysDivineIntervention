@@ -4,7 +4,7 @@ public class HealthComponent : BaseComponent
 {
 
     HealthBarController hBC;
-    int health;
+    private int health;
 
 
     public HealthComponent()
@@ -21,13 +21,13 @@ public class HealthComponent : BaseComponent
         this.battleUnit.OnAlterHealth += HandleHealthChanges;
 
         /*  Instanciate and Attach the Health Bar to the Unit   */
-        GameObject healthUIChild = (GameObject)Resources.Load("UI/HealthBarUI");
-        hBC = GameObject.Instantiate(healthUIChild.transform).GetComponent<HealthBarController>();
-        hBC.transform.SetParent(this.battleUnit.transform, worldPositionStays: false);
+        //GameObject healthUIChild = (GameObject)Resources.Load("UI/HealthBarUI");
+        //hBC = GameObject.Instantiate(healthUIChild.transform).GetComponent<HealthBarController>();
+        //hBC.transform.SetParent(this.battleUnit.transform, worldPositionStays: false);
 
         /*  Set up the Health Bar Component     */
         health = unitData.maxHP;
-        hBC.UpdateUI(health, unitData.maxHP);
+        //hBC.UpdateUI(health, unitData.maxHP);
     }
 
     ~HealthComponent()
@@ -49,6 +49,8 @@ public class HealthComponent : BaseComponent
         health = Mathf.Clamp(newHealthValue, 0, unitData.maxHP);
 
         /*  Update the Health Bar to show new HP    */
-        hBC.UpdateUI(health, unitData.maxHP);
+        //hBC.UpdateUI(health, unitData.maxHP);
     }
+
+    public int GetHealth() => health;
 }
