@@ -543,14 +543,9 @@ public class StationManager
     public List<StationIndex>   GetStationsIndex()                                                                      => this.SceneUnitData.GetStationIndexes();
     public List<StationIndex>   GetPopulatedStationIndexes()                                                            => this.SceneUnitData.GetPopulatedStationIndexes();
     public bool                 GetUnitIndexOnStation   (StationIndex stationIndex, out UnitIndex unitIndexOnStation)   => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex, out unitIndexOnStation);
-    public bool                 GetStationIndexOfIndex  (UnitIndex index, out StationIndex stationIndex)                => this.SceneUnitData.GetStationIndexOfUnitIndex(index, out stationIndex); 
-    public bool                 GetBattleUnitOfIndex    (UnitIndex index, out BaseBattleUnit unit)                      => this.SceneUnitData.GetBattleUnitOfIndex(index, out unit);
-    /// <summary>
-    /// Gets the Station that a Unit is on.  
-    /// </summary>
-    /// <param name="index"></param>
-    /// <returns>The Station the Unit is on if Sucessful. Returns a null referance if it is invalid.    </returns>
-    public bool                 GetStationOfUnitIndex   (UnitIndex index, out Station stationOfUnitIndex)               => this.SceneUnitData.GetStationOfUnitIndex(index, out stationOfUnitIndex);
+    public bool                 GetStationIndexOfIndex  (UnitIndex index,           out StationIndex stationIndex)      => this.SceneUnitData.GetStationIndexOfUnitIndex(index, out stationIndex); 
+    public bool                 GetBattleUnitOfIndex    (UnitIndex index,           out BaseBattleUnit unit)            => this.SceneUnitData.GetBattleUnitOfIndex(index, out unit);
+    public bool                 GetStationOfUnitIndex   (UnitIndex index,           out Station stationOfUnitIndex)     => this.SceneUnitData.GetStationOfUnitIndex(index, out stationOfUnitIndex);
     public bool                 GetStationOfStationIndex(StationIndex stationIndex, out Station stationOfStationIndex)  => this.SceneUnitData.GetStationOfStationIndex(stationIndex, out stationOfStationIndex);
     public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                                               => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
     public bool                 IsStationValid          (Station station)                                               => this.SceneUnitData.IsStationValid(station);
