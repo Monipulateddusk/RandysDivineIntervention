@@ -67,28 +67,49 @@ public class SelectionWindowBehaviour : MonoBehaviour
 
     private void SetTextElementText()
     {
-        string stateText  = "Camera";
+        if(this.currentSelectionState == SelectionWindowState.Units)
+        {
+            SetTextElementUnits();
+        }
+        else
+        {
+           SetTextElementCamera();
+        }
+    }
+
+    private void SetTextElementUnits()
+    {
+        /*  Default declaration if values are invalid when we retrieve them.    */
+        SetTextElementText("Current Unit Selected: Unit");
+
+        /*  Retrieve the selected Unit from the StationSelectorManager. Convert the Selected Station Index to UnitIndex.    */
+        StationIndex? selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationUnitIndex();
+        if (!selectedStationIndex.HasValue)
+        {
+            return;
+        }
+        
+        /*  If the Station is valid, retrieve the Unit on the station.  */
+        if(!StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex.Value, out UnitIndex selectedUnitIndex)) { return; }
+        
+        if(!StationManager.Instance.GetBattleUnitOfIndex(selectedUnitIndex, out BaseBattleUnit bBU)) { return; }
+        UnitData unitData = bBU.GetBaseUnit();
+        if (unitData == null) { return; }
+        SetTextElementText("Current Unit Selected: " + unitData.name);
+    }
+    private void SetTextElementCamera()
+    {
         string numberText = CameraController.Instance.CurrentCameraIndex.ToString();
 
-        /*  Override the strings if we are in Unit Selection.   */
-        if (currentSelectionState == SelectionWindowState.Units)
-        {
-            stateText   = "Unit";
-            numberText  = "Unit"; // Default in the event our retrieval of data fails.
-            UnitIndex? unitIndex = StationSelectorManager.Instance.GetSelectedStationUnitIndex();
-            if(unitIndex != null) {
-                UnitData unitData = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value).GetBaseUnit();
-                if (unitData == null) { return; }
-
-                numberText = unitData.name;
-            } 
-        }
-
-        string text = "Current " + stateText + " Selected: " + numberText;
+        string text = "Current Camera Selected: " + numberText;
 
         this.TextElement.text = text;
     }
 
+    void SetTextElementText(string text)
+    {
+        this.TextElement.text = text;
+    }
 
     void OnCameraTabClick()     { SetState(SelectionWindowState.Camera);    }
     void OnUnitTabClick()       { SetState(SelectionWindowState.Units);     }

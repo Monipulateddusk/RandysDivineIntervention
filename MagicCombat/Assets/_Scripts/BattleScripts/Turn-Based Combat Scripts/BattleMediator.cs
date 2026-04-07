@@ -106,7 +106,14 @@ namespace TurnBased
             this.UnitIndexTurnOrderList = this.StationHandler.GetAllActiveUnits();
 
             /*  Sort the List so that slowest Units are processed last. */
-            this.UnitIndexTurnOrderList.Sort((g1, g2) => this.StationHandler.GetBattleUnitOfIndex(g1).GetBaseUnit().speed.CompareTo(this.StationHandler.GetBattleUnitOfIndex(g2).GetBaseUnit().speed));
+            this.UnitIndexTurnOrderList.Sort((g1, g2) =>
+            {
+                this.StationHandler.GetBattleUnitOfIndex(g1, out BaseBattleUnit unit1);
+                this.StationHandler.GetBattleUnitOfIndex(g2, out BaseBattleUnit unit2);
+
+                return unit1.GetBaseUnit().speed.CompareTo(unit2.GetBaseUnit().speed);
+            });
+     
             this.UnitIndexTurnOrderList.Reverse();
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
@@ -191,15 +198,8 @@ namespace TurnBased
         }
 
         #region Getter Methods
-        public BaseBattleUnit GetBattleUnitOfUnitIndex  (UnitIndex index)               =>  this.StationHandler.GetBattleUnitOfIndex(index);
-        public List<StationIndex> GetStationIndexes()                                   =>  this.StationHandler.GetStationsIndex();
-        public StationIndex? GetStationIndexOfUnitIndex (UnitIndex index)               =>  this.StationHandler.GetStationOfIndex(index); 
-        public Station GetStationOfStationIndex         (StationIndex stationIndex)     =>  this.StationHandler.GetStationOfStationIndex(stationIndex);
-        public List<UnitIndex> GetAllUnitsOfTeam        (UnitTeam team)                 =>  this.StationHandler.GetUnitIndexesOfTeam(team);
-        public List<UnitIndex> GetTurnOrderList()                                       =>  this.UnitIndexTurnOrderList;
-        public UnitIndex? GetUnitIndexOnStation         (StationIndex stationIndex)     =>  this.StationHandler.GetUnitIndexOnStation(stationIndex);
-        public UnitIndex? GetCurrentUnit()                                              =>  this.currentUnit;
-        public UnitTeam GetUnitTeamOfUnitIndex          (UnitIndex index)               =>  this.StationHandler.GetUnitTeamOfIndex(index);
+        public List<UnitIndex>      GetTurnOrderList()                                                                          =>  this.UnitIndexTurnOrderList;
+        public UnitIndex?           GetCurrentUnit()                                                                            =>  this.currentUnit;
         #endregion
     }
 }

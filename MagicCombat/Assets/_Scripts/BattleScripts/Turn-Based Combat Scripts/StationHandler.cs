@@ -223,26 +223,38 @@ public class SceneUnitData
         return unitIndexesOnTeam;
     }
 
-    public UnitIndex? GetUnitIndexOfStationIndex(StationIndex stationIndex)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="stationIndex"></param>
+    /// <param name="outUnitIndex"></param>
+    /// <returns>True if there was a sucessful retrieval UnitIndex. Return false if the StationIndex is not Valid, or if there is no Unit on that station.  </returns>
+    public bool GetUnitIndexOfStationIndex(StationIndex stationIndex, out UnitIndex outUnitIndex)
     {
+        outUnitIndex = new();
         /*  Is this a valid station ID? If not, stop!   */
-        if (!IsStationIndexValid(stationIndex)) { return null; }
+        if (!IsStationIndexValid(stationIndex)) { return false; }
 
-        return this.Stations[stationIndex.Index].UnitOnStation;
+        if (!DoesStationHaveUnit(stationIndex)){ return false; }
+
+        outUnitIndex = this.Stations[stationIndex.Index].UnitOnStation.Value;
+        return true;
     }
 
-    public StationIndex? GetStationIndexOfUnitIndex(UnitIndex unitIndex)
+    public bool GetStationIndexOfUnitIndex(UnitIndex unitIndex, out StationIndex stationIndexOfUnitIndex)
     {
+        stationIndexOfUnitIndex = default;
         foreach (KeyValuePair<int,Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
             if (!station.UnitOnStation.HasValue) { continue; }
             if(station.UnitOnStation.Value.Index != unitIndex.Index)
             {
-                return station.StationIndex;
+                stationIndexOfUnitIndex = station.StationIndex;
+                return true;
             }
         }
-        return null;
+        return false;
     }
 
     /// <summary>
@@ -336,7 +348,7 @@ public class SceneUnitData
     }
     public UnitTeam GetUnitTeamOfUnitIndex(UnitIndex unitIndex)
     {
-        BaseBattleUnit unit = this.GetBattleUnitOfIndex(unitIndex);
+        if(!this.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit unit)) { return UnitTeam.NULL; }
         return unit.GetTeam();
     }
 
@@ -398,14 +410,25 @@ public class SceneUnitData
      *  We will need to look into this one eventually. As we return the BaseBattleUnit class, we can change the information on the fly which is not advised. 
      *  Eventually, we'd want to make it so only certain code places can actually change the BaseBattleUnit. 
     */
-    public BaseBattleUnit GetBattleUnitOfIndex(UnitIndex index) => this.Units[index.Index];
-    public Station GetStationOfStationIndex(StationIndex stationIndex)
+    public bool GetBattleUnitOfIndex(UnitIndex index, out BaseBattleUnit unit)
     {
+        unit = default;
+        if(this.Units.TryGetValue(index.Index, out BaseBattleUnit retrievedUnit))
+        {
+            unit = retrievedUnit;
+            return true;
+        }
+        return false;   
+    }
+    public bool GetStationOfStationIndex(StationIndex stationIndex, out Station stationOfStationIndex)
+    {
+        stationOfStationIndex = default;
         if (this.Stations.TryGetValue(stationIndex.Index, out Station station))
         {
-            return station;
+            stationOfStationIndex = station;
+            return true;
         }
-        return null;
+        return false;
     }
 
     /// <summary>
@@ -413,17 +436,19 @@ public class SceneUnitData
     /// </summary>
     /// <param name="index"></param>
     /// <returns>The Station the Unit is on if Sucessful. Returns a null referance if it is invalid.    </returns>
-    public Station GetStationOfUnitIndex(UnitIndex index)
+    public bool GetStationOfUnitIndex(UnitIndex index, out Station stationOfUnitIndex)
     {
+        stationOfUnitIndex = default;
         /*  Find the Station the UnitIndex is on.   */
-        StationIndex? stationIndex = GetStationIndexOfUnitIndex(index);
-        if(stationIndex == null) { return null; }
-        
-        bool valid = IsStationIndexValid(stationIndex.Value);
-        if (!valid) { return null; }
+        if(!GetStationIndexOfUnitIndex(index, out StationIndex stationIndex)) { return false; }
+
+        bool valid = IsStationIndexValid(stationIndex);
+        if (!valid) { return false; }
 
         /*  Get the Station.    */
-        return GetStationOfStationIndex(stationIndex.Value);
+        if(!GetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)) { return false; }
+        stationOfUnitIndex = stationOfStationIndex;
+        return true;
     }
 }
 
@@ -512,25 +537,24 @@ public class StationManager
         CreateStartingStations();
     }
 
-    public List<UnitIndex>      GetAllActiveUnits()                                                 => this.SceneUnitData.GetAllActiveUnits();
-    public List<UnitIndex>      GetUnitsOnTeam          (UnitTeam team)                             => this.SceneUnitData.GetUnitsOnTeam(team);
-    public List<UnitIndex>      GetUnitIndexesOfTeam    (UnitTeam team)                             => this.SceneUnitData.GetUnitIndexesOfTeam(team);
-    public List<StationIndex>   GetStationsIndex()                                                  => this.SceneUnitData.GetStationIndexes();
-    public List<StationIndex>   GetPopulatedStationIndexes()                                        => this.SceneUnitData.GetPopulatedStationIndexes();
-    public UnitIndex?           GetUnitIndexOnStation   (StationIndex stationIndex)                 => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex);
-    public StationIndex?        GetStationOfIndex       (UnitIndex index)                           => this.SceneUnitData.GetStationIndexOfUnitIndex(index); 
-    public BaseBattleUnit       GetBattleUnitOfIndex    (UnitIndex index)                           => this.SceneUnitData.GetBattleUnitOfIndex(index);
+    public List<UnitIndex>      GetAllActiveUnits()                                                                     => this.SceneUnitData.GetAllActiveUnits();
+    public List<UnitIndex>      GetUnitsOnTeam          (UnitTeam team)                                                 => this.SceneUnitData.GetUnitsOnTeam(team);
+    public List<UnitIndex>      GetUnitIndexesOfTeam    (UnitTeam team)                                                 => this.SceneUnitData.GetUnitIndexesOfTeam(team);
+    public List<StationIndex>   GetStationsIndex()                                                                      => this.SceneUnitData.GetStationIndexes();
+    public List<StationIndex>   GetPopulatedStationIndexes()                                                            => this.SceneUnitData.GetPopulatedStationIndexes();
+    public bool                 GetUnitIndexOnStation   (StationIndex stationIndex, out UnitIndex unitIndexOnStation)   => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex, out unitIndexOnStation);
+    public bool                 GetStationIndexOfIndex  (UnitIndex index, out StationIndex stationIndex)                => this.SceneUnitData.GetStationIndexOfUnitIndex(index, out stationIndex); 
+    public bool                 GetBattleUnitOfIndex    (UnitIndex index, out BaseBattleUnit unit)                      => this.SceneUnitData.GetBattleUnitOfIndex(index, out unit);
     /// <summary>
     /// Gets the Station that a Unit is on.  
     /// </summary>
     /// <param name="index"></param>
     /// <returns>The Station the Unit is on if Sucessful. Returns a null referance if it is invalid.    </returns>
-    public Station              GetStationOfUnitIndex   (UnitIndex index)                           => this.SceneUnitData.GetStationOfUnitIndex(index);
-    public Station              GetStationOfStationIndex(StationIndex stationIndex)                 => this.SceneUnitData.GetStationOfStationIndex(stationIndex);
-    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                           => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
-    public bool                 IsStationValid          (Station station)                           => this.SceneUnitData.IsStationValid(station);
-    public bool                 IsUnitValid             (BaseBattleUnit unit)                       => this.SceneUnitData.IsUnitValid(unit);
-    public bool                 IsStationEmpty          (StationIndex stationIndex)                 => !this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex).HasValue;
+    public bool                 GetStationOfUnitIndex   (UnitIndex index, out Station stationOfUnitIndex)               => this.SceneUnitData.GetStationOfUnitIndex(index, out stationOfUnitIndex);
+    public bool                 GetStationOfStationIndex(StationIndex stationIndex, out Station stationOfStationIndex)  => this.SceneUnitData.GetStationOfStationIndex(stationIndex, out stationOfStationIndex);
+    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                                               => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
+    public bool                 IsStationValid          (Station station)                                               => this.SceneUnitData.IsStationValid(station);
+    public bool                 IsUnitValid             (BaseBattleUnit unit)                                           => this.SceneUnitData.IsUnitValid(unit);
 
 
 
@@ -558,8 +582,9 @@ public class StationManager
     }
     public bool RemoveUnit(UnitIndex unitIndex)
     {
-        StationIndex? removedUnitStationIndex   = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex);
-        BaseBattleUnit removedUnit              = this.SceneUnitData.GetBattleUnitOfIndex(unitIndex); 
+        if (!this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex, out StationIndex removedUnitStationIndex)) {  return false; }
+
+        if (!this.SceneUnitData.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit removedUnit)) {  return false; }
 
         bool sucess = this.SceneUnitData.RemoveUnit(unitIndex);
         if (sucess) 
@@ -575,13 +600,10 @@ public class StationManager
     public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
     {   
         /*  Get each of the stations of the selected Units. */
-        StationIndex? stationIndexA = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexA);
-        StationIndex? stationIndexB = this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexB);
+        if(!this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexA, out StationIndex stationIndexA)) {  return false; }
+        if (!this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndexB, out StationIndex stationIndexB)) { return false; }
 
-        /*  If either of the stations is invalid, then we don't even want to notify that we failed swapping as one of the stations is invalid.  */
-        if (stationIndexA == null || stationIndexB == null) {   return false;   }
-
-        bool sucess = this.SceneUnitData.SwapUnitsOnStations(stationIndexA.Value, stationIndexB.Value);
+        bool sucess = this.SceneUnitData.SwapUnitsOnStations(stationIndexA, stationIndexB);
 
         if (sucess) 
         {
@@ -590,18 +612,15 @@ public class StationManager
         }
         else
         {
-            OnFailSwapUnits?.Invoke(stationIndexA.Value, stationIndexB.Value, unitIndexA, unitIndexB);
+            OnFailSwapUnits?.Invoke(stationIndexA, stationIndexB, unitIndexA, unitIndexB);
             return false;
         }
     }
     public bool SwitchUnitStations(StationIndex stationIndexA, StationIndex stationIndexB)
     {
-        /*  Get each of the stations of the selected Units. */
-        UnitIndex? unitIndexA = this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexA);
-        UnitIndex? unitIndexB = this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexB);
-
-        /*  If either of the stations is invalid, then we don't even want to notify that we failed swapping as one of the stations is invalid.  */
-        if (unitIndexA == null || unitIndexA == null) { return false; }
+        /*  Get each of the stations of the selected Units returning false if they weren't valid.   */
+        if (this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexA, out UnitIndex unitIndexA)) {  return false; }
+        if(this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndexB, out UnitIndex unitIndexB)) { return false; }
 
         bool sucess = this.SceneUnitData.SwapUnitsOnStations(stationIndexA, stationIndexB);
 
@@ -612,7 +631,7 @@ public class StationManager
         }
         else
         {
-            OnFailSwapUnits?.Invoke(stationIndexA, stationIndexB, unitIndexA.Value, unitIndexB.Value);
+            OnFailSwapUnits?.Invoke(stationIndexA, stationIndexB, unitIndexA, unitIndexB);
             return false;
         }
     }
@@ -649,7 +668,8 @@ public class StationManager
         List<StationIndex?> stationIndexes = new();
         foreach (UnitIndex unitIndex in indexes)
         {
-            stationIndexes.Add(this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex));
+            if(!this.SceneUnitData.GetStationIndexOfUnitIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { continue; }
+            stationIndexes.Add(stationIndexOfUnitIndex);
 
         }
         return stationIndexes;
@@ -751,18 +771,20 @@ public class StationManager
 
 public static class StationManagerUtilities
 {
-    public static void GetUnitIndexAndBattleUnitOnStation(StationIndex selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
+    public static bool GetUnitIndexAndBattleUnitOnStation(StationIndex selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
     {
-        /*  Get the UnitIndex on the station.   */
-        UnitIndex? unitIndex = StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex);
+        /*  Default declaration if invalid. */
+        unitIndexOnStation = default;
+        battleUnitOnStation = default;
 
-        /*  If the Null (There is no Unit on the station),      Abort!    */
-        if (unitIndex == null) { unitIndexOnStation = default; battleUnitOnStation = null; return; }
+        /*  Get the UnitIndex on the station. If this is invalid, Abort!  */
+        if (!StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)){ return false; }
 
         /*  Send out the UnitIndex and BaseBattleUnit.  */
-        BaseBattleUnit battleUnit = StationManager.Instance.GetBattleUnitOfIndex(unitIndex.Value);
-        unitIndexOnStation = unitIndex.Value;
+        if(!StationManager.Instance.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit battleUnit)) { return false; }
+
+        unitIndexOnStation = unitIndex;
         battleUnitOnStation = battleUnit;
-        return;
+        return true;
     }
 }

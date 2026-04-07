@@ -11,7 +11,7 @@ public class StationSelectorManager : MonoBehaviour
     /// [ StationIndex 1: New Selected Station Index ]
     /// [ StationIndex 2: De-Selected Station Index  ]
     /// </summary>
-    public static event Action<StationIndex, StationIndex> OnSelectionChange;
+    public static event Action<StationIndex, StationIndex?> OnSelectionChange;
 
     [SerializeField] List<StationIndex> stationIndexes = new();
     [SerializeField] StationIndex selectedStationIndex;
@@ -88,8 +88,8 @@ public class StationSelectorManager : MonoBehaviour
         /*  Loop through each StationIndex pulled from the StationManager, sort them by the team they are on.   */
         foreach (StationIndex stationIndex in this.stationIndexes)
         {
-            Station stationOfIndex = StationManager.Instance.GetStationOfStationIndex(stationIndex);
-            UnitTeam stationTeam = stationOfIndex.StationTeam;
+            if(!StationManager.Instance.GetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ continue; }
+            UnitTeam stationTeam = stationOfStationIndex.StationTeam;
 
             if (stationTeam == UnitTeam.ALLY) { allyStationIndexes.Add(stationIndex); }
             else { enemyStationIndexes.Add(stationIndex); }
@@ -112,17 +112,19 @@ public class StationSelectorManager : MonoBehaviour
     /// <summary>
     /// Finds where our currently selectedStationIndex is in the StationIndexesList for purposes of Incrementing and Decrementing.
     /// </summary>
-    /// <returns>Returns an index greater than 0 if sucessful. If not, Returns -1!  </returns>
-    private int FindCurrentIndexInStationIndexesList()
+    /// <returns>Returns an index greater than or equal to 0 if sucessful. If not, Returns -1!  </returns>
+    private bool FindCurrentIndexInStationIndexesList(out int metaIndex)
     {
-        for(int i = 0; i < this.stationIndexes.Count; i++)
+        metaIndex = -1;
+        for (int i = 0; i < this.stationIndexes.Count; i++)
         {
             if (this.stationIndexes[i].Index == this.selectedStationIndex.Index)
             {
-                return i;
+                metaIndex = i;
+                return true;
             }
         }
-        return -1;
+        return false;
     }
 
     /// <summary>
@@ -130,56 +132,61 @@ public class StationSelectorManager : MonoBehaviour
     /// </summary>
     /// <param name="index"></param>
     /// <param name="wrappedIndex"></param>
-    private void WrapIndex(int index, out int? wrappedIndex)
+    private bool WrapIndex(int index, out int? wrappedIndex)
     {
-        if(this.stationIndexes.Count == 0) {  wrappedIndex = null; return; }
+        if(this.stationIndexes.Count == 0) {  wrappedIndex = null; return false; }
 
         if(index > this.stationIndexes.Count - 1)
         {
             wrappedIndex = 0;
-            return;
+            return true;
         }
         else if (index < 0)
         {
             wrappedIndex = this.stationIndexes.Count - 1;
-            return;
+            return true;
         }
         else
         {
             wrappedIndex = index;   
-            return;
+            return true;
         }
     }
 
     public void IncrementIndex()
     {
-        int currentIndex = FindCurrentIndexInStationIndexesList();
-        if(currentIndex == -1) { return; }
-
+        /*  Find where this index is in the Stations list.  */
+        if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
         currentIndex++;
 
-        WrapIndex(currentIndex, out int? wrappedIndex);
-        if(wrappedIndex == null) { return; }
+        /*  Wrap the index between 0 and the length of the Populated Station List.  */
+        if (!WrapIndex(currentIndex, out int? wrappedIndex)) {  return; }
 
+        /*  Invoke the event because we have switched. Pass the old index and the new one!  */
+        StationIndex oldStationIndex = this.selectedStationIndex;
         this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
+        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
     public void DecrementIndex()
     {
-        int currentIndex = FindCurrentIndexInStationIndexesList();
-        if (currentIndex == -1) { return; }
-
+        /*  Find where this index is in the Stations list.  */
+        if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
         currentIndex--;
-        WrapIndex(currentIndex, out int? wrappedIndex);
-        if (wrappedIndex == null) { return; }
 
+        /*  Wrap the index between 0 and the length of the Populated Station List.  */
+        if (!WrapIndex(currentIndex, out int? wrappedIndex)) { return; }
+
+        /*  Invoke the event because we have switched. Pass the old index and the new one!  */
+        StationIndex oldStationIndex = this.selectedStationIndex;
         this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
+        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
 
     #endregion
 
-    public UnitIndex? GetSelectedStationUnitIndex()
+    public StationIndex GetSelectedStationUnitIndex()
     {
-        return StationManager.Instance.GetUnitIndexOnStation(this.selectedStationIndex);       
+        return this.selectedStationIndex;
     }
 }
 

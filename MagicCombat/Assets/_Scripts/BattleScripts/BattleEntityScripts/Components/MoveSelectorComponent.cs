@@ -5,11 +5,19 @@ using UnityEngine;
 
 public struct MoveSelectionData
 {
-    public IBattleMoveAction SelectedMove;
+    public IBattleMoveAction SelectedMove { get; }
 
-    public StationIndex SourceStationIndex;
-    public List<StationIndex?> AllyStationIndexes;
-    public List<StationIndex?> TargetStationIndexes;
+    public StationIndex SourceStationIndex { get; }
+    public List<StationIndex?> AllyStationIndexes { get; }
+    public List<StationIndex?> TargetStationIndexes { get; }
+
+    public MoveSelectionData(IBattleMoveAction selectedMove, StationIndex sourceStationIndex,  List<StationIndex?> allyStationIndexes, List<StationIndex?> targetStationIndexes)
+    {
+        this.SelectedMove = selectedMove;
+        this.SourceStationIndex = sourceStationIndex;
+        this.AllyStationIndexes = allyStationIndexes;
+        this.TargetStationIndexes = targetStationIndexes;
+    }
 }
 
 public abstract class BaseMoveSelectorComponent : BaseComponent
@@ -60,12 +68,13 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
         int rIndex = Random.Range(0, battleMoves.Count);
 
         IBattleMoveAction selectedMove = battleMoves[rIndex];
-        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+
+        if(StationManager.Instance.GetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
         List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
         List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
 
-        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
+        return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
     }
 }
 
@@ -98,13 +107,13 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         }
 
         IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
-        StationIndex? sourceStation = BattleMediator.Instance.GetStationIndexOfUnitIndex(data.SourceUnitIndex);
+        if (!StationManager.Instance.GetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) {  return new(); }
         List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
         List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
         // Increment the index after everything is decided
         curMoveIndex++;
 
-        return new() { SourceStationIndex = sourceStation.Value, SelectedMove = selectedMove, AllyStationIndexes = allyStationIndexes, TargetStationIndexes = enemyStationIndexes };
+        return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
     }
 }

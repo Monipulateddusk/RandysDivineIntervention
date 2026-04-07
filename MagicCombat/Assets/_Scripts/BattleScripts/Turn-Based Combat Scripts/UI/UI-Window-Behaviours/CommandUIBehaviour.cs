@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TurnBased;
 using UnityEngine;
@@ -26,14 +27,28 @@ public class CommandUIBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        //UnitSelectorManager.OnSelectionChange += UnitSelectorManager_OnSelectionChange;
+        StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
+    }
+    private void OnDestroy()
+    {
+        StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+    }
+
+    private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
+    {
+        if(!StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { Debug.Log("Invalid selection change!"); return; }
+
+        if (!StationManager.Instance.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit bBU)) { Debug.Log("Invalid selection change!"); return; }
+
+        SetImage(bBU);
+        SetHealthValues(bBU);
+        SetMoves(bBU);
     }
 
     private void Start()
     {
-        //if (!UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue){ return; }
 
-        //UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
+        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationUnitIndex(), null);
         SetState(CommandUIBehaviourStates.Default);
     }
 
@@ -51,10 +66,7 @@ public class CommandUIBehaviour : MonoBehaviour
         }
     }
 
-    private void OnDestroy()
-    {
-        //UnitSelectorManager.OnSelectionChange -= UnitSelectorManager_OnSelectionChange;
-    }
+
 
     private float GetValueNormalisation(float minimum, float maximum, float current)
     {
@@ -123,19 +135,6 @@ public class CommandUIBehaviour : MonoBehaviour
         }
     }
 
-    //private void UnitSelectorManager_OnSelectionChange(UnitSelectorManager.StationLocationData stationData)
-    //{
-    //    if(stationData.StationIndex == null) { return; }
-
-    //    UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(stationData.StationIndex.Value);
-    //    if(unitIndex == null) { return; }
-
-    //    BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
-
-    //    SetImage(bBU);
-    //    SetHealthValues(bBU);
-    //    SetMoves(bBU);
-    //}
 
     void DisableAllWindows()
     {

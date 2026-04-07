@@ -96,8 +96,8 @@ public class TurnOrderUIManager : MonoBehaviour
     private void CreateChildUnitTurnIconObject(UnitIndex unitIndex, GameObject parentGameObject)
     {
         /*  Retrieve the information about that Unit.   */
-        BaseBattleUnit battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex);
-        UnitTeam team = BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex);
+        if (!StationManager.Instance.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit battleUnit)) { return; }
+        UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(unitIndex);
 
         /*  Create the UI Child Object that will go into the Horizontal Group.  */
         GameObject childBackground = Instantiate(backgroundTemplate);

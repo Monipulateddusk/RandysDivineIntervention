@@ -281,8 +281,6 @@ public class CameraController : MonoBehaviour
             float t = (Time.time - startTime) / ANIMATE_DURATION;
             float shaderNormalisation = (t - 0) / (1 - 0);
 
-            Debug.Log(shaderNormalisation);
-
 
             int frame = Mathf.Min(Mathf.FloorToInt(t / 0.1f), 10);
 

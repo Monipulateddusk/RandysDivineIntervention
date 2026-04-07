@@ -121,7 +121,7 @@ public class UnitTurnPhase_Idle : UnitTurnSubPhase
     public override void Update()
     {
         //MonoBehaviour.print("<color=yellow>Idle for </color>" + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name);
-        if (ConcreteMediator.GetUnitTeamOfUnitIndex(currentUnitIndex) == UnitTeam.ALLY)
+        if (StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ALLY)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -130,7 +130,7 @@ public class UnitTurnPhase_Idle : UnitTurnSubPhase
             }
 
         }
-        else if(ConcreteMediator.GetUnitTeamOfUnitIndex(currentUnitIndex) == UnitTeam.ENEMY)
+        else if(StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ENEMY)
         {
             //Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
             _enemyTurnTimer -= Time.deltaTime;

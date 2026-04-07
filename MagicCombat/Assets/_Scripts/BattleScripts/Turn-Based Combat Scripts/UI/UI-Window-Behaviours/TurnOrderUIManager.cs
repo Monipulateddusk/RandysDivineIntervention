@@ -171,6 +171,7 @@ namespace TurnBased
                 itemObject = CreateItem(this.scrollablePrefabData.GetScrollableContentTransform());
                 bgTransform = GetBackgroundTransformOfItem(itemObject);
 
+                /*  If this is the first index, add in the Summoning Circle display to the TurnOrder Display.   */
                 if (i == 0)
                 {
                     GetSummoningCircleUIPrefab();
@@ -178,17 +179,15 @@ namespace TurnBased
                     slot = CreateSlot(summoningCircleParent.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(turnOrder[i]);
+                    if(!StationManager.Instance.GetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
                 else
                 {
-
-
                     slot = CreateSlot(bgTransform.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    battleUnit = BattleMediator.Instance.GetBattleUnitOfUnitIndex(turnOrder[i]);
+                    if (!StationManager.Instance.GetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
 
