@@ -69,7 +69,7 @@ public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
 
         IBattleMoveAction selectedMove = battleMoves[rIndex];
 
-        if(StationManager.Instance.GetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
+        if(StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
         List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
         List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
@@ -107,7 +107,7 @@ public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
         }
 
         IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
-        if (!StationManager.Instance.GetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) {  return new(); }
+        if (!StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) {  return new(); }
         List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
         List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 

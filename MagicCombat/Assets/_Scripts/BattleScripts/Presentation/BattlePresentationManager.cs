@@ -19,9 +19,9 @@ public class BattlePresentationManager : MonoBehaviour
     private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
     {
         /*  Get the station  and the BaseBattleUnit */
-        if (!StationManager.Instance.GetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ return; }
+        if (!StationManager.Instance.TryGetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ return; }
 
-        if(!StationManager.Instance.GetBattleUnitOfIndex(deployUnitIndex, out BaseBattleUnit battleUnit)) {  return; }
+        if(!StationManager.Instance.TryGetBattleUnitOfIndex(deployUnitIndex, out BaseBattleUnit battleUnit)) {  return; }
 
         battleUnit.transform.position = stationOfStationIndex.Position;
     }

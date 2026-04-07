@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using TurnBased;
 using UnityEngine;
 
 public class StationSelectorManager : MonoBehaviour
@@ -11,7 +9,7 @@ public class StationSelectorManager : MonoBehaviour
     /// [ StationIndex 1: New Selected Station Index ]
     /// [ StationIndex 2: De-Selected Station Index  ]
     /// </summary>
-    public static event Action<StationIndex, StationIndex?> OnSelectionChange;
+    public static event System.Action<StationIndex, StationIndex?> OnSelectionChange;
 
     [SerializeField] List<StationIndex> stationIndexes = new();
     [SerializeField] StationIndex selectedStationIndex;
@@ -25,7 +23,7 @@ public class StationSelectorManager : MonoBehaviour
             {
                 return instance;
             }
-            catch (Exception e)
+            catch (System.Exception e)
             {
                 Debug.LogError(e.ToString());
                 return null;
@@ -88,7 +86,7 @@ public class StationSelectorManager : MonoBehaviour
         /*  Loop through each StationIndex pulled from the StationManager, sort them by the team they are on.   */
         foreach (StationIndex stationIndex in this.stationIndexes)
         {
-            if(!StationManager.Instance.GetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ continue; }
+            if(!StationManager.Instance.TryGetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ continue; }
             UnitTeam stationTeam = stationOfStationIndex.StationTeam;
 
             if (stationTeam == UnitTeam.ALLY) { allyStationIndexes.Add(stationIndex); }
@@ -187,99 +185,5 @@ public class StationSelectorManager : MonoBehaviour
     public StationIndex GetSelectedStationUnitIndex()
     {
         return this.selectedStationIndex;
-    }
-}
-
-public class StationIntentionManager
-{
-    private static StationIntentionManager instance;
-    public static StationIntentionManager Instance {  
-        get { return instance; } 
-        set 
-        {
-            if (instance == null)
-            {
-                instance = value;
-            }
-        }
-    }    
-    Dictionary<StationIndex, UnitIntention> StationIntentionPairs = new();
-
-    public StationIntentionManager()
-    {
-        Instance = this;
-    }
-
-    public bool RemoveStationIndexAndIntention(StationIndex index)
-    {
-        if (this.StationIntentionPairs.ContainsKey(index))
-        {
-            return this.StationIntentionPairs.Remove(index);
-        }
-        return false;
-    }
-
-    public UnitIntention? GetIntentionOfStationIndex(StationIndex index)
-    {
-        if (this.StationIntentionPairs.ContainsKey(index))
-        {
-            return this.StationIntentionPairs[index];    
-        }
-        return null;
-    }
-
-    public UnitIntention? SetIntention(StationIndex index, UnitIntention value)
-    {
-        if (this.StationIntentionPairs.ContainsKey(index))
-        {
-            this.StationIntentionPairs[index] = value;
-            return this.StationIntentionPairs[index];
-        }
-        else
-        {
-            this.StationIntentionPairs.Add(index, value);
-            return this.StationIntentionPairs[index];
-        }
-    }
-
-    /// <summary>
-    /// Set the targets of the existing move selection. This maintains the Invarient. If, the pairs does not exist however, return null entirely.
-    /// </summary>
-    /// <param name="index"></param>
-    /// <param name="targets"></param>
-    /// <returns></returns>
-    public UnitIntention? SetIntention(StationIndex index, List<int?> targets)
-    {
-        if (this.StationIntentionPairs.ContainsKey(index))
-        {
-            // Get the intention stored here. If MoveSelection has a value, continue 
-            UnitIntention intention = this.StationIntentionPairs[index];
-            if(!intention.MoveSelection.HasValue) {return null;}
-
-            this.StationIntentionPairs[index] = new(intention.MoveSelection.Value, targets);
-            return this.StationIntentionPairs[index];
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// When we set pass in MoveSelectionData, we want to null target selection. 
-    /// So you can't do something wierd like target yourself with a multi-hit attack because the previous target was yourself.  
-    /// </summary>
-    /// <param name="index"></param>
-    /// <param name="moveData"></param>
-    /// <returns></returns>
-    public UnitIntention? SetIntention(StationIndex index, MoveSelectionData moveData)
-    {
-        if (this.StationIntentionPairs.ContainsKey(index))
-        {
-            this.StationIntentionPairs[index] = new(moveData, null);
-            return this.StationIntentionPairs[index];
-        }
-        else
-        {
-            this.StationIntentionPairs.Add(index, new(moveData, null));
-            return this.StationIntentionPairs[index];
-        }
     }
 }

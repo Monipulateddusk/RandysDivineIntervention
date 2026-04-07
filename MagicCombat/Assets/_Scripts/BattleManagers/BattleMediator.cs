@@ -108,8 +108,8 @@ namespace TurnBased
             /*  Sort the List so that slowest Units are processed last. */
             this.UnitIndexTurnOrderList.Sort((g1, g2) =>
             {
-                this.StationHandler.GetBattleUnitOfIndex(g1, out BaseBattleUnit unit1);
-                this.StationHandler.GetBattleUnitOfIndex(g2, out BaseBattleUnit unit2);
+                this.StationHandler.TryGetBattleUnitOfIndex(g1, out BaseBattleUnit unit1);
+                this.StationHandler.TryGetBattleUnitOfIndex(g2, out BaseBattleUnit unit2);
 
                 return unit1.GetBaseUnit().speed.CompareTo(unit2.GetBaseUnit().speed);
             });

@@ -179,7 +179,7 @@ namespace TurnBased
                     slot = CreateSlot(summoningCircleParent.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    if(!StationManager.Instance.GetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
+                    if(!StationManager.Instance.TryGetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
                 else
@@ -187,7 +187,7 @@ namespace TurnBased
                     slot = CreateSlot(bgTransform.transform);
 
                     /*  Get the image of the Unit. And Set it  */
-                    if (!StationManager.Instance.GetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
+                    if (!StationManager.Instance.TryGetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
                     SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
 

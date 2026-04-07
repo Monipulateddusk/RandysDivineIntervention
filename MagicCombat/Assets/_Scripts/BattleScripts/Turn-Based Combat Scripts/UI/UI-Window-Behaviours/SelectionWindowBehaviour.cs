@@ -83,18 +83,8 @@ public class SelectionWindowBehaviour : MonoBehaviour
         SetTextElementText("Current Unit Selected: Unit");
 
         /*  Retrieve the selected Unit from the StationSelectorManager. Convert the Selected Station Index to UnitIndex.    */
-        StationIndex? selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationUnitIndex();
-        if (!selectedStationIndex.HasValue)
-        {
-            return;
-        }
-        
-        /*  If the Station is valid, retrieve the Unit on the station.  */
-        if(!StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex.Value, out UnitIndex selectedUnitIndex)) { return; }
-        
-        if(!StationManager.Instance.GetBattleUnitOfIndex(selectedUnitIndex, out BaseBattleUnit bBU)) { return; }
-        UnitData unitData = bBU.GetBaseUnit();
-        if (unitData == null) { return; }
+        if(!StationManager.Instance.TryGetUnitDataOnStation(StationSelectorManager.Instance.GetSelectedStationUnitIndex(), out UnitData unitData)) { return; }
+
         SetTextElementText("Current Unit Selected: " + unitData.name);
     }
     private void SetTextElementCamera()

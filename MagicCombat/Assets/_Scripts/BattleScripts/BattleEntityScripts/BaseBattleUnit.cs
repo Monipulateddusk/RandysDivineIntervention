@@ -3,22 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
-public struct UnitIntention
-{
-    public MoveSelectionData? MoveSelection;
-    public List<int?> TargetIndexList;
-
-    public UnitIntention(MoveSelectionData moveData, List<int?> targetIndex)
-    {
-        this.MoveSelection = moveData;
-        this.TargetIndexList = targetIndex;
-    }
-
-    public bool IsMoveSelectionEmpty()
-    {
-        return MoveSelection != null;
-    }
-}
 
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
