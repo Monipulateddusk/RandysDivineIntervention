@@ -26,14 +26,14 @@ public class CommandUIBehaviour : MonoBehaviour
 
     private void Awake()
     {
-        UnitSelectorManager.OnSelectionChange += UnitSelectorManager_OnSelectionChange;
+        //UnitSelectorManager.OnSelectionChange += UnitSelectorManager_OnSelectionChange;
     }
 
     private void Start()
     {
-        if (!UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue){ return; }
+        //if (!UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().HasValue){ return; }
 
-        UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
+        //UnitSelectorManager_OnSelectionChange(UnitSelectorManager.Instance.GetCurrentStationIndexStationLocationData().Value);
         SetState(CommandUIBehaviourStates.Default);
     }
 
@@ -53,7 +53,7 @@ public class CommandUIBehaviour : MonoBehaviour
 
     private void OnDestroy()
     {
-        UnitSelectorManager.OnSelectionChange -= UnitSelectorManager_OnSelectionChange;
+        //UnitSelectorManager.OnSelectionChange -= UnitSelectorManager_OnSelectionChange;
     }
 
     private float GetValueNormalisation(float minimum, float maximum, float current)
@@ -123,19 +123,19 @@ public class CommandUIBehaviour : MonoBehaviour
         }
     }
 
-    private void UnitSelectorManager_OnSelectionChange(UnitSelectorManager.StationLocationData stationData)
-    {
-        if(stationData.StationIndex == null) { return; }
+    //private void UnitSelectorManager_OnSelectionChange(UnitSelectorManager.StationLocationData stationData)
+    //{
+    //    if(stationData.StationIndex == null) { return; }
 
-        UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(stationData.StationIndex.Value);
-        if(unitIndex == null) { return; }
+    //    UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(stationData.StationIndex.Value);
+    //    if(unitIndex == null) { return; }
 
-        BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
+    //    BaseBattleUnit bBU = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
 
-        SetImage(bBU);
-        SetHealthValues(bBU);
-        SetMoves(bBU);
-    }
+    //    SetImage(bBU);
+    //    SetHealthValues(bBU);
+    //    SetMoves(bBU);
+    //}
 
     void DisableAllWindows()
     {

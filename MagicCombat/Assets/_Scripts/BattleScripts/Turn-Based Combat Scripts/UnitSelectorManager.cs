@@ -4,49 +4,20 @@ using System.Linq;
 using TurnBased;
 using UnityEngine;
 
-public class UnitSelectorManager : MonoBehaviour
+public class StationSelectorManager : MonoBehaviour
 {
-    public struct StationLocationData { public Vector2 Location; public StationIndex? StationIndex; public UnitTeam Team; }
-    public static event Action<StationLocationData> OnSelectionChange;
+    /// <summary>
+    /// Invoked when we change the selected Station. 
+    /// [ StationIndex 1: New Selected Station Index ]
+    /// [ StationIndex 2: De-Selected Station Index  ]
+    /// </summary>
+    public static event Action<StationIndex, StationIndex> OnSelectionChange;
 
-    [SerializeField] private List<StationLocationData> stationLocationData = new();
-    public static event Action<StationLocationData> OnAddStationLocationData, OnRemoveStationLocationData;
+    [SerializeField] List<StationIndex> stationIndexes = new();
+    [SerializeField] StationIndex selectedStationIndex;
 
-    static readonly List<Vector2> ALLY_STATION_LOCATIONS = new(){
-        new(0, 1),      new(-3, 1),         new(3, 1),
-        new(1.5f, 3),   new(-1.5f,3),       new(4.5f,3),
-        new(1.5f,-1),   new(-1.5f,-1),      new(4.5f,-1),
-    };
-    static readonly List<Vector2> ENEMY_STATION_LOCATIONS = new(){
-        new(1.5f,-6),   new(-1.5f,-6),      new(4.5f,-6),
-        new(0,-8),      new(-3,-8),         new(3,-8),
-        new(0,-4),      new(-3,-4),         new(3,-4),
-    };
-
-    [SerializeField]List<StationIndex> stationIndexes = new();
-
-    private StationIndex? selectedStationIndex;
-    public StationIndex? CurrentSelectedStationIndex { get { return selectedStationIndex; }
-        set
-        {
-            /*  Only set the value if it isn't null and has a StationIndex (Which is a masked UnitIndex) of greater than 0. */
-            if (value.HasValue && value.Value.Index >= 0)
-            {
-                this.selectedStationIndex = this.stationIndexes[value.Value.Index];
-
-                /*  Notify anyone listening that the selection changed. */
-                StationLocationData? stationLocationData = GetCurrentStationIndexStationLocationData();
-                if (stationLocationData != null)
-                {
-                    OnSelectionChange?.Invoke(stationLocationData.Value);
-                }
-            }
-        }
-    }
-
-
-    private static UnitSelectorManager instance;
-    public static UnitSelectorManager Instance
+    private static StationSelectorManager instance;
+    public static StationSelectorManager Instance
     {
         get
         {
@@ -64,265 +35,151 @@ public class UnitSelectorManager : MonoBehaviour
 
     private void Awake()
     {
+        InitaliseSingleton();
+    }
+
+    private void InitaliseSingleton()
+    {        
         /*  Initalise the Singleton.    */
         if (instance != null && instance != this)
         {
-            DestroyImmediate(this.gameObject);
+            DestroyImmediate(this);
         }
         instance = this;
 
-        /*  Subscribe to the events for Unit Data   */
-        StationManager.OnAddUnit += SceneUnitData_OnAddUnit;
-        StationManager.OnRemoveUnit += SceneUnitData_OnRemoveUnit;
     }
 
-    private void OnDestroy()
-    {
-        /*  UnSubscribe to the events for Unit Data   */
-        StationManager.OnAddUnit -= SceneUnitData_OnAddUnit;
-        StationManager.OnRemoveUnit -= SceneUnitData_OnRemoveUnit;
-    }
 
-    private void SceneUnitData_OnAddUnit(UnitIndex unitIndex)
-    {
-        /*  Get the StationIndex of this Unit   */
-        StationIndex? stationIndex = BattleMediator.Instance.GetStationIndexOfUnitIndex(unitIndex);
-        if (stationIndex != null)
-        {
-            AddStationToList(stationIndex);
-        }
-    }
-    private void SceneUnitData_OnRemoveUnit(StationIndex? stationIndex, BaseBattleUnit unit)
-    {
-        RemoveStationFromList(stationIndex);
 
-    }
 
     private void Start()
     {
-        Initalise();
+        UpdateStationIndexes();
     }
 
-    List<Vector2> GetStationLocationsInUseOnTeam(UnitTeam team)
+    #region Creation Of Station Indexes
+    /// <summary>
+    /// Pulls the StationIndexes from the StationHandler, then sorts the Indexes into Team and Numerical Order.
+    /// </summary>
+    private void UpdateStationIndexes()
     {
-        List<Vector2> locationsInUse = new();
-        foreach (StationLocationData data in this.stationLocationData)
-        {
-            if (data.Team == team)
-            {
-                locationsInUse.Add(data.Location);
-            }
-        }
-        return locationsInUse;
+        GetStationIndexesFromStationHandler();
+        SortStationIndexesForTeams();
     }
 
-    Vector2 GetNextLocationOnTeamFromLocationsInUse(UnitTeam team, List<Vector2> locationsInUse)
+    private void GetStationIndexesFromStationHandler()
     {
-        List<Vector2> allLocationsOnTeam = team == UnitTeam.ALLY ? ALLY_STATION_LOCATIONS : ENEMY_STATION_LOCATIONS;
+        if (StationManager.Instance == null) { return; }
 
-        /*  Get the locations on the team (the constant vector 2s). Loop through them and remove each vector2 currently in use from the copied allLocationsOnTeam list. */
-        /*  The result is a new Vector2 list which we can take the first or default value to get the next new position from our allLocationsOnTeam list.    */
-        foreach (Vector2 location in locationsInUse)
-        {
-            allLocationsOnTeam.Remove(location);
-        }
-
-        return allLocationsOnTeam.FirstOrDefault();
-    }
-    bool AddStationToList(StationIndex? index)
-    {
-        if (index == null) { return false; }
-
-        UnitIndex? unitIndex = BattleMediator.Instance.GetUnitIndexOnStation(index.Value);
-        if (unitIndex == null) { return false; ; }
-
-        // Look into the index, what team is it on?
-        UnitTeam team = BattleMediator.Instance.GetUnitTeamOfUnitIndex(unitIndex.Value);
-
-        /*  Get the next location not in use for that team.     */
-        List<Vector2> locations = GetStationLocationsInUseOnTeam(team);
-        Vector2 nextLocation = GetNextLocationOnTeamFromLocationsInUse(team, locations);
-
-        // After everything, there is a possibility there is no more locations on that team. If so, return false.   
-        if (nextLocation == null)
-        {
-            Debug.Log("There is no more Locations to use on Team: " + team.ToString());
-            return false;
-        }
-
-        StationLocationData data = new()
-        {
-            StationIndex = index,
-            Location = nextLocation,
-            Team = team,
-        };
-
-        stationLocationData.Add(data);
-
-        OnAddStationLocationData?.Invoke(data);
-
-        UpdateStationList();
-
-        return true;
-    }
-
-    bool RemoveStationFromList(StationIndex? index)
-    {
-        if (index == null) { return false; }
-
-        /*  Find the Station Location in use for this Index.    */
-        for (int i = 0; i < this.stationLocationData.Count; i++)
-        {
-            if (this.stationLocationData[i].StationIndex.Value.Index == index.Value.Index)
-            {
-                StationLocationData data = this.stationLocationData[i];
-                this.stationLocationData.RemoveAt(i);
-
-                OnRemoveStationLocationData?.Invoke(data);
-
-                UpdateStationList();
-
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    public void Initalise()
-    {
-        UpdateStationList();
-
-        this.CurrentSelectedStationIndex = this.stationLocationData.FirstOrDefault().StationIndex;
+        this.stationIndexes = StationManager.Instance.GetPopulatedStationIndexes();
     }
 
     /// <summary>
-    /// Find the index in the list where our currently selected station is stored. Allows us to select the next station over.
-    /// Returns 0 if the index is somehow not found.    
+    /// Sorts the StationIndexes into both Teams.
+    /// Additionally, sorts StationIndexes based on numerical order. 
     /// </summary>
-    /// <returns></returns>
-    private void FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int value)
+    private void SortStationIndexesForTeams()
     {
-        value = 0;
-        for (int i = 0; i < this.stationIndexes.Count; i++)
+        if (StationManager.Instance == null) { return; }
+
+        List<StationIndex> allyStationIndexes = new();
+        List<StationIndex> enemyStationIndexes = new();
+
+        /*  Loop through each StationIndex pulled from the StationManager, sort them by the team they are on.   */
+        foreach (StationIndex stationIndex in this.stationIndexes)
         {
-            if (this.stationIndexes[i].Index == this.CurrentSelectedStationIndex?.Index)
+            Station stationOfIndex = StationManager.Instance.GetStationOfStationIndex(stationIndex);
+            UnitTeam stationTeam = stationOfIndex.StationTeam;
+
+            if (stationTeam == UnitTeam.ALLY) { allyStationIndexes.Add(stationIndex); }
+            else { enemyStationIndexes.Add(stationIndex); }
+        }
+
+        /*  Once we sorted based on Team, sort the stations by numerical order. */
+        List<StationIndex> sortedAllyStationIndexes = allyStationIndexes.OrderBy(i => i.Index).ToList();
+        List<StationIndex> sortedEnemStationIndexes = enemyStationIndexes.OrderBy(i => i.Index).ToList();
+
+        /*  Recombine the indexes into our StationIndexes.  */
+        this.stationIndexes = new();
+        this.stationIndexes.AddRange(sortedAllyStationIndexes);
+        this.stationIndexes.AddRange(sortedEnemStationIndexes);
+    }
+
+    #endregion
+
+    #region Increment Decrement Functionality
+
+    /// <summary>
+    /// Finds where our currently selectedStationIndex is in the StationIndexesList for purposes of Incrementing and Decrementing.
+    /// </summary>
+    /// <returns>Returns an index greater than 0 if sucessful. If not, Returns -1!  </returns>
+    private int FindCurrentIndexInStationIndexesList()
+    {
+        for(int i = 0; i < this.stationIndexes.Count; i++)
+        {
+            if (this.stationIndexes[i].Index == this.selectedStationIndex.Index)
             {
-                value = i;
-                break;
+                return i;
             }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Wraps the index to be within the size of the StationIndexes list. If the list is too small to be wrapped, returns null.
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="wrappedIndex"></param>
+    private void WrapIndex(int index, out int? wrappedIndex)
+    {
+        if(this.stationIndexes.Count == 0) {  wrappedIndex = null; return; }
+
+        if(index > this.stationIndexes.Count - 1)
+        {
+            wrappedIndex = 0;
+            return;
+        }
+        else if (index < 0)
+        {
+            wrappedIndex = this.stationIndexes.Count - 1;
+            return;
+        }
+        else
+        {
+            wrappedIndex = index;   
+            return;
         }
     }
 
     public void IncrementIndex()
     {
-        // Get the current index
-        FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentListIndex);
-        bool looped = false;
-        int start = currentListIndex + 1, end = this.stationIndexes.Count;
+        int currentIndex = FindCurrentIndexInStationIndexesList();
+        if(currentIndex == -1) { return; }
 
-    looped:
+        currentIndex++;
 
-        for (int i = start; i < end; i++)
-        {
-            if (i > this.stationIndexes.Count)
-            {
-                Debug.Log("Index is: " + i + " which is greater than the size of the list, breaking out the loop.");
-                break;
-            }
+        WrapIndex(currentIndex, out int? wrappedIndex);
+        if(wrappedIndex == null) { return; }
 
-            Station station = BattleMediator.Instance.GetStationOfStationIndex(this.stationIndexes[i]);
-
-            if (station.UnitOnStation == null)
-            {
-                continue;
-            }
-
-            // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            this.CurrentSelectedStationIndex = this.stationIndexes[i];
-            return;
-        }
-
-        // If we have reached here, we have not found a new index, so we start at the start of the list.
-        // If we reach our original currentIndex, then we clearly have no other options.  
-        if (!looped)
-        {
-            looped = true;
-            start = 0;
-            end = currentListIndex;
-            goto looped;
-        }
-        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
-        else { return; }
+        this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
     }
-
     public void DecrementIndex()
     {
-        // Get the current index
-        FindListIndexInStationIndexesOfCurrentSelectedStationIndex(out int currentListIndex);
-        bool looped = false;
-        int start = currentListIndex - 1, end = -1;
+        int currentIndex = FindCurrentIndexInStationIndexesList();
+        if (currentIndex == -1) { return; }
 
-    looped:
+        currentIndex--;
+        WrapIndex(currentIndex, out int? wrappedIndex);
+        if (wrappedIndex == null) { return; }
 
-        for (int i = start; i > end; i--)
-        {
-            if (i < 0)
-            {
-                Debug.Log("Index is: " + i + " which is less than 0, breaking out the loop.");
-                break;
-            }
-            Station station = BattleMediator.Instance.GetStationOfStationIndex(this.stationIndexes[i]);
-
-            if (station.UnitOnStation == null)
-            {
-                continue;
-            }
-
-            // If this index has a value (Isn't null), then we want to take that as the new selected index.
-            this.CurrentSelectedStationIndex = this.stationIndexes[i];
-            return;
-        }
-
-        // If we have reached here, we have not found a new index, so we start at the start of the list.
-        // If we reach our original currentIndex, then we clearly have no other options.  
-        if (!looped)
-        {
-            looped = true;
-            start = this.stationIndexes.Count - 1;
-            end = currentListIndex;
-            goto looped;
-        }
-        /*  If we wrapped back around, then exit out so we aren't creating an infinite loop.    */
-        else { return; }
+        this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
     }
 
-    private void UpdateStationList()
-    {
-        this.stationIndexes = BattleMediator.Instance.GetStationIndexes();
-    }
+    #endregion
 
-    public StationLocationData? GetCurrentStationIndexStationLocationData()
+    public UnitIndex? GetSelectedStationUnitIndex()
     {
-        if (!this.CurrentSelectedStationIndex.HasValue) { return null; }
-
-        foreach(StationLocationData data in this.stationLocationData)
-        {
-            if(data.StationIndex.HasValue && data.StationIndex.Value.Index == this.CurrentSelectedStationIndex.Value.Index)
-            {
-                return data;
-            }
-        }
-        return null;
-    }
-
-    public UnitIndex? GetSelectedStationUnit()
-    {
-        if (this.CurrentSelectedStationIndex != null)
-        {
-            return BattleMediator.Instance.GetUnitIndexOnStation(this.CurrentSelectedStationIndex.Value);
-        }
-        return null;
+        return StationManager.Instance.GetUnitIndexOnStation(this.selectedStationIndex);       
     }
 }
 

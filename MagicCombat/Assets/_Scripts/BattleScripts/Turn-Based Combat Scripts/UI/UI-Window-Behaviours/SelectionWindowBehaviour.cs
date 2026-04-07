@@ -75,7 +75,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
         {
             stateText   = "Unit";
             numberText  = "Unit"; // Default in the event our retrieval of data fails.
-            UnitIndex? unitIndex = UnitSelectorManager.Instance.GetSelectedStationUnit();
+            UnitIndex? unitIndex = StationSelectorManager.Instance.GetSelectedStationUnitIndex();
             if(unitIndex != null) {
                 UnitData unitData = BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value).GetBaseUnit();
                 if (unitData == null) { return; }
@@ -114,7 +114,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
         switch (currentSelectionState)
         {
             case SelectionWindowState.Units:
-                UnitSelectorManager.Instance.DecrementIndex();
+                StationSelectorManager.Instance.DecrementIndex();
                 break;
             case SelectionWindowState.Camera:
                 await CameraController.Instance.DecrementCameraIndex();
@@ -136,7 +136,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
         switch (currentSelectionState)
         {
             case SelectionWindowState.Units:
-                UnitSelectorManager.Instance.IncrementIndex();
+                StationSelectorManager.Instance.IncrementIndex();
                 break;
             case SelectionWindowState.Camera:
                 await CameraController.Instance.IncrementCameraIndex();

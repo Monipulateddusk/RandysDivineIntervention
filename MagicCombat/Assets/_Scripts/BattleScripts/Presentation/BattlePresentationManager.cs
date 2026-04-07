@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BattlePresentationManager : MonoBehaviour
@@ -5,55 +6,32 @@ public class BattlePresentationManager : MonoBehaviour
     [SerializeField] GameObject tempVisual;
     private void Awake()
     {
-        UnitSelectorManager.OnSelectionChange           += UnitSelectorManager_OnSelectionChange;
-        UnitSelectorManager.OnAddStationLocationData    += UnitSelectorManager_OnAddStationLocationData;
-        UnitSelectorManager.OnRemoveStationLocationData += UnitSelectorManager_OnRemoveStationLocationData;
+        StationManager.OnDeployUnit                 += StationManager_OnDeployUnit;
+        StationSelectorManager.OnSelectionChange    += StationSelectorManager_OnSelectionChange;
     }
-
 
     private void OnDestroy()
     {
-        UnitSelectorManager.OnSelectionChange           -= UnitSelectorManager_OnSelectionChange;
-        UnitSelectorManager.OnAddStationLocationData    -= UnitSelectorManager_OnAddStationLocationData;
-        UnitSelectorManager.OnRemoveStationLocationData -= UnitSelectorManager_OnRemoveStationLocationData;
+        StationManager.OnDeployUnit                 -= StationManager_OnDeployUnit;
+        StationSelectorManager.OnSelectionChange    -= StationSelectorManager_OnSelectionChange;
     }
 
-    private void GetUnitIndexAndBattleUnitOnStation(UnitSelectorManager.StationLocationData locationData, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
+    private void StationManager_OnDeployUnit(Station station, BaseBattleUnit deployedUnit, BaseBattleUnit recalledUnit)
     {
-        if (locationData.StationIndex == null) { unitIndexOnStation = default; battleUnitOnStation = null; return; }
+        /*  Confirm that the station and the Deployed Unit are valid.   */
+        bool validStation = StationManager.Instance.IsStationValid(station);
+        if (!validStation) { return; }
 
-        UnitIndex? unitIndex = TurnBased.BattleMediator.Instance.GetUnitIndexOnStation(locationData.StationIndex.Value);
-        if (unitIndex == null) { unitIndexOnStation = default; battleUnitOnStation = null; return; }
+        bool validUnit = StationManager.Instance.IsUnitValid(deployedUnit);
+        if (!validUnit) { return; }
 
-        BaseBattleUnit battleUnit = TurnBased.BattleMediator.Instance.GetBattleUnitOfUnitIndex(unitIndex.Value);
-
-        unitIndexOnStation = unitIndex.Value;
-        battleUnitOnStation = battleUnit;
-        return;
+        /*  Assign the Unit to it's station position.   */
+        deployedUnit.transform.position = station.Position;
     }
 
-    private void PositionUnitOnStation(UnitSelectorManager.StationLocationData locationData, BaseBattleUnit battleUnitOnStation)
+    private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex deselectedStationIndex)
     {
-        if(battleUnitOnStation == null) { return; }
-        battleUnitOnStation.transform.position = new() { x = locationData.Location.x, y = 0, z = locationData.Location.y };
+        StationManagerUtilities.GetUnitIndexAndBattleUnitOnStation(selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation);
     }
 
-    private void UnitSelectorManager_OnAddStationLocationData(UnitSelectorManager.StationLocationData locationData)
-    {
-        GetUnitIndexAndBattleUnitOnStation(locationData, out UnitIndex unitIndex, out BaseBattleUnit battleUnitOnStation);
-        PositionUnitOnStation(locationData, battleUnitOnStation);
-    }
-
-    private void UnitSelectorManager_OnSelectionChange(UnitSelectorManager.StationLocationData locationData)
-    {
-        if (tempVisual != null)
-        {
-            tempVisual.transform.position = new(locationData.Location.x, 0, locationData.Location.y);
-        }
-
-    }
-
-    private void UnitSelectorManager_OnRemoveStationLocationData(UnitSelectorManager.StationLocationData locationData)
-    {
-    }
 }

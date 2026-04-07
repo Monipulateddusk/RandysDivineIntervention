@@ -61,6 +61,7 @@ public class SceneUnitData
         );
 
         IncrementStationID();
+
         return createdStationIndex;
     }
 
@@ -314,11 +315,54 @@ public class SceneUnitData
         }
         return stationIndexes;
     }
+
+    /// <summary>
+    /// </summary>
+    /// <returns>All populated Station Indexes (Station Indexes correlating to Stations with a Unit on them).</returns>
+    public List<StationIndex> GetPopulatedStationIndexes()
+    {
+        List<StationIndex> stationIndexes = new();
+        /*  Loop through all Stations, if a station has a Unit on it, add it to the List.   */
+        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        {
+            Station station = stationKeyValuePairs.Value;
+
+            UnitIndex? unitIndexOnStation = station.UnitOnStation;
+            if(unitIndexOnStation == null) { continue; }
+
+            stationIndexes.Add(station.StationIndex);
+        }
+        return stationIndexes;
+    }
     public UnitTeam GetUnitTeamOfUnitIndex(UnitIndex unitIndex)
     {
         BaseBattleUnit unit = this.GetBattleUnitOfIndex(unitIndex);
         return unit.GetTeam();
     }
+
+    public bool IsStationValid(Station station)
+    {
+        foreach (KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
+        {
+            if(stationKeyValuePair.Value == station)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    public bool IsUnitValid(BaseBattleUnit unit)
+    {
+        foreach(KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        {
+            if(unitKeyValuePair.Value == unit)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private bool IsUnitIndexOnBattlefield(UnitIndex unitIndex)
     {
@@ -363,21 +407,50 @@ public class SceneUnitData
         }
         return null;
     }
+
+    /// <summary>
+    /// Gets the Station that a Unit is on.  
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns>The Station the Unit is on if Sucessful. Returns a null referance if it is invalid.    </returns>
+    public Station GetStationOfUnitIndex(UnitIndex index)
+    {
+        /*  Find the Station the UnitIndex is on.   */
+        StationIndex? stationIndex = GetStationIndexOfUnitIndex(index);
+        if(stationIndex == null) { return null; }
+        
+        bool valid = IsStationIndexValid(stationIndex.Value);
+        if (!valid) { return null; }
+
+        /*  Get the Station.    */
+        return GetStationOfStationIndex(stationIndex.Value);
+    }
 }
 
 public class StationManager
 {
+    private static StationManager instance;
+    public static StationManager Instance 
+    {  
+        get { return instance; } 
+        set 
+        {
+            if(instance != null) { UnityEngine.Debug.LogError("ERROR — STATION_MANAGER: TRYING TO ASSIGN SINGLETON WHEN THERE IS ALREADY A STATION_MANAGER!!"); return; }
+            instance = value;
+        } 
+    }
+
     #region Events
     /// <summary>
     /// Invoked when a Unit is added. Normally at start of game.    
-    /// UnitIndex: Unit Index of the Unit being added.  
+    /// [ UnitIndex: Unit Index of the Unit being added.  ]
     /// </summary>
     public static event Action<UnitIndex> OnAddUnit;
 
     /// <summary>
     /// Invoked when a Unit is Removed. When a unit is destroyed.   
-    /// Station Index: StationIndex of the Destroyed Unit. Could be null if they were removed in resurve.
-    /// BaseBattleUnit: Main Script of the Unit, allows use of the GameObject.
+    /// [ Station Index: StationIndex of the Destroyed Unit. Could be null if they were removed in resurve. ]
+    /// [ BaseBattleUnit: Main Script of the Unit, allows use of the GameObject. ]
     /// 
     /// IMPORTANT: As we remove the UnitIndex, StationIndex from arrays, you cannot use any method within SceneUnitData to retrieve further information on the Unit. 
     /// However, you can use the StationIndex to consult another class to retrieve the Station's Location in worldSpace.
@@ -387,8 +460,8 @@ public class StationManager
     /// <summary>
     /// Invoked on Switching the stations of Units on the Same Team. 
     /// 
-    /// Index 1: UnitIndex that is switching to the desired station. 
-    /// Index 2: UnitIndex that is being forced to the other Unit's Station.
+    /// [ Index 1: UnitIndex that is switching to the desired station. ]
+    /// [ Index 2: UnitIndex that is being forced to the other Unit's Station.]
     /// </summary>
     public static event Action<UnitIndex?, UnitIndex?> OnSwapUnits;
 
@@ -396,20 +469,21 @@ public class StationManager
     /// <summary>
     /// Invoked on failing Switching the stations of Units on the Same Team. 
     /// 
-    /// StationIndex 1: StationIndex that would be switching to the desired station. 
-    /// StationIndex 2: StationIndex that would be forced to the other Unit's Station.
-    /// UnitIndex 1: UnitIndex that would be switching to the desired station. 
-    /// UnitIndex 2: UnitIndex that would be forced to the other Unit's Station.
+    /// [ StationIndex 1: StationIndex that would be switching to the desired station. ]
+    /// [ StationIndex 2: StationIndex that would be forced to the other Unit's Station. ]
+    /// [ UnitIndex 1: UnitIndex that would be switching to the desired station. ]
+    /// [ UnitIndex 2: UnitIndex that would be forced to the other Unit's Station. ]
     /// </summary>
     public static event Action<StationIndex, StationIndex, UnitIndex, UnitIndex> OnFailSwapUnits;
 
     /// <summary>
     /// Invoked on Deploying from Resurves. 
     /// 
-    /// UnitIndex 1: UnitIndex we are deploying. 
-    /// UnitIndex 2: UnitIndex of the unit that is going to resurves. Null if there was nothing on that Deployment station.
+    /// [ Station 1: Station we are deploying the new unit onto. ]
+    /// [ BaseBattleUnit 1: BaseBattleUnit of the unit that is going onto the station. ]
+    /// [ BaseBattleUnit 2: BaseBattleUnit of the unit that is going into resurves. ]
     /// </summary>
-    public static event Action<UnitIndex, UnitIndex?> OnDeployUnit;
+    public static event Action<Station, BaseBattleUnit, BaseBattleUnit> OnDeployUnit;
 
     #endregion
 
@@ -429,6 +503,7 @@ public class StationManager
 
     public StationManager()
     {
+        Instance = this;
         this.SceneUnitData = new();
         CreateStartingStations();
     }
@@ -437,11 +512,20 @@ public class StationManager
     public List<UnitIndex>      GetUnitsOnTeam          (UnitTeam team)                             => this.SceneUnitData.GetUnitsOnTeam(team);
     public List<UnitIndex>      GetUnitIndexesOfTeam    (UnitTeam team)                             => this.SceneUnitData.GetUnitIndexesOfTeam(team);
     public List<StationIndex>   GetStationsIndex()                                                  => this.SceneUnitData.GetStationIndexes();
+    public List<StationIndex>   GetPopulatedStationIndexes()                                        => this.SceneUnitData.GetPopulatedStationIndexes();
     public UnitIndex?           GetUnitIndexOnStation   (StationIndex stationIndex)                 => this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex);
     public StationIndex?        GetStationOfIndex       (UnitIndex index)                           => this.SceneUnitData.GetStationIndexOfUnitIndex(index); 
     public BaseBattleUnit       GetBattleUnitOfIndex    (UnitIndex index)                           => this.SceneUnitData.GetBattleUnitOfIndex(index);
+    /// <summary>
+    /// Gets the Station that a Unit is on.  
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns>The Station the Unit is on if Sucessful. Returns a null referance if it is invalid.    </returns>
+    public Station              GetStationOfUnitIndex   (UnitIndex index)                           => this.SceneUnitData.GetStationOfUnitIndex(index);
     public Station              GetStationOfStationIndex(StationIndex stationIndex)                 => this.SceneUnitData.GetStationOfStationIndex(stationIndex);
-    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                           => this.SceneUnitData.GetUnitTeamOfUnitIndex(index); 
+    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                           => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
+    public bool                 IsStationValid          (Station station)                           => this.SceneUnitData.IsStationValid(station);
+    public bool                 IsUnitValid             (BaseBattleUnit unit)                       => this.SceneUnitData.IsUnitValid(unit);
     public bool                 IsStationEmpty          (StationIndex stationIndex)                 => !this.SceneUnitData.GetUnitIndexOfStationIndex(stationIndex).HasValue;
 
 
@@ -467,12 +551,22 @@ public class StationManager
         /*  When deploying a unit, check that the baseBattleUnit and the station match Teams.   */
         if(unit.GetTeam() != station.StationTeam) { return false; }
 
+        UnityEngine.Debug.Log("Unit named: " + unit.name + " being placed on Station Index: " + station.StationIndex.Index + " at position: " + station.Position);
+        
         /*  If so, send the Unit on the Station to resurve and replace it with the new Unit.    */
         UnitIndex? previousUnitIndex = station.UnitOnStation;
+        
+        /*  Check to see if we have a previousUnit on that station, if so, send that information along. Otherwise, send a null referance.   */
+        BaseBattleUnit resurveUnit = null;
+        if (previousUnitIndex.HasValue)
+        {
+            resurveUnit = this.SceneUnitData.GetBattleUnitOfIndex(previousUnitIndex.Value); 
+        }
+
         station.UnitOnStation = unitIndex;  
 
         /*  Notify any listeners that the deployment took place.    */
-        OnDeployUnit?.Invoke(unitIndex, previousUnitIndex);
+        OnDeployUnit?.Invoke(station, unit, resurveUnit);
 
         return true;
     }
@@ -637,25 +731,55 @@ public class StationManager
 
             /*  Get the team of the Unit, loop through the stations to find the first empty station on that team.   */
             UnitTeam battleUnitTeam = battleUnit.GetTeam();
-            Station emptyStationOnTeam = FindFirstEmptyStationOnTeam(battleUnitTeam);
-            if (emptyStationOnTeam == null) { UnityEngine.Debug.LogWarning("WARNING — DEPLOY_UNITS_FOR_START_OF_BATTLE: UNABLE TO FIND EMPTY STATION ON TEAM. UNIT IS IN RESERVE!"); }
+            StationIndex? emptyStationIndexOnTeam = FindFirstEmptyStationIndexOnTeam(battleUnitTeam);
+            if (emptyStationIndexOnTeam == null) { UnityEngine.Debug.LogWarning("WARNING — DEPLOY_UNITS_FOR_START_OF_BATTLE: UNABLE TO FIND EMPTY STATION ON TEAM. UNIT IS IN RESERVE!"); }
             else
             {
                 /*  If we found a valid station, assign this BattleUnit's UnitIndex to this station!    */
-                emptyStationOnTeam.UnitOnStation = battleUnitIndex;
+                DeployUnit(battleUnitIndex, emptyStationIndexOnTeam.Value);
             }
         }
+
+        UnityEngine.Debug.Log("Completed deploying units for start of battle!");
     }
 
-    private Station FindFirstEmptyStationOnTeam(UnitTeam unitTeam)
+    /// <summary>
+    /// This is working as intended.
+    /// </summary>
+    /// <param name="unitTeam"></param>
+    /// <returns></returns>
+    private StationIndex? FindFirstEmptyStationIndexOnTeam(UnitTeam unitTeam)
     {
         foreach (KeyValuePair<int, Station> stationsKeyValuePairs in this.SceneUnitData.Stations)
         {
+            int stationIndex = stationsKeyValuePairs.Key;
             Station station = stationsKeyValuePairs.Value;
-            if(station == null) continue;
+            if (station == null) continue;
 
-            if(station.StationTeam == unitTeam && station.UnitOnStation == null) return station;
+            if (station.StationTeam == unitTeam && station.UnitOnStation == null)
+            {
+                UnityEngine.Debug.Log("Selected station index is: " + stationIndex);
+                return new StationIndex() {Index = stationIndex };
+            }
         }
         return null;
+    }
+}
+
+public static class StationManagerUtilities
+{
+    public static void GetUnitIndexAndBattleUnitOnStation(StationIndex selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
+    {
+        /*  Get the UnitIndex on the station.   */
+        UnitIndex? unitIndex = StationManager.Instance.GetUnitIndexOnStation(selectedStationIndex);
+
+        /*  If the Null (There is no Unit on the station),      Abort!    */
+        if (unitIndex == null) { unitIndexOnStation = default; battleUnitOnStation = null; return; }
+
+        /*  Send out the UnitIndex and BaseBattleUnit.  */
+        BaseBattleUnit battleUnit = StationManager.Instance.GetBattleUnitOfIndex(unitIndex.Value);
+        unitIndexOnStation = unitIndex.Value;
+        battleUnitOnStation = battleUnit;
+        return;
     }
 }
