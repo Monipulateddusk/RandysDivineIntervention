@@ -20,100 +20,66 @@ public struct MoveSelectionData
     }
 }
 
-public abstract class BaseMoveSelectorComponent : BaseComponent
+public interface IMoveSelector
 {
-
-    protected List<IBattleMoveAction> battleMoves = new();
-
-    public BaseMoveSelectorComponent()
-    {
-        battleUnit = null;
-        unitData = null;
-        battleMoves = null;
-    }
-
-    public BaseMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
-    {
-        this.battleUnit = battleUnit;
-        this.unitData = unitData;
-
-        /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = unitData.moves;
-    }
-
-    public abstract MoveSelectionData SelectMove(SceneData_UnitTurn data);
-
-    public List<IBattleMoveAction> GetBattleMoves() => battleMoves; 
+    public abstract MoveSelectionData SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data);
 }
 
-public class RandomMoveSelectorComponent : BaseMoveSelectorComponent
+public abstract class BaseMoveSelector : IMoveSelector
 {
-    public RandomMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
-    {
-        this.battleUnit = battleUnit;
-        this.unitData = unitData;
+    public abstract MoveSelectionData SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data);
+}
 
-        /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = unitData.moves;
-    }
-
-    /// <summary>
-    /// As this will be a random input manager (used for lower tier enemies and to test things) we will be making use of randomisers to select moves and targets
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
+public class RandomMoveSelector : BaseMoveSelector
+{
+    public override MoveSelectionData SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
     {
         // Select a random move to perform
-        int rIndex = Random.Range(0, battleMoves.Count);
+        //int rIndex = Random.Range(0, unit.battleMoves.Count);
 
-        IBattleMoveAction selectedMove = battleMoves[rIndex];
+        //IBattleMoveAction selectedMove = battleMoves[rIndex];
 
-        if(StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
-        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
-        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
+        //if (StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
+        //List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        //List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
 
 
-        return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
+        //return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
+
+        return new();
     }
 }
 
-public class SequentialMoveSelectorComponent : BaseMoveSelectorComponent
+public class SequentialMoveSelector : BaseMoveSelector
 {
     int curMoveIndex = 0;
 
-    public SequentialMoveSelectorComponent(BaseBattleUnit battleUnit, UnitData unitData)
+    public override MoveSelectionData SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
     {
-        this.battleUnit = battleUnit;
-        this.unitData = unitData;
+        //// If the index exceeds the count on the list, set it to the start of the list (0).
+        //// This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
+        //if (curMoveIndex + 1 > battleMoves.Count)
+        //{
+        //    curMoveIndex = 0;
+        //}
 
-        /*  Set up the List of the Moves the Unit is capable of     */
-        this.battleMoves = unitData.moves;
+        //IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
+        //if (!StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) { return new(); }
+        //List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
+        //List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
+
+        //// Increment the index after everything is decided
+        //curMoveIndex++;
+
+        //return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
+        return new();
     }
+}
 
-    /// <summary>
-    /// This is a Sequential input manager. Therefore, moves will be selected in the order they are stored in the list.
-    /// This information would be conveyed to designers so they are aware how to order the moves to their liking
-    /// </summary>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public override MoveSelectionData SelectMove(SceneData_UnitTurn data)
+public class PlayerDrivenMoveSelector : BaseMoveSelector
+{
+    public override MoveSelectionData SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
     {
-        // If the index exceeds the count on the list, set it to the start of the list (0).
-        // This is the main logic to allow for each move to be used in order of the declaration on the scriptable object
-        if (curMoveIndex + 1 > battleMoves.Count)
-        {
-            curMoveIndex = 0;
-        }
-
-        IBattleMoveAction selectedMove = battleMoves[curMoveIndex];
-        if (!StationManager.Instance.TryGetStationIndexOfIndex(data.SourceUnitIndex, out StationIndex sourceStation)) {  return new(); }
-        List<StationIndex?> allyStationIndexes = data.AllyStationIndexes;
-        List<StationIndex?> enemyStationIndexes = data.EnemyStationIndexes;
-
-        // Increment the index after everything is decided
-        curMoveIndex++;
-
-        return new(selectedMove, sourceStation, allyStationIndexes, enemyStationIndexes);
+        return new();
     }
 }

@@ -9,6 +9,10 @@ public class BattlePresentationManager : MonoBehaviour
         StationManager.OnDeployUnit                 += StationManager_OnDeployUnit;
         StationSelectorManager.OnSelectionChange    += StationSelectorManager_OnSelectionChange;
     }
+    private void Start()
+    {
+        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationIndex(), null);
+    }
 
     private void OnDestroy()
     {
@@ -29,5 +33,10 @@ public class BattlePresentationManager : MonoBehaviour
     private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
     {
         StationManagerUtilities.GetUnitIndexAndBattleUnitOnStation(selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation);
+
+        if (tempVisual != null)
+        {
+            tempVisual.transform.position = battleUnitOnStation.transform.position;
+        }
     }
 }

@@ -48,7 +48,7 @@ public class CommandUIBehaviour : MonoBehaviour
     private void Start()
     {
 
-        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationUnitIndex(), null);
+        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationIndex(), null);
         SetState(CommandUIBehaviourStates.Default);
     }
 

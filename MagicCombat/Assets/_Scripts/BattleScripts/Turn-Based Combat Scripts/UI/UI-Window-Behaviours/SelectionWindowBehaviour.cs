@@ -83,7 +83,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
         SetTextElementText("Current Unit Selected: Unit");
 
         /*  Retrieve the selected Unit from the StationSelectorManager. Convert the Selected Station Index to UnitIndex.    */
-        if(!StationManager.Instance.TryGetUnitDataOnStation(StationSelectorManager.Instance.GetSelectedStationUnitIndex(), out UnitData unitData)) { return; }
+        if(!StationManager.Instance.TryGetUnitDataOnStation(StationSelectorManager.Instance.GetSelectedStationIndex(), out UnitData unitData)) { return; }
 
         SetTextElementText("Current Unit Selected: " + unitData.name);
     }

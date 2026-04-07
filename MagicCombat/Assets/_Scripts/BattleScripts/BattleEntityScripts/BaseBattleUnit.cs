@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
@@ -16,10 +15,9 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] Animator unitAnimator;
     [SerializeField] SpriteRenderer unitSpriteRenderer;
     [SerializeField] UnitTeam team;
-    [SerializeField] UnitIntention unitIntentData;
 
     /*  Custom Components for the Unit. Using Dependency Injection  */
-    BaseMoveSelectorComponent unitMoveSelectorComponent;
+    BaseMoveSelector unitMoveSelectorComponent;
     BaseUnitTargettingComponent unitTargettingComponent;
     HealthComponent unitHealthComponent;
     SpriteComponent unitSpriteComponent;
@@ -41,7 +39,7 @@ public class BaseBattleUnit : MonoBehaviour
         }
 
         /*  Gain a referance to the required components for a Unit.   */
-        unitMoveSelectorComponent = new SequentialMoveSelectorComponent(this, unitData);
+        //unitMoveSelectorComponent = new SequentialMoveSelectorComponent(this, unitData);
         unitTargettingComponent = new BaseUnitTargettingComponent(this, unitData);
         unitHealthComponent = new HealthComponent(this, unitData);
         unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
@@ -114,34 +112,13 @@ public class BaseBattleUnit : MonoBehaviour
     #region Getter/Setter Methods
 
     public UnitData GetBaseUnit() { return unitData; }
-    public BaseMoveSelectorComponent GetMoveSelectorComponent() { return unitMoveSelectorComponent; }
+    public BaseMoveSelector GetMoveSelectorComponent() { return unitMoveSelectorComponent; }
     public BaseUnitTargettingComponent GetUnitTargettingComponent() { return unitTargettingComponent; } 
     public HealthComponent GetHealthComponent() { return unitHealthComponent; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
     public void SetTeam(UnitTeam team) { this.team = team; }
     public UnitTeam GetTeam() { return team; }
-
-    #endregion
-
-    #region Intent Methods
-
-    public MoveSelectionData DeclareUnitMoveIntent(SceneData_UnitTurn sceneData) 
-    {
-        MoveSelectionData moveData = GetMoveSelectorComponent().SelectMove(sceneData);
-        unitIntentData = new UnitIntention
-        {
-            MoveSelection = moveData
-        };
-        return moveData;
-    }
-    public UnitTargettingData DeclareUnitTargettingIntent(MoveSelectionData moveSelectionData)
-    {
-        UnitTargettingData targetData = GetUnitTargettingComponent().SelectTargets(moveSelectionData);
-        //unitIntentData.TargetSelection  = targetData;   
-        return targetData;
-    }
-    public UnitIntention GetUnitIntentData() { return unitIntentData; }
 
     #endregion
 }

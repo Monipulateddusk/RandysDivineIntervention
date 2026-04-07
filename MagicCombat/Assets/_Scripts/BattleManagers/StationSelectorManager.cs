@@ -182,7 +182,7 @@ public class StationSelectorManager : MonoBehaviour
 
     #endregion
 
-    public StationIndex GetSelectedStationUnitIndex()
+    public StationIndex GetSelectedStationIndex()
     {
         return this.selectedStationIndex;
     }

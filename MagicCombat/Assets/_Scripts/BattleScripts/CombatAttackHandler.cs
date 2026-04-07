@@ -8,25 +8,25 @@ public static class CombatAttackHandler
 {
     public static void ProcessAttackStep(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, UnitIntention intentInfo)
     {
-        if (currentAttackInfo.Steps.Count < 0)
-        {
-            Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process Attack Step! Steps List is Empty!");
-            return;
-        }
+        //if (currentAttackInfo.Steps.Count < 0)
+        //{
+        //    Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process Attack Step! Steps List is Empty!");
+        //    return;
+        //}
 
-        AttackStep processedStep = null;
-        foreach (AttackStep step in currentAttackInfo.Steps)
-        {
-            foreach (AttackAction action in step.Actions)
-            {
-                ProcessAttackAction(environmentController, currentAttackInfo, intentInfo, action);
-            }
+        //AttackStep processedStep = null;
+        //foreach (AttackStep step in currentAttackInfo.Steps)
+        //{
+        //    foreach (AttackAction action in step.Actions)
+        //    {
+        //        ProcessAttackAction(environmentController, currentAttackInfo, intentInfo, action);
+        //    }
 
-            processedStep = step;
-            break;
-        }
-        // Remove the processed step from the Steps List
-        currentAttackInfo.Steps.Remove(processedStep);
+        //    processedStep = step;
+        //    break;
+        //}
+        //// Remove the processed step from the Steps List
+        //currentAttackInfo.Steps.Remove(processedStep);
     }
 
 

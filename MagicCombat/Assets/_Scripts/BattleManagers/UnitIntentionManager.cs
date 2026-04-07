@@ -11,11 +11,6 @@ public struct UnitIntention
         this.MoveSelection = moveData;
         this.TargetIndexList = targetIndex;
     }
-
-    public bool IsMoveSelectionEmpty()
-    {
-        return MoveSelection != null;
-    }
 }
 
 
