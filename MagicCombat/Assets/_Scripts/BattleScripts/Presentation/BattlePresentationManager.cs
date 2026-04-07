@@ -6,27 +6,31 @@ public class BattlePresentationManager : MonoBehaviour
     [SerializeField] GameObject tempVisual;
     private void Awake()
     {
-        StationManager.OnDeployUnit                 += StationManager_OnDeployUnit;
-        StationSelectorManager.OnSelectionChange    += StationSelectorManager_OnSelectionChange;
+        StationManager.OnDeployUnit += StationManager_OnDeployUnit;
+        StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
     }
 
     private void OnDestroy()
     {
-        StationManager.OnDeployUnit                 -= StationManager_OnDeployUnit;
-        StationSelectorManager.OnSelectionChange    -= StationSelectorManager_OnSelectionChange;
+        StationManager.OnDeployUnit -= StationManager_OnDeployUnit;
+        StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
     }
 
-    private void StationManager_OnDeployUnit(Station station, BaseBattleUnit deployedUnit, BaseBattleUnit recalledUnit)
-    {
-        /*  Confirm that the station and the Deployed Unit are valid.   */
-        bool validStation = StationManager.Instance.IsStationValid(station);
-        if (!validStation) { return; }
+    private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
+    { 
+        Debug.Log($"Looking up station index: {stationIndex.Index}");
 
-        bool validUnit = StationManager.Instance.IsUnitValid(deployedUnit);
-        if (!validUnit) { return; }
+        /*  Get the station  and the BaseBattleUnit */
+        Station station = StationManager.Instance.GetStationOfStationIndex(stationIndex);
+        bool valid = StationManager.Instance.IsStationValid(station);
+        if (!valid) { return; }
 
-        /*  Assign the Unit to it's station position.   */
-        deployedUnit.transform.position = station.Position;
+        BaseBattleUnit battleUnit = StationManager.Instance.GetBattleUnitOfIndex(deployUnitIndex);
+        valid = StationManager.Instance.IsUnitValid(battleUnit);
+        if (!valid) { return; }
+
+        battleUnit.transform.position = station.Position; 
+
     }
 
     private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex deselectedStationIndex)

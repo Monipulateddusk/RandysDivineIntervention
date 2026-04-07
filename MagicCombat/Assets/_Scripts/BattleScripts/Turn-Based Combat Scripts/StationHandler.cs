@@ -1,16 +1,22 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
 
-public struct UnitIndex     
+public readonly struct UnitIndex     
 {  
-    public int Index;   
+    public int Index { get; }
+    public UnitIndex(int index)
+    {
+        this.Index = index;
+    }
 }
 
-[Serializable]public struct StationIndex
+[Serializable]public readonly struct StationIndex
 {
-    public int Index;
+    public int Index { get; }
+    public StationIndex(int index)
+    {
+        this.Index = index;
+    }
 }
 
 public class Station
@@ -48,7 +54,7 @@ public class SceneUnitData
         if (IsDuplicateStationPosition(stationPosition)) { return null;}
 
         int stationId = this.nextStationId;
-        StationIndex createdStationIndex = new() { Index = stationId };
+        StationIndex createdStationIndex = new(stationId);
         this.Stations.Add(stationId,
             new()
             {
@@ -109,7 +115,7 @@ public class SceneUnitData
         this.Units.Add(unitId, baseBattleUnit);
 
         /*  Once Sucessful, return the UnitIndex and notify any listeners to the OnAddUnitEvent.    */
-        UnitIndex createdUnitIndex = new() { Index = unitId };
+        UnitIndex createdUnitIndex = new(unitId);
 
         return createdUnitIndex;
     }
@@ -151,9 +157,6 @@ public class SceneUnitData
         /*  Find if this UnitIndex is related to a Unit we have information on. If not, exit out.   */
         if (!this.Units.ContainsKey(unitIndex.Index)) { return false;   }
 
-        /*  Before we remove, gain a referance to the BaseBattleUnit we are destroying to pass to the event.    */
-        BaseBattleUnit removedUnit = this.Units[unitIndex.Index];
-
         /*  Remove that Unit. Notify any Listeners. How do we want to handle notifying the station? Do we simply loop through every station, find the one we are on (if at all) and pass that along to the event?   */
         this.Units.Remove(unitIndex.Index);
 
@@ -166,35 +169,32 @@ public class SceneUnitData
     /// <param name="unitIndex"></param>
     /// <param name="stationIndex"></param>
     /// <returns></returns>
-    public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex)
-    {
+    public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex, out UnitIndex? previousUnit)
+    { 
+        previousUnit = null;
+
         /*  Is the Unit already on the battlefield? I.e. Does a station already have that same UnitIndex supplied?  */
-        if (IsUnitIndexOnBattlefield(unitIndex)) { return false;}
+        if (IsUnitIndexOnBattlefield(unitIndex)) return false;
 
         /*  Is this a valid station ID? If not, stop!   */
-        if (!IsStationIndexValid(stationIndex)) { return false; }
+        if (!IsStationIndexValid(stationIndex)) return false;
 
+        /*  Confirm that the station and unit are on the same team! */
+        Station station = this.Stations[stationIndex.Index];
+        BaseBattleUnit unit = this.Units[unitIndex.Index];
+        if (station.StationTeam != unit.GetTeam()) return false;
 
-        /*  Is the Unit Index we are deploying onto this station on the same team as the station? 
-         *  I.e. The Unit and the Station need to be on the Ally team in order for this to work. We can't have an enemy on an ally's Station
-         */
-        if (this.Stations[stationIndex.Index].StationTeam != this.Units[unitIndex.Index].GetTeam()) {  return false; }
-
-        // Is there a Unit already on that StationIndex? If so, we want to recall that Unit to resurves
-        UnitIndex? unitPreviouslyOnStation = this.Stations[stationIndex.Index].UnitOnStation;
-
-        // Replace this previous Unit with the one we want to Deploy.          
-        this.Stations[stationIndex.Index].UnitOnStation = unitIndex;
-
+        /*  Return the previous Unit on the station if there was one, and assign the new unit onto the station. */
+        previousUnit = station.UnitOnStation;
+        station.UnitOnStation = unitIndex;
         return true;
     }
-
     public UnitIndex[] GetUnitsInReserve(UnitTeam team)
     {
         List<UnitIndex> reserveUnitIndexes = new();
         foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
         {
-            UnitIndex unitIndex = new() { Index = unitKeyValuePair.Key };
+            UnitIndex unitIndex = new(unitKeyValuePair.Key);
 
             // Only add the UnitIndexes if they aren't on the battlefield and on the same team as the one we request.
             if (!IsUnitIndexOnBattlefield(unitIndex) && unitKeyValuePair.Value.GetTeam() == team)
@@ -211,11 +211,12 @@ public class SceneUnitData
         List<UnitIndex> unitIndexesOnTeam = new();
         foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
         {
-            BaseBattleUnit battleUnit = unitKeyValuePair.Value;
+            int unitIndex               = unitKeyValuePair.Key;
+            BaseBattleUnit battleUnit   = unitKeyValuePair.Value;
 
             if (battleUnit.GetTeam() == team)
             {
-                unitIndexesOnTeam.Add(new UnitIndex() { Index = unitKeyValuePair.Key });
+                unitIndexesOnTeam.Add(new UnitIndex(unitIndex));
             }
         }
 
@@ -254,11 +255,12 @@ public class SceneUnitData
         List<UnitIndex> unitIndexesOnTeam = new();
         foreach (KeyValuePair<int, BaseBattleUnit> unitsKeyValuePair in this.Units)
         {
+            int unitIndex = unitsKeyValuePair.Key;  
             BaseBattleUnit battleUnit = unitsKeyValuePair.Value;
 
             if(battleUnit.GetTeam() == team)
             {
-                unitIndexesOnTeam.Add(new UnitIndex() { Index = unitsKeyValuePair.Key });
+                unitIndexesOnTeam.Add(new UnitIndex(unitIndex));
             }
         }
 
@@ -308,10 +310,8 @@ public class SceneUnitData
         List<StationIndex> stationIndexes = new();
         foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
-            int stationIndexInt = stationKeyValuePairs.Key;
-            stationIndexes.Add(
-                new StationIndex (){ Index = stationIndexInt }
-            );
+            Station station = stationKeyValuePairs.Value;
+            stationIndexes.Add(station.StationIndex);
         }
         return stationIndexes;
     }
@@ -482,8 +482,12 @@ public class StationManager
     /// [ Station 1: Station we are deploying the new unit onto. ]
     /// [ BaseBattleUnit 1: BaseBattleUnit of the unit that is going onto the station. ]
     /// [ BaseBattleUnit 2: BaseBattleUnit of the unit that is going into resurves. ]
+    /// 
+    /// [ StationIndex: StationIndex we are deploying the new unit onto. ]
+    /// [ UnitIndex 1: UnitIndex of the unit that is going onto the station. ]
+    /// [ UnitIndex 2: UnitIndex of the unit that is going into resurves. ]
     /// </summary>
-    public static event Action<Station, BaseBattleUnit, BaseBattleUnit> OnDeployUnit;
+    public static event Action<StationIndex, UnitIndex, UnitIndex?> OnDeployUnit;
 
     #endregion
 
@@ -545,28 +549,10 @@ public class StationManager
     }
     public bool DeployUnit(UnitIndex unitIndex, StationIndex stationIndex)
     {
-        Station station     = this.SceneUnitData.GetStationOfStationIndex(stationIndex);
-        BaseBattleUnit unit = this.SceneUnitData.GetBattleUnitOfIndex(unitIndex);
+        /*  Deploy the unit and cancel out of here if we weren't sucessful! */
+        if (!this.SceneUnitData.DeployUnit(unitIndex, stationIndex, out UnitIndex? previousUnitIndex))  { return false; }
 
-        /*  When deploying a unit, check that the baseBattleUnit and the station match Teams.   */
-        if(unit.GetTeam() != station.StationTeam) { return false; }
-
-        UnityEngine.Debug.Log("Unit named: " + unit.name + " being placed on Station Index: " + station.StationIndex.Index + " at position: " + station.Position);
-        
-        /*  If so, send the Unit on the Station to resurve and replace it with the new Unit.    */
-        UnitIndex? previousUnitIndex = station.UnitOnStation;
-        
-        /*  Check to see if we have a previousUnit on that station, if so, send that information along. Otherwise, send a null referance.   */
-        BaseBattleUnit resurveUnit = null;
-        if (previousUnitIndex.HasValue)
-        {
-            resurveUnit = this.SceneUnitData.GetBattleUnitOfIndex(previousUnitIndex.Value); 
-        }
-
-        station.UnitOnStation = unitIndex;  
-
-        /*  Notify any listeners that the deployment took place.    */
-        OnDeployUnit?.Invoke(station, unit, resurveUnit);
+        OnDeployUnit?.Invoke(stationIndex, unitIndex, previousUnitIndex);
 
         return true;
     }
@@ -726,7 +712,7 @@ public class StationManager
         /*  Deploy the Units so that the first units in the list go onto the first empty station on their team. */
         foreach (KeyValuePair<int, BaseBattleUnit> battleUnitKeyValuePairs in this.SceneUnitData.Units)
         {
-            UnitIndex battleUnitIndex = new() { Index = battleUnitKeyValuePairs.Key };
+            UnitIndex battleUnitIndex = new(battleUnitKeyValuePairs.Key);
             BaseBattleUnit battleUnit = battleUnitKeyValuePairs.Value;
 
             /*  Get the team of the Unit, loop through the stations to find the first empty station on that team.   */
@@ -739,8 +725,6 @@ public class StationManager
                 DeployUnit(battleUnitIndex, emptyStationIndexOnTeam.Value);
             }
         }
-
-        UnityEngine.Debug.Log("Completed deploying units for start of battle!");
     }
 
     /// <summary>
@@ -752,14 +736,13 @@ public class StationManager
     {
         foreach (KeyValuePair<int, Station> stationsKeyValuePairs in this.SceneUnitData.Stations)
         {
-            int stationIndex = stationsKeyValuePairs.Key;
             Station station = stationsKeyValuePairs.Value;
             if (station == null) continue;
 
             if (station.StationTeam == unitTeam && station.UnitOnStation == null)
             {
-                UnityEngine.Debug.Log("Selected station index is: " + stationIndex);
-                return new StationIndex() {Index = stationIndex };
+                UnityEngine.Debug.Log("Selected station index is: " + station.StationIndex.Index);
+                return station.StationIndex;
             }
         }
         return null;
