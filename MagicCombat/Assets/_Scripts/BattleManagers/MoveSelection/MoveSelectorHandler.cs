@@ -4,9 +4,9 @@ namespace TurnBased.MoveSelection
     {
         private static readonly System.Collections.Generic.Dictionary<UnitMoveSelectorType, IMoveSelector> moveSelectors = new()
         {
-        {UnitMoveSelectorType.Sequential,   new SequentialMoveSelector()    },
-        {UnitMoveSelectorType.Random,       new RandomMoveSelector()        },
-        {UnitMoveSelectorType.PlayerDriven, new PlayerDrivenMoveSelector()  },
+            {UnitMoveSelectorType.Sequential,   new SequentialMoveSelector()    },
+            {UnitMoveSelectorType.Random,       new RandomMoveSelector()        },
+            {UnitMoveSelectorType.PlayerDriven, new PlayerDrivenMoveSelector()  },
         };
 
         public static bool TryGetSelector(UnitMoveSelectorType type, out IMoveSelector moveSelector)

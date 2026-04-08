@@ -2,21 +2,26 @@ namespace TurnBased.MoveSelection
 {
     public interface IMoveSelector
     {
-        public abstract IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data);
+        public abstract IBattleMove SelectMove(SceneData_UnitTurn data);
     }
 
     public class RandomMoveSelector : IMoveSelector
     {
-        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(SceneData_UnitTurn data)
         {
-            /*  Check to see if the moves List is populated, if not, return a dud move. */
-            if (!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }
+            /*  Try get the Unit from the source Index. */
+            if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }
+
+            /*  Check to see if the moves List is populated, if not, return null. */
+            if (!SelectorUtility.IsMoveListPopulated(unit)) { return null; }
+
+            System.Collections.Generic.List<IBattleMove> unitMoves = unit.GetBaseUnit().moves;
 
             /*  Get a random index. As Random.Range when using Ints is Exclusive, if the number of moves was 3, we'd get a value of 0-2.    */
-            int randomIndex = UnityEngine.Random.Range(0, unit.GetBaseUnit().moves.Count);
+            int randomIndex = UnityEngine.Random.Range(0, unitMoves.Count);
 
             /*  Retrieve the selected move. */
-            return unit.GetBaseUnit().moves[randomIndex];
+            return unitMoves[randomIndex];
         }
     }
 
@@ -24,19 +29,24 @@ namespace TurnBased.MoveSelection
     {
         int curMoveIndex = 0;
 
-        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(SceneData_UnitTurn data)
         {
-            /*  Check to see if the moves List is populated, if not, return a dud move. */
-            if(!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }
+            /*  Try get the Unit from the source Index. */
+            if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }
+
+            /*  Check to see if the moves List is populated, if not, return null. */
+            if (!SelectorUtility.IsMoveListPopulated(unit)) { return null; }
+
+            System.Collections.Generic.List<IBattleMove> unitMoves = unit.GetBaseUnit().moves;
 
             /*  Check to see if the index is valid, if not, wrap back to the start. */
-            if (curMoveIndex > unit.GetBaseUnit().moves.Count)
+            if (curMoveIndex > unitMoves.Count - 1)
             {
                 curMoveIndex = 0;
             }
 
             /*  Get the move and increment the index.*/
-            IBattleMove selectedMove = unit.GetBaseUnit().moves[curMoveIndex];
+            IBattleMove selectedMove = unitMoves[curMoveIndex];
             curMoveIndex++;
             return selectedMove;
         }
@@ -49,16 +59,16 @@ namespace TurnBased.MoveSelection
     public class PlayerDrivenMoveSelector : IMoveSelector
     {
         public int SelectedMoveIndex { private get; set; }
-        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(SceneData_UnitTurn data)
         {
-            /*  Check to see if the moves List is populated, if not, return a dud move. */
-            if (!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }
+            /*  Try get the Unit from the source Index. */
+            if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }
+
+            /*  Check to see if the moves List is populated, if not, return null. */
+            if (!SelectorUtility.IsMoveListPopulated(unit)) { return null; }
 
             /*  Check to see if the selected index is not exceeding the length of the move List. If so, get a dud move. */
-            if (SelectedMoveIndex > unit.GetBaseUnit().moves.Count)
-            {
-                return new HeavyAttack();
-            }
+            if (SelectedMoveIndex > unit.GetBaseUnit().moves.Count - 1){  return null; }
 
             return unit.GetBaseUnit().moves[SelectedMoveIndex];
         }
@@ -66,7 +76,7 @@ namespace TurnBased.MoveSelection
 }
 
 
-public static class MoveSelectorUtility
+public static class SelectorUtility
 {
     public static bool IsMoveListPopulated(BaseBattleUnit unit)
     {
@@ -75,5 +85,16 @@ public static class MoveSelectorUtility
             return true;
         } 
         return false;
+    }
+
+    public static bool TryGetBattleUnitOnStation(StationIndex sourceStationIndex, out BaseBattleUnit unit)
+    {
+        if(!StationManager.Instance.TryGetBaseBattleUnitOnStation(sourceStationIndex, out unit)) 
+        { 
+            return false; 
+        }
+
+        return false;
+
     }
 }

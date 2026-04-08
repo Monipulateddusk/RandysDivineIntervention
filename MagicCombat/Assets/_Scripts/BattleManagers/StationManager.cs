@@ -656,9 +656,9 @@ public class StationManager
         return indexCollection;
     }
 
-    public List<StationIndex?> GetStationIndexesFromUnitIndexes(List<UnitIndex> indexes)
+    public List<StationIndex> GetStationIndexesFromUnitIndexes(List<UnitIndex> indexes)
     {
-        List<StationIndex?> stationIndexes = new();
+        List<StationIndex> stationIndexes = new();
         foreach (UnitIndex unitIndex in indexes)
         {
             if(!this.SceneUnitData.TryGetStationIndexOfUnitIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { continue; }
@@ -687,12 +687,17 @@ public class StationManager
         /*  Remove the source Unit Index from the TeamedIndexes Array.  */
         List<UnitIndex> TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
 
+        /*  Try to convert the UnitIndex to the stationIndex for purposes of Scene Data.    */
+        if(!TryGetStationIndexOfIndex(sourceUnitIndex,  out StationIndex sourceStationIndex)) { throw new InvalidOperationException("ERROR — STATION_HANDLER: UNABLE TO RETRIEVE STATION INDEX OF UNIT INDEX!"); }
+
         /*  Convert UnitIndex of both allied and enemy lists to the StationIndex of that Unit. */
-        List<StationIndex?> allyStationIndexes = GetStationIndexesFromUnitIndexes(TeamedIndexes);
-        List<StationIndex?> enemyStationIndexes = GetStationIndexesFromUnitIndexes(unitIndexesOfOppositeTeam);
+        List<StationIndex> allyStationIndexes = GetStationIndexesFromUnitIndexes(TeamedIndexes);
+        List<StationIndex> enemyStationIndexes = GetStationIndexesFromUnitIndexes(unitIndexesOfOppositeTeam);
+
+
 
         // TO DO: PASS IN ENVIRONMENT DATA
-        return new SceneData_UnitTurn(sourceUnitIndex, allyStationIndexes, enemyStationIndexes);
+        return new SceneData_UnitTurn(sourceStationIndex, allyStationIndexes, enemyStationIndexes);
     }
     
     /// <summary>
@@ -740,15 +745,24 @@ public class StationManager
         }
     }
 
+    public bool TryGetBaseBattleUnitOnStation(StationIndex stationIndex, out BaseBattleUnit baseBattleUnit)
+    {
+        baseBattleUnit = default;
+
+        if (!TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndex)) { return false; }
+
+        if (!TryGetBattleUnitOfIndex(unitIndex, out baseBattleUnit)) { return false; }
+
+        return true;
+    }
+
     public bool TryGetUnitDataOnStation(StationIndex stationIndex, out UnitData unitData)
     {
         unitData = default;
 
-        if (!TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndex)) { return false; }
+        if(!TryGetBaseBattleUnitOnStation(stationIndex, out BaseBattleUnit baseBattleUnit)) {  return false; }
 
-        if (!TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit unit)) { return false; }
-
-        unitData = unit.GetBaseUnit();
+        unitData = baseBattleUnit.GetBaseUnit();
         return unitData != null;
     }
 

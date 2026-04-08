@@ -24,6 +24,7 @@ public class UnitData : ScriptableObject
     public List<IBattleMove> moves = new();
 
     public UnitMoveSelectorType moveSelectorType;
+    public UnitTargetSelectorType targetSelectorType;
 
     public AnimatorController unitAnimator;
 }

@@ -46,6 +46,13 @@ public enum UnitMoveSelectorType
     PlayerDriven 
 }
 
+public enum UnitTargetSelectorType
+{
+    Random,
+    Sequential,
+    PlayerDriven
+}
+
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
 /// UI ENUMERATIONS

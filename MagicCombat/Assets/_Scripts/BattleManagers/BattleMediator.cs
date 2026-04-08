@@ -57,7 +57,10 @@ namespace TurnBased
 
         }
         private StationManager StationHandler;
-        private TurnBased.MoveSelection.MoveSelectorManager moveSelectorManager = new();
+
+        private MoveSelection.MoveSelectorManager moveSelectorManager = new();
+        private TargetSelection.TargetSelectorManager targetSelectorManager = new();
+
         [SerializeField] private List<UnitIndex> UnitIndexTurnOrderList = new();
         [SerializeField] private UnitIndex currentUnit;
         
@@ -129,15 +132,11 @@ namespace TurnBased
    
         }
 
-        //public SceneData_UnitTurn GetCombatSceneDataForSourceUnitIndex(UnitIndex sourceUnitIndex)
-        //{
-        //    return this.StationHandler.CreateCombatSceneDataForUnitIndex(sourceUnitIndex);
-        //}
-
         private void Awake()
         {
             instance = this;
             this.moveSelectorManager.Initalise();
+            this.targetSelectorManager.Initalise();
         }
 
         private void Start()
