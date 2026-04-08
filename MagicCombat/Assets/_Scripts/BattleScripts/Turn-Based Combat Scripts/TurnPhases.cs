@@ -75,7 +75,7 @@ public class PreTurnPhase : Phase
         /*  If there is no Unit available in the Turn order, we are at the end of the Turn order and then we want to start the Round anew.  */
         else
         {
-            ConcreteMediator.ChangeState(BattleMediator.PHASE_TYPES.END_ROUND);
+            ConcreteMediator.ChangeState(PHASE_TYPES.END_ROUND);
         }
     }
 
@@ -233,8 +233,6 @@ public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
 
 public class UnitTurnPhase : Phase
 {
-    public enum MAIN_TURN_STATE { IDLE = 0, MOVE_SELECTION = 1, TARGET_SELECTION = 2, RESOLVE_ATTACK = 3}
-
     private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
     private MAIN_TURN_STATE currentState = new();
 
@@ -327,7 +325,7 @@ public class EndRoundPhase : Phase
         /*  If we are supposed to be here. Process any end of round effects. Start the Round anew. */
         else
         {
-            ConcreteMediator.ChangeState(BattleMediator.PHASE_TYPES.START_ROUND);
+            ConcreteMediator.ChangeState(PHASE_TYPES.START_ROUND);
         }
 
     }

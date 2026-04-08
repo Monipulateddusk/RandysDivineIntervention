@@ -36,22 +36,22 @@ public static class CombatAttackHandler
         //{
         //    switch (attackAction.Type)
         //    {
-        //        case AttackAction.ActionType.DAMAGE:
+        //        case AttackActionType.DAMAGE:
         //            t.Damage(attackAction.Value);
 
         //            break;
-        //        case AttackAction.ActionType.HEALING:
+        //        case AttackActionType.HEALING:
         //            t.Heal(attackAction.Value);
         //            break;
 
         //        // Call the CombatEnvironmentHandler to keep track of the environment condition
-        //        case AttackAction.ActionType.IMBUE_ENVIRONMENTS:
+        //        case AttackActionType.IMBUE_ENVIRONMENTS:
         //            environmentController.AddEnvironmentalEffect(attackAction.ElementEffect, intentInfo.MoveSelection.SourceTeam, intentInfo.MoveSelection.Allies, intentInfo.MoveSelection.Targets);
         //            break;
 
 
         //        // Call the status handler passing in the attack action information so that class knows what targets are going to get what status
-        //        case AttackAction.ActionType.STATUS_EFFECT:
+        //        case AttackActionType.STATUS_EFFECT:
 
         //            break;
         //    }

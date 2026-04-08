@@ -49,7 +49,6 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    enum CameraAnimType { Fade, Shift, Static, Shader}
     [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
     private bool isAnimating;
 

@@ -7,7 +7,7 @@ public interface IUISelectable
     public void OnDeselect(Vector2 mousePos);
     public void OnDrag(Vector2 mousePos);
     public void OnHover(Vector2 mousePos);
-    public CursorManager.CursorIcons GetCurrentMouseStateSuggestion();
+    public CursorIcons GetCurrentMouseStateSuggestion();
 }
 
 public class MinimisableUI : MonoBehaviour
@@ -39,22 +39,6 @@ public abstract class SizableWindowBaseBehaviour : MinimisableUI
 
 public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 {
-    enum DialogueBoxState
-    {
-        Idle = 0,
-        HorizontalResize = 1,
-        VerticalResize = 2,
-
-        BothAxisResize = HorizontalResize | VerticalResize,
-        DragMoving = 4,
-    }
-    enum ButtonSelection 
-    {
-        None = 0,
-        Minimise = 1,
-        Close = 2,
-    }
-
     [Header("Serialised Variables. Assign in inspector!")]
     [SerializeField] private UnityEngine.UI.LayoutElement LayoutElement;
     [SerializeField] private UnityEngine.BoxCollider2D BoxCollider;
@@ -65,7 +49,7 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 
     [Header("Debugging")]
     
-    [SerializeField] private ButtonSelection currentButtonSelection;
+    [SerializeField] private DialogueBoxButtonSelectionState currentButtonSelection;
     [SerializeField] private DialogueBoxState currentDialogueBoxState;
 
     //  Box Move and Resize.        
@@ -187,17 +171,17 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
         {
             if (this.minimiseButtonTransform.rect.Contains(mousePositionInsideMinimiseButtonRect))
             {
-                currentButtonSelection = ButtonSelection.Minimise;
+                currentButtonSelection = DialogueBoxButtonSelectionState.Minimise;
                 currentDialogueBoxState = DialogueBoxState.Idle;
             }
             else if (this.closeButtonTransform.rect.Contains(mousePositionInsideCloseButtonRect))
             {
-                currentButtonSelection = ButtonSelection.Close;
+                currentButtonSelection = DialogueBoxButtonSelectionState.Close;
                 currentDialogueBoxState = DialogueBoxState.Idle;
             }
             else
             {
-                currentButtonSelection = ButtonSelection.None;
+                currentButtonSelection = DialogueBoxButtonSelectionState.None;
                 currentDialogueBoxState = DialogueBoxState.DragMoving;
             }
         }
@@ -240,7 +224,7 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
     private void ResetBoxState()
     {
         this.currentDialogueBoxState = DialogueBoxState.Idle;
-        this.currentButtonSelection = ButtonSelection.None;
+        this.currentButtonSelection = DialogueBoxButtonSelectionState.None;
     }
 
     public async System.Threading.Tasks.Task OnSelect(Vector2 mousePos)
@@ -252,12 +236,12 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
         else if (currentDialogueBoxState == DialogueBoxState.Idle)
         {
 
-            if (currentButtonSelection == ButtonSelection.Minimise)
+            if (currentButtonSelection == DialogueBoxButtonSelectionState.Minimise)
             {
                 await UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
                 ResetBoxState();
             }
-            else if (currentButtonSelection == ButtonSelection.Close)
+            else if (currentButtonSelection == DialogueBoxButtonSelectionState.Close)
             {
                 UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
 
@@ -296,22 +280,22 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 
     }
 
-    public CursorManager.CursorIcons GetCurrentMouseStateSuggestion()
+    public CursorIcons GetCurrentMouseStateSuggestion()
     {
         switch (currentDialogueBoxState)
         {
             case DialogueBoxState.Idle:
-                return CursorManager.CursorIcons.Cursor;
+                return CursorIcons.Cursor;
             case DialogueBoxState.HorizontalResize:
-                return CursorManager.CursorIcons.HorizResize;
+                return CursorIcons.HorizResize;
             case DialogueBoxState.VerticalResize:
-                return CursorManager.CursorIcons.VerticResize;
+                return CursorIcons.VerticResize;
             case DialogueBoxState.BothAxisResize:
-                return CursorManager.CursorIcons.DiagResize;
+                return CursorIcons.DiagResize;
             case DialogueBoxState.DragMoving:
-                return CursorManager.CursorIcons.Move;
+                return CursorIcons.Move;
             default:
-                return CursorManager.CursorIcons.Cursor;
+                return CursorIcons.Cursor;
 
         }
     }

@@ -1,8 +1,5 @@
 using System;
 using UnityEngine;
-
-public enum UnitTeam { NULL = 0, ALLY = 1, ENEMY = 2};
-
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {

@@ -1,315 +1,304 @@
 using System.Threading.Tasks;
-using TurnBased;
-using TurnBased.UI;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 
-public enum WindowType
+namespace TurnBased.UI
 {
-    HomeStart,
-    TurnOrderWindow,
-    Options,
-    DialogueBox,
-    Inspection,
-    WindowManager,
-    Selector
-}
-public static class UIWindowFactory
-{
-    public static DialogueBoxWidgetPair CreateWindow(WindowType windowType, UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+    public static class UIWindowFactory
     {
-        DialogueBoxWidgetPair? pair;
-        switch (windowType)
+        public static DialogueBoxWidgetPair CreateWindow(UIWindowFactoryWindowType UIWindowFactoryWindowType, UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
         {
-            case WindowType.HomeStart:
-                pair = CreateHomeStartWindow(uiPrefabData, windowParent, widgetParent, index);
-                break;
-
-            case WindowType.TurnOrderWindow:
-                pair = CreateScrollableDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.Options:
-                pair = CreateOptionsDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.DialogueBox:
-                pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-
-            case WindowType.Inspection:
-                pair = CreateInspectionBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-            case WindowType.WindowManager:
-                pair = CreateWindowManagerBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-            case WindowType.Selector:
-                pair = CreateSelectorBox(uiPrefabData, windowParent, widgetParent, index, position, size);
-                break;
-            default:
-                pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size); 
-                break;
-        }
-        if (!pair.HasValue)
-        {
-            Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
-        }
-        return pair.Value;
-    }
-
-    private static GameObject CreateSelectorManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        return GameObject.Instantiate(uiPrefabData.SelectorManagerPrefab, parent);
-    }
-
-    private static DialogueBoxWidgetPair? CreateSelectorBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
-        {
-            dBB.SetDialogueBoxName("Selector Manager");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-            GameObject instanciatedWindowManagerAddon = CreateSelectorManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
-
-            if (instanciatedWindowManagerAddon != null)
+            DialogueBoxWidgetPair? pair;
+            switch (UIWindowFactoryWindowType)
             {
-                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                case UIWindowFactoryWindowType.HomeStart:
+                    pair = CreateHomeStartWindow(uiPrefabData, windowParent, widgetParent, index);
+                    break;
+
+                case UIWindowFactoryWindowType.TurnOrderWindow:
+                    pair = CreateScrollableDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+
+                case UIWindowFactoryWindowType.Options:
+                    pair = CreateOptionsDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+
+                case UIWindowFactoryWindowType.DialogueBox:
+                    pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+
+                case UIWindowFactoryWindowType.Inspection:
+                    pair = CreateInspectionBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+                case UIWindowFactoryWindowType.WindowManager:
+                    pair = CreateWindowManagerBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+                case UIWindowFactoryWindowType.Selector:
+                    pair = CreateSelectorBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
+                default:
+                    pair = CreateDialogueBox(uiPrefabData, windowParent, widgetParent, index, position, size);
+                    break;
             }
-            // If we failed, return null.   
-            return null;
-        }
-        return null;
-    }
-
-    private static GameObject CreateWindowManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        return GameObject.Instantiate(uiPrefabData.WindowManagerPrefab, parent);
-    }
-
-    private static DialogueBoxWidgetPair? CreateWindowManagerBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
-        {
-            dBB.SetDialogueBoxName("Window Manager");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-            GameObject instanciatedWindowManagerAddon = CreateWindowManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
-
-            if (instanciatedWindowManagerAddon != null)
+            if (!pair.HasValue)
             {
-                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                Debug.LogError("ERROR: UNABLE TO CREATE WINDOW OF INDEX: " + index);
             }
-            // If we failed, return null.   
-            return null;
+            return pair.Value;
         }
-        return null;
-    }
 
-    private static GameObject CreateInspectionGameObject(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        /*  Create the Dialogue box from the Prefab and assign it's position.   */
-        GameObject gO = GameObject.Instantiate(uiPrefabData.InspectionPrefab, parent);
-
-        return gO;
-    }
-
-    private static DialogueBoxWidgetPair? CreateInspectionBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        /*  Assign it's minimisable information and Size.    */
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        private static GameObject CreateSelectorManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
         {
-            dBB.SetDialogueBoxName("Inspect Unit");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+            return GameObject.Instantiate(uiPrefabData.SelectorManagerPrefab, parent);
+        }
 
-            GameObject instanciatedInspectionAddon = CreateInspectionGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+        private static DialogueBoxWidgetPair? CreateSelectorBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+        {
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
 
-            if (instanciatedInspectionAddon != null)
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
             {
-                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                dBB.SetDialogueBoxName("Selector Manager");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                GameObject instanciatedWindowManagerAddon = CreateSelectorManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+                if (instanciatedWindowManagerAddon != null)
+                {
+                    return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                }
+                // If we failed, return null.   
+                return null;
             }
-            // If we failed, return null.   
             return null;
         }
-        return null;
-    }
 
-    private static GameObject CreateDialogueBoxGameObject(UICollection_SO uiPrefabData, RectTransform parent, Vector2 position)
-    {
-        /*  Create the Dialogue box from the Prefab and assign it's position.   */
-        GameObject gO = GameObject.Instantiate(uiPrefabData.DialogueBoxPrefab, parent);
-        UnityUIUtility.SetRectPosition(gO.GetComponent<RectTransform>(), position);
-
-        return gO;
-    }
-    private static DialogueBoxWidgetPair? CreateDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+        private static GameObject CreateWindowManagerGameObject(UICollection_SO uiPrefabData, RectTransform parent)
         {
-            dBB.SetDialogueBoxName("Dialogue Box");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-            return new DialogueBoxWidgetPair() { DialogueBox = new DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent,  index) };
+            return GameObject.Instantiate(uiPrefabData.WindowManagerPrefab, parent);
         }
-        else
+
+        private static DialogueBoxWidgetPair? CreateWindowManagerBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
         {
-            return null;
-        }
-    }
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
 
-    private static GameObject CreateScrollableDialogueBoxGameObject(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        return GameObject.Instantiate(uiPrefabData.ScrollableContentPrefab, parent);
-    }
-
-    private static DialogueBoxWidgetPair? CreateScrollableDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-        
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
-        {
-            dBB.SetDialogueBoxName("Turn Order");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-            GameObject instanciatedScrollableAddon = CreateScrollableDialogueBoxGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
-
-            if (instanciatedScrollableAddon != null && instanciatedScrollableAddon.TryGetComponent(out ScrollableContentPrefabData data))
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
             {
-                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.TurnOrderUIManager(dBB, uiPrefabData, data), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                dBB.SetDialogueBoxName("Window Manager");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                GameObject instanciatedWindowManagerAddon = CreateWindowManagerGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+                if (instanciatedWindowManagerAddon != null)
+                {
+                    return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                }
+                // If we failed, return null.   
+                return null;
+            }
+            return null;
+        }
+
+        private static GameObject CreateInspectionGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+        {
+            /*  Create the Dialogue box from the Prefab and assign it's position.   */
+            GameObject gO = GameObject.Instantiate(uiPrefabData.InspectionPrefab, parent);
+
+            return gO;
+        }
+
+        private static DialogueBoxWidgetPair? CreateInspectionBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+        {
+            /*  Assign it's minimisable information and Size.    */
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+            {
+                dBB.SetDialogueBoxName("Inspect Unit");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                GameObject instanciatedInspectionAddon = CreateInspectionGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+                if (instanciatedInspectionAddon != null)
+                {
+                    return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                }
+                // If we failed, return null.   
+                return null;
+            }
+            return null;
+        }
+
+        private static GameObject CreateDialogueBoxGameObject(UICollection_SO uiPrefabData, RectTransform parent, Vector2 position)
+        {
+            /*  Create the Dialogue box from the Prefab and assign it's position.   */
+            GameObject gO = GameObject.Instantiate(uiPrefabData.DialogueBoxPrefab, parent);
+            UnityUIUtility.SetRectPosition(gO.GetComponent<RectTransform>(), position);
+
+            return gO;
+        }
+        private static DialogueBoxWidgetPair? CreateDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+        {
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+            {
+                dBB.SetDialogueBoxName("Dialogue Box");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                return new DialogueBoxWidgetPair() { DialogueBox = new DefaultDialogueBoxAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
             }
             else
-                return null;
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private static UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(UICollection_SO uiPrefabData, RectTransform widgetParent, int index)
-    {
-        GameObject gO = GameObject.Instantiate(uiPrefabData.WindowMinimisationWidgetPrefab, widgetParent);
-        if (gO.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget))
-        {
-            minimisationWidget.SetMinimisableIndex(index);
-            return minimisationWidget;
-        }
-        return null;
-    }
-
-    private static UITaskBarMinimisationWidget CreateTaskBarButtonWidget(UICollection_SO uiPrefabData, RectTransform widgetParent, int index)
-    {
-        GameObject instanciatedStartButton = GameObject.Instantiate(uiPrefabData.OS_StartButtonPrefab, widgetParent);
-        if (instanciatedStartButton != null && instanciatedStartButton.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget) && instanciatedStartButton.TryGetComponent(out RectTransform rect))
-        {
-            rect.anchoredPosition = new Vector2(75, 0);
-            rect.sizeDelta = new Vector2(150, 40);
-
-            minimisationWidget.SetMinimisableIndex(index);
-            return minimisationWidget;
-        }
-        return null;
-    }
-
-    private static GameObject CreateTaskbarHomeBox(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        /*  Create the Task Bar Home Box from the Prefab    */
-        return GameObject.Instantiate(uiPrefabData.TaskbarHomeBoxPrefab, parent);
-    }
-
-    private static DialogueBoxWidgetPair? CreateHomeStartWindow(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index)
-    {
-        GameObject instanciatedHomeBox = CreateTaskbarHomeBox(uiPrefabData, windowParent);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedHomeBox != null && instanciatedHomeBox.TryGetComponent(out TaskBarHomeBoxBehaviour taskbarBoxBehaviour))
-        {
-            taskbarBoxBehaviour.SetMinimisableIndex(index);
-
-            
-            return new DialogueBoxWidgetPair() { DialogueBox = new DefaultDialogueBoxAttachment(taskbarBoxBehaviour), TaskBarWidget = CreateTaskBarButtonWidget(uiPrefabData, widgetParent, index) };
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private static GameObject CreateOptionsGameObject(UICollection_SO uiPrefabData, RectTransform parent)
-    {
-        return GameObject.Instantiate(uiPrefabData.OptionsMainPrefab, parent);
-    }
-
-
-    private static DialogueBoxWidgetPair? CreateOptionsDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
-    {
-        GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
-
-        /*  Assign it's minimisable information and Size.    */
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
-        {
-            dBB.SetDialogueBoxName("Options");
-            dBB.Resize(size);
-            instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
-
-            GameObject instanciatedScrollableAddon = CreateOptionsGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
-
-            if (instanciatedScrollableAddon != null)
             {
-                return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.OptionsUIAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                return null;
+            }
+        }
+
+        private static GameObject CreateScrollableDialogueBoxGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+        {
+            return GameObject.Instantiate(uiPrefabData.ScrollableContentPrefab, parent);
+        }
+
+        private static DialogueBoxWidgetPair? CreateScrollableDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+        {
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
+
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+            {
+                dBB.SetDialogueBoxName("Turn Order");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                GameObject instanciatedScrollableAddon = CreateScrollableDialogueBoxGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+                if (instanciatedScrollableAddon != null && instanciatedScrollableAddon.TryGetComponent(out ScrollableContentPrefabData data))
+                {
+                    return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.TurnOrderUIManager(dBB, uiPrefabData, data), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                }
+                else
+                    return null;
             }
             else
+            {
                 return null;
+            }
         }
-        else
+
+        private static UITaskBarMinimisationWidget CreateTaskBarMinimisationWidget(UICollection_SO uiPrefabData, RectTransform widgetParent, int index)
         {
+            GameObject gO = GameObject.Instantiate(uiPrefabData.WindowMinimisationWidgetPrefab, widgetParent);
+            if (gO.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget))
+            {
+                minimisationWidget.SetMinimisableIndex(index);
+                return minimisationWidget;
+            }
             return null;
         }
-    }
 
-    public static async Task MinimiseWindow(WindowData windowData, float expandShrinkTimer)
-    {
-        /*  Check to see if we are animating, if so, ABORT! */
-        if (windowData.WindowAnimData.isAnimating) { return; }
+        private static UITaskBarMinimisationWidget CreateTaskBarButtonWidget(UICollection_SO uiPrefabData, RectTransform widgetParent, int index)
+        {
+            GameObject instanciatedStartButton = GameObject.Instantiate(uiPrefabData.OS_StartButtonPrefab, widgetParent);
+            if (instanciatedStartButton != null && instanciatedStartButton.TryGetComponent(out UITaskBarMinimisationWidget minimisationWidget) && instanciatedStartButton.TryGetComponent(out RectTransform rect))
+            {
+                rect.anchoredPosition = new Vector2(75, 0);
+                rect.sizeDelta = new Vector2(150, 40);
+
+                minimisationWidget.SetMinimisableIndex(index);
+                return minimisationWidget;
+            }
+            return null;
+        }
+
+        private static GameObject CreateTaskbarHomeBox(UICollection_SO uiPrefabData, RectTransform parent)
+        {
+            /*  Create the Task Bar Home Box from the Prefab    */
+            return GameObject.Instantiate(uiPrefabData.TaskbarHomeBoxPrefab, parent);
+        }
+
+        private static DialogueBoxWidgetPair? CreateHomeStartWindow(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index)
+        {
+            GameObject instanciatedHomeBox = CreateTaskbarHomeBox(uiPrefabData, windowParent);
+
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedHomeBox != null && instanciatedHomeBox.TryGetComponent(out TaskBarHomeBoxBehaviour taskbarBoxBehaviour))
+            {
+                taskbarBoxBehaviour.SetMinimisableIndex(index);
 
 
-        /*  Set the target state to the opposite that we are in. So if we are shrunk, we want to enlarge.   */
-        windowData.WindowAnimData.ToggleAnimationState();
+                return new DialogueBoxWidgetPair() { DialogueBox = new DefaultDialogueBoxAttachment(taskbarBoxBehaviour), TaskBarWidget = CreateTaskBarButtonWidget(uiPrefabData, widgetParent, index) };
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static GameObject CreateOptionsGameObject(UICollection_SO uiPrefabData, RectTransform parent)
+        {
+            return GameObject.Instantiate(uiPrefabData.OptionsMainPrefab, parent);
+        }
 
 
-        /*  We want to check if we AREN'T animating, and that our target state is Enlarged. If so, then we want to save the size of the dialogue box.  */
-        windowData.WindowAnimData.SavePositionAndSize
-            (windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().transform.position, windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().GetDialogueBoxSize());
+        private static DialogueBoxWidgetPair? CreateOptionsDialogueBox(UICollection_SO uiPrefabData, RectTransform windowParent, RectTransform widgetParent, int index, Vector2 position, Vector2 size)
+        {
+            GameObject instanciatedObject = CreateDialogueBoxGameObject(uiPrefabData, windowParent, position);
 
-        /*  Play the animation as an asyncronous task. Only after ALL tasks are done, do we want to set isAnimating to false!   */
-        await windowData.WindowAnimData.PlayEnlargeShrinkAnimation(windowData.WindowPair, expandShrinkTimer);
+            /*  Assign it's minimisable information and Size.    */
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out DialogueBoxBehaviour dBB))
+            {
+                dBB.SetDialogueBoxName("Options");
+                dBB.Resize(size);
+                instanciatedObject.GetComponent<MinimisableUI>().SetMinimisableIndex(index);
+
+                GameObject instanciatedScrollableAddon = CreateOptionsGameObject(uiPrefabData, dBB.GetContentGameObjectRoot());
+
+                if (instanciatedScrollableAddon != null)
+                {
+                    return new DialogueBoxWidgetPair() { DialogueBox = new TurnBased.OptionsUIAttachment(dBB), TaskBarWidget = CreateTaskBarMinimisationWidget(uiPrefabData, widgetParent, index) };
+                }
+                else
+                    return null;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static async Task MinimiseWindow(WindowData windowData, float expandShrinkTimer)
+        {
+            /*  Check to see if we are animating, if so, ABORT! */
+            if (windowData.WindowAnimData.isAnimating) { return; }
 
 
-    }
+            /*  Set the target state to the opposite that we are in. So if we are shrunk, we want to enlarge.   */
+            windowData.WindowAnimData.ToggleAnimationState();
 
-    public static void DestroyWindow(WindowData windowData)
-    {
-        /*  Destroy the window and the widget.  */
-        windowData.WindowPair.DialogueBox.Destroy();
-        GameObject.Destroy(windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().gameObject);
-        GameObject.Destroy(windowData.WindowPair.TaskBarWidget.gameObject);
+
+            /*  We want to check if we AREN'T animating, and that our target state is Enlarged. If so, then we want to save the size of the dialogue box.  */
+            windowData.WindowAnimData.SavePositionAndSize
+                (windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().transform.position, windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().GetDialogueBoxSize());
+
+            /*  Play the animation as an asyncronous task. Only after ALL tasks are done, do we want to set isAnimating to false!   */
+            await windowData.WindowAnimData.PlayEnlargeShrinkAnimation(windowData.WindowPair, expandShrinkTimer);
+
+
+        }
+
+        public static void DestroyWindow(WindowData windowData)
+        {
+            /*  Destroy the window and the widget.  */
+            windowData.WindowPair.DialogueBox.Destroy();
+            GameObject.Destroy(windowData.WindowPair.DialogueBox.GetDialogueBoxOwner().gameObject);
+            GameObject.Destroy(windowData.WindowPair.TaskBarWidget.gameObject);
+        }
     }
 }

@@ -60,9 +60,6 @@ namespace TurnBased
         private TurnBased.MoveSelection.MoveSelectorManager moveSelectorManager = new();
         [SerializeField] private List<UnitIndex> UnitIndexTurnOrderList = new();
         [SerializeField] private UnitIndex currentUnit;
-
-
-        public enum PHASE_TYPES {START_ROUND, PRE_UNIT_TURN, UNIT_TURN, END_ROUND};
         
         Dictionary<PHASE_TYPES, Phase> PhaseDictionary;
         [SerializeField] private PHASE_TYPES CurrentPhaseType;

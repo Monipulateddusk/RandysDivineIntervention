@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TurnBased;
+using TurnBased.UI;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public struct DialogueBoxWidgetPair
 {
@@ -125,7 +125,7 @@ public class UITaskBarManager
         this.ScreenElementsTransform = screenElementsTransform;
         this.UI_PrefabData = uiData;
 
-        AddWindow(WindowType.HomeStart, Vector2.zero, Vector2.zero);
+        AddWindow(UIWindowFactoryWindowType.HomeStart, Vector2.zero, Vector2.zero);
     }
 
     public void Update()
@@ -139,31 +139,31 @@ public class UITaskBarManager
         }        
     }
 
-    public void AddWindow(WindowType windowType, Vector2 position, Vector2 size)
+    public void AddWindow(UIWindowFactoryWindowType UIWindowFactoryWindowType, Vector2 position, Vector2 size)
     {
         for (int i = 0; i < MAX_WINDOW_COUNT; i++)
         {
             if (WindowDataDict.ContainsKey(i)) { continue; }
 
-            CreateWindow(windowType, i, position, size);
+            CreateWindow(UIWindowFactoryWindowType, i, position, size);
             return;
         }
 
     }
 
-    private void CreateWindow(WindowType windowType, int index, Vector2 position, Vector2 size)
+    private void CreateWindow(UIWindowFactoryWindowType UIWindowFactoryWindowType, int index, Vector2 position, Vector2 size)
     {
         /*  Store the data of this Window.  */
         if (!WindowDataDict.ContainsKey(index))
         {
             DialogueBoxWidgetPair createdWindowPair;
-            if (windowType == WindowType.HomeStart)
+            if (UIWindowFactoryWindowType == UIWindowFactoryWindowType.HomeStart)
             {
-                createdWindowPair = UIWindowFactory.CreateWindow(windowType, UI_PrefabData, TaskbarHomeBoxPivotTransform, TaskbarButtonTransform, index, position, size);
+                createdWindowPair = UIWindowFactory.CreateWindow(UIWindowFactoryWindowType, UI_PrefabData, TaskbarHomeBoxPivotTransform, TaskbarButtonTransform, index, position, size);
             }
             else
             {
-                createdWindowPair = UIWindowFactory.CreateWindow(windowType, UI_PrefabData, ScreenElementsTransform, WindowGridTransform, index, position, size);
+                createdWindowPair = UIWindowFactory.CreateWindow(UIWindowFactoryWindowType, UI_PrefabData, ScreenElementsTransform, WindowGridTransform, index, position, size);
             }
 
             WindowDataDict.Add(index, new WindowData()

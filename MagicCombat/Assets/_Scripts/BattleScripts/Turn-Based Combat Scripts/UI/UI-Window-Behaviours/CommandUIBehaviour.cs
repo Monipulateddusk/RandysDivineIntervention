@@ -22,7 +22,6 @@ public class CommandUIBehaviour : MonoBehaviour
 
     private List<MoveUIPrefabData> InstanciatedMoveUIElements = new();
 
-    enum CommandUIBehaviourStates { Default = 0, TargetSelection = 1, UnitEndTurn = 2};
     private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.Default;
 
     private void Awake()

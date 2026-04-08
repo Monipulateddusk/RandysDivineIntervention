@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class SelectionWindowBehaviour : MonoBehaviour
 {
-    enum SelectionWindowState { Camera = 0, Units = 1}
-
     [Header("Inspector Variables")]
     [SerializeField, Tooltip("Supply this field with 'CameraTab' in Tabs")] UnityEngine.UI.Button   CameraTabButton;
     [SerializeField, Tooltip("Supply this field with 'UnitTab' in Tabs")]   UnityEngine.UI.Button   UnitTabButton;
@@ -13,7 +11,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
     [SerializeField, Tooltip("Supply this field with 'ButtonBG' in RightButton")]   UnityEngine.UI.Button   RightButton;
     [SerializeField, Tooltip("Supply this field with 'TextElement' in Window")]     TMPro.TextMeshProUGUI   TextElement;
 
-    SelectionWindowState currentSelectionState;
+    SelectionUIBehaviourState currentSelectionState;
 
     private void Awake()
     {
@@ -35,9 +33,9 @@ public class SelectionWindowBehaviour : MonoBehaviour
 
     private void Start()
     {
-        SetState(SelectionWindowState.Camera);
+        SetState(SelectionUIBehaviourState.Camera);
     }
-    void SetState(SelectionWindowState newState)
+    void SetState(SelectionUIBehaviourState newState)
     {
         currentSelectionState = newState;
         UpdateState();
@@ -47,12 +45,12 @@ public class SelectionWindowBehaviour : MonoBehaviour
     {
         switch (currentSelectionState)
         {
-            case SelectionWindowState.Camera:
+            case SelectionUIBehaviourState.Camera:
                 this.CameraTabButton.interactable   = false;
                 this.UnitTabButton.interactable     = true;
                 break;
 
-            case SelectionWindowState.Units:
+            case SelectionUIBehaviourState.Units:
                 this.CameraTabButton.interactable   = true;
                 this.UnitTabButton.interactable     = false;
                 break;
@@ -67,7 +65,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
 
     private void SetTextElementText()
     {
-        if(this.currentSelectionState == SelectionWindowState.Units)
+        if(this.currentSelectionState == SelectionUIBehaviourState.Units)
         {
             SetTextElementUnits();
         }
@@ -101,8 +99,8 @@ public class SelectionWindowBehaviour : MonoBehaviour
         this.TextElement.text = text;
     }
 
-    void OnCameraTabClick()     { SetState(SelectionWindowState.Camera);    }
-    void OnUnitTabClick()       { SetState(SelectionWindowState.Units);     }
+    void OnCameraTabClick()     { SetState(SelectionUIBehaviourState.Camera);    }
+    void OnUnitTabClick()       { SetState(SelectionUIBehaviourState.Units);     }
     
     void DisableButtons()
     {
@@ -124,10 +122,10 @@ public class SelectionWindowBehaviour : MonoBehaviour
         DisableButtons();
         switch (currentSelectionState)
         {
-            case SelectionWindowState.Units:
+            case SelectionUIBehaviourState.Units:
                 StationSelectorManager.Instance.DecrementIndex();
                 break;
-            case SelectionWindowState.Camera:
+            case SelectionUIBehaviourState.Camera:
                 await CameraController.Instance.DecrementCameraIndex();
                 break;
             default:
@@ -146,10 +144,10 @@ public class SelectionWindowBehaviour : MonoBehaviour
         DisableButtons(); 
         switch (currentSelectionState)
         {
-            case SelectionWindowState.Units:
+            case SelectionUIBehaviourState.Units:
                 StationSelectorManager.Instance.IncrementIndex();
                 break;
-            case SelectionWindowState.Camera:
+            case SelectionUIBehaviourState.Camera:
                 await CameraController.Instance.IncrementCameraIndex();
                 break;
             default:

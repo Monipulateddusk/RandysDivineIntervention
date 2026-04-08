@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Unity.Properties;
 using UnityEngine;
 
 namespace TurnBased.MoveSelection {
@@ -66,7 +63,7 @@ namespace TurnBased.MoveSelection {
             if (MoveSelectorHandler.IsSelectorTypeInstanciatable(moveSelectorType))
             {
                 /* Create a new instance of the class. Important for selectors like Sequential which have a unit-driven 'memory' for the previously selected move.  */
-                IMoveSelector newSelectorInstance = (IMoveSelector)Activator.CreateInstance(moveSelector.GetType());
+                IMoveSelector newSelectorInstance = (IMoveSelector)System.Activator.CreateInstance(moveSelector.GetType());
 
                 this.unitIndexMoveSelectionDictionary.Add(unitIndex.Index, newSelectorInstance);
             }
@@ -90,7 +87,7 @@ namespace TurnBased.MoveSelection {
         }
         private void RemoveAllUnitIndexesFromDictionary()
         {
-            foreach(KeyValuePair<int, IMoveSelector> unitIndexMoveSelectorKeyValuePair in this.unitIndexMoveSelectionDictionary)
+            foreach(System.Collections.Generic.KeyValuePair<int, IMoveSelector> unitIndexMoveSelectorKeyValuePair in this.unitIndexMoveSelectionDictionary)
             {
                 int key = unitIndexMoveSelectorKeyValuePair.Key;    
                 this.unitIndexMoveSelectionDictionary.Remove(key);

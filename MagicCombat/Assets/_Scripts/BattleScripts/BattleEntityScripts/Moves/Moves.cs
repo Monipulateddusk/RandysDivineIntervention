@@ -4,24 +4,18 @@ using TurnBased.TargetSelection;
 namespace TurnBased
 {
     #region Attack Data Classes
-    public enum StatusEffect
-    {
-        NULL,
-    }
 
 
     public class AttackAction
     {
-        public enum ActionType { DAMAGE, HEALING, STATUS_EFFECT, IMBUE_ENVIRONMENTS }
-
-        public ActionType Type { get; private set; }
+        public AttackActionType Type { get; private set; }
         public Element ElementEffect { get; private set; }
         public MoveTarget AttackTarget { get; private set; }
         public int Value { get; private set; }
         public string StaEffect { get; private set; }
 
 
-        public AttackAction(ActionType type, int value = 0, string staEffect = "", Element elementEff = 0, MoveTarget attackTarget = MoveTarget.SingleEnemy)
+        public AttackAction(AttackActionType type, int value = 0, string staEffect = "", Element elementEff = 0, MoveTarget attackTarget = MoveTarget.SingleEnemy)
         {
             Type = type;
             ElementEffect = elementEff;
@@ -82,7 +76,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackAction.ActionType.DAMAGE, userInfo.attack, attackTarget: MoveTarget.SingleEnemy)
+                            new AttackAction(AttackActionType.DAMAGE, userInfo.attack, attackTarget: MoveTarget.SingleEnemy)
                         }                        
                     }, 
                 }
@@ -113,14 +107,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackAction.ActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new AttackAction(AttackAction.ActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
                         }
                     },
                     new AttackStep()
@@ -128,7 +122,7 @@ namespace TurnBased
                         Actions =
                         {
 
-                            new AttackAction(AttackAction.ActionType.DAMAGE, damage, attackTarget: MoveTarget.SingleEnemy)
+                            new AttackAction(AttackActionType.DAMAGE, damage, attackTarget: MoveTarget.SingleEnemy)
                         }
                     },
                 }
@@ -159,7 +153,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackAction.ActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element, attackTarget: MoveTarget.Area),
+                            new AttackAction(AttackActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element, attackTarget: MoveTarget.Area),
                         },
                     }
                 }

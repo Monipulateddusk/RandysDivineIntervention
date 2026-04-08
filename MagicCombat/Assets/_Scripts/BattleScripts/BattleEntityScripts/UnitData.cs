@@ -4,13 +4,6 @@ using UnityEditor.Animations;
 using UnityEngine;
 
 /// <summary>
-/// The Element the User possesses. Able to Imbue the Environment
-/// </summary>
-public enum Element
-{
-    NULL,FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS,
-}
-/// <summary>
 /// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene
 /// </summary>
 [CreateAssetMenu(fileName = "UnitData", menuName = "UnitData", order = 1)]

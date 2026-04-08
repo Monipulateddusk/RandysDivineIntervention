@@ -26,10 +26,10 @@ public class UserInterfaceManager : MonoBehaviour
         [SerializeField]public IUISelectable hoveredUIObject;
         [SerializeField]public bool isSelected;
 
-        [SerializeField]private CursorManager.CursorIcons cursorState;
-        public event Action<CursorManager.CursorIcons> OnChangeCursorState;
+        [SerializeField]private CursorIcons cursorState;
+        public event Action<CursorIcons> OnChangeCursorState;
 
-        public void SetCursorState(CursorManager.CursorIcons newCursorState)
+        public void SetCursorState(CursorIcons newCursorState)
         {
             this.cursorState = newCursorState;
             OnChangeCursorState?.Invoke(this.cursorState);
@@ -126,7 +126,7 @@ public class UserInterfaceManager : MonoBehaviour
         this.selectedUserInterfaceElement.hoveredUIObject?.OnDeselect(this.CursorManager.GetPreviousMousePosition());
         this.selectedUserInterfaceElement.hoveredUIObject = null;
         this.selectedUserInterfaceElement.isSelected = false;
-        this.selectedUserInterfaceElement.SetCursorState(CursorManager.CursorIcons.Cursor);
+        this.selectedUserInterfaceElement.SetCursorState(CursorIcons.Cursor);
     }
 
     private void PerformGraphicRaycastForSelectedObjects()
@@ -175,7 +175,7 @@ public class UserInterfaceManager : MonoBehaviour
                 ((DialogueBoxBehaviour)this.selectedUserInterfaceElement.hoveredUIObject).transform.SetAsLastSibling();
             }
 
-            CursorManager.CursorIcons enm = this.selectedUserInterfaceElement.hoveredUIObject.GetCurrentMouseStateSuggestion();
+            CursorIcons enm = this.selectedUserInterfaceElement.hoveredUIObject.GetCurrentMouseStateSuggestion();
 
             this.selectedUserInterfaceElement.SetCursorState(enm);
 

@@ -11,7 +11,6 @@ public class CursorManager
     private GameObject cursorObject;
     UnityEngine.UI.Image cursorObjectImageComp;
     [SerializeField]TextMeshProUGUI tmpUGUI;
-    public enum CursorIcons { Cursor, Help, VerticResize, HorizResize, DiagResize, Text, Grid, Move, END}
 
     private readonly Dictionary<CursorIcons, Sprite> CursorIconDict = new();
 

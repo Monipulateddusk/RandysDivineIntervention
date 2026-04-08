@@ -1,5 +1,3 @@
-public enum UnitMoveSelectorType { Random, Sequential, PlayerDriven}
-
 namespace TurnBased.MoveSelection
 {
     public static class MoveSelectorHandler

@@ -2,16 +2,6 @@ namespace TurnBased.TargetSelection
 {
     using System.Collections.Generic;
 
-    public enum MoveTarget
-    {
-        Self,
-        SingleEnemy,
-        SingleAlly,
-        AllEnemies,
-        AllAllies,
-        Area
-    }
-
     public interface ITargetSelector
     {
         public abstract List<StationIndex?> SelectTargets(IBattleMove selectedMove);

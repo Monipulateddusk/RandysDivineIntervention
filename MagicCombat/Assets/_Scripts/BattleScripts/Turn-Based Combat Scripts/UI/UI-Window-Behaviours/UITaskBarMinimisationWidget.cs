@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class UITaskBarMinimisationWidget : MinimisableUI, IUISelectable
 {
-    public CursorManager.CursorIcons GetCurrentMouseStateSuggestion()
+    public CursorIcons GetCurrentMouseStateSuggestion()
     {
-        return CursorManager.CursorIcons.Cursor;
+        return CursorIcons.Cursor;
     }
 
     public void OnDeselect(Vector2 mousePos)
