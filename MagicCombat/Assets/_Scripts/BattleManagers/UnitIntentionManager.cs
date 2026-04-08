@@ -5,9 +5,9 @@ using UnityEngine;
 public struct UnitIntention
 {
     public IBattleMove MoveSelection;
-    public List<int?> TargetIndexList;
+    public List<StationIndex> TargetIndexList;
 
-    public UnitIntention(IBattleMove moveData, List<int?> targetIndex)
+    public UnitIntention(IBattleMove moveData, List<StationIndex> targetIndex)
     {
         this.MoveSelection = moveData;
         this.TargetIndexList = targetIndex;
@@ -51,7 +51,7 @@ public class UnitIntentionManager : MonoBehaviour
     private void InitaliseSingleton()
     {
         /*  Initalise the Singleton.    */
-        if (instance != null && instance != this)
+        if (instance != this)
         {
             DestroyImmediate(this);
         }

@@ -1,16 +1,34 @@
 using UnityEngine;
 
-public class IntentionResolver : MonoBehaviour
+public class IntentionResolver
 {
-    // Start is called before the first frame update
-    void Start()
+    private static IntentionResolver instance;
+
+    public static IntentionResolver Instance
     {
-        
+        get 
+        {
+            try
+            {
+                return instance;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(e.ToString());
+                return null;
+            }
+        }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void Initalise()
     {
-        
+        /*  Initalise the Singleton.    */
+        if (instance != this)
+        {
+            return;
+        }
+        instance = this;
     }
+
+
 }
