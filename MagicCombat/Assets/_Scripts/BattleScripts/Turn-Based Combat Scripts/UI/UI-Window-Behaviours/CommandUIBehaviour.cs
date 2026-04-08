@@ -129,7 +129,7 @@ public class CommandUIBehaviour : MonoBehaviour
     {
         DestroyMoveUIElements();
 
-        foreach(IBattleMoveAction moveAction in battleUnit.GetBaseUnit().moves)
+        foreach(IBattleMove moveAction in battleUnit.GetBaseUnit().moves)
         {
             CreateMoveUIElement(moveAction.GetMoveName());
         }

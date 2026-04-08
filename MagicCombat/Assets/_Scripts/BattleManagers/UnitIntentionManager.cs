@@ -4,10 +4,10 @@ using UnityEngine;
 
 public struct UnitIntention
 {
-    public IBattleMoveAction MoveSelection;
+    public IBattleMove MoveSelection;
     public List<int?> TargetIndexList;
 
-    public UnitIntention(IBattleMoveAction moveData, List<int?> targetIndex)
+    public UnitIntention(IBattleMove moveData, List<int?> targetIndex)
     {
         this.MoveSelection = moveData;
         this.TargetIndexList = targetIndex;

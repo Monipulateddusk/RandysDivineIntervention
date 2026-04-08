@@ -2,9 +2,9 @@
 
 public class SceneData_UnitTurn
 {
-    public UnitIndex SourceUnitIndex;
-    public List<StationIndex?> AllyStationIndexes;
-    public List<StationIndex?> EnemyStationIndexes;
+    public UnitIndex SourceUnitIndex { get; }
+    public List<StationIndex?> AllyStationIndexes { get; }
+    public List<StationIndex?> EnemyStationIndexes { get; }
 
     public SceneData_UnitTurn(UnitIndex sourceUnitIndex, List<StationIndex?> allyStationIndexes, List<StationIndex?> enemyStationIndexes)
     {

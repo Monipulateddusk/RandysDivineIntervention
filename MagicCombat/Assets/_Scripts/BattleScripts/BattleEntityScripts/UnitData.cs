@@ -28,7 +28,7 @@ public class UnitData : ScriptableObject
     public Element element;
     
     [SerializeReference, SubclassSelector]
-    public List<IBattleMoveAction> moves = new();
+    public List<IBattleMove> moves = new();
 
     public UnitMoveSelectorType moveSelectorType;
 

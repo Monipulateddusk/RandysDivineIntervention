@@ -2,12 +2,12 @@ namespace TurnBased.MoveSelection
 {
     public interface IMoveSelector
     {
-        public abstract IBattleMoveAction SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data);
+        public abstract IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data);
     }
 
     public class RandomMoveSelector : IMoveSelector
     {
-        public IBattleMoveAction SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
         {
             /*  Check to see if the moves List is populated, if not, return a dud move. */
             if (!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }
@@ -24,7 +24,7 @@ namespace TurnBased.MoveSelection
     {
         int curMoveIndex = 0;
 
-        public IBattleMoveAction SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
         {
             /*  Check to see if the moves List is populated, if not, return a dud move. */
             if(!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }
@@ -36,7 +36,7 @@ namespace TurnBased.MoveSelection
             }
 
             /*  Get the move and increment the index.*/
-            IBattleMoveAction selectedMove = unit.GetBaseUnit().moves[curMoveIndex];
+            IBattleMove selectedMove = unit.GetBaseUnit().moves[curMoveIndex];
             curMoveIndex++;
             return selectedMove;
         }
@@ -49,7 +49,7 @@ namespace TurnBased.MoveSelection
     public class PlayerDrivenMoveSelector : IMoveSelector
     {
         public int SelectedMoveIndex { private get; set; }
-        public IBattleMoveAction SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
+        public IBattleMove SelectMove(BaseBattleUnit unit, SceneData_UnitTurn data)
         {
             /*  Check to see if the moves List is populated, if not, return a dud move. */
             if (!MoveSelectorUtility.IsMoveListPopulated(unit)) { return new HeavyAttack(); }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TurnBased.TargetSelection;
 
 namespace TurnBased
 {
@@ -57,7 +58,7 @@ namespace TurnBased
     }
     #endregion
 
-    public interface IBattleMoveAction
+    public interface IBattleMove
     {
         public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null);
         public MoveTarget GetMoveTargetType();
@@ -69,7 +70,7 @@ namespace TurnBased
     /// <summary>
     /// An attack that does the user's full damage stat to the target
     /// </summary>
-    public class HeavyAttack : IBattleMoveAction
+    public class HeavyAttack : IBattleMove
     {
         public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {
@@ -99,7 +100,7 @@ namespace TurnBased
     /// <summary>
     /// An attack that does 1 damage 2 times and then 1/3 of damage stat of user
     /// </summary>
-    public class LightAttack : IBattleMoveAction
+    public class LightAttack : IBattleMove
     {
         public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {
@@ -146,7 +147,7 @@ namespace TurnBased
     /// <summary>
     /// An attack that imbues the environment with the user's element. Used for the joint attacks proc-ing
     /// </summary>
-    public class ImbueEnvrionment : IBattleMoveAction
+    public class ImbueEnvrionment : IBattleMove
     {
         public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
         {

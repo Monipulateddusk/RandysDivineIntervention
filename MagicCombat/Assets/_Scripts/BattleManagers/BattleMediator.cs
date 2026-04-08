@@ -6,7 +6,7 @@ namespace TurnBased
 {
     public struct CombatReturnData
     {
-        public CombatReturnData(IBattleMoveAction battleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
+        public CombatReturnData(IBattleMove battleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
         {
             this.battleMoveAction = battleMoveAction;
             this.battleElementalMoveAction = null;
@@ -34,7 +34,7 @@ namespace TurnBased
         public List<BaseBattleUnit> users;
         public List<BaseBattleUnit> targets;
         public UnitTeam teamSource;
-        public IBattleMoveAction battleMoveAction;
+        public IBattleMove battleMoveAction;
         public IElementalMoveAction battleElementalMoveAction;
         public bool requiresMovement;
     }
