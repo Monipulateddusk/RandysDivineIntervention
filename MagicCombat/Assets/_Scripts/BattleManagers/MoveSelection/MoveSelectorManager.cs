@@ -68,8 +68,6 @@ namespace TurnBased.MoveSelection {
                 /* Create a new instance of the class. Important for selectors like Sequential which have a unit-driven 'memory' for the previously selected move.  */
                 IMoveSelector newSelectorInstance = (IMoveSelector)Activator.CreateInstance(moveSelector.GetType());
 
-                UnityEngine.Debug.Log("Added instance selector: " + newSelectorInstance.ToString());
-
                 this.unitIndexMoveSelectionDictionary.Add(unitIndex.Index, newSelectorInstance);
             }
             /*  If not, just get a referance to this Class. */
