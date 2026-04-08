@@ -26,8 +26,11 @@ public class UnitData : ScriptableObject
     public Sprite sprite;
 
     public Element element;
+    
     [SerializeReference, SubclassSelector]
     public List<IBattleMoveAction> moves = new();
+
+    public UnitMoveSelectorType moveSelectorType;
 
     public AnimatorController unitAnimator;
 }

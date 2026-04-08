@@ -32,45 +32,45 @@ public class BaseUnitTargettingComponent : BaseComponent
         this.unitData = unitData;
     }
 
-    public virtual UnitTargettingData SelectTargets(MoveSelectionData moveData)
+    public virtual UnitTargettingData SelectTargets(IBattleMoveAction moveData)
     {
-        MoveTarget moveTargetType = moveData.SelectedMove.GetMoveTargetType();
+        MoveTarget moveTargetType = moveData.GetMoveTargetType();
 
         switch (moveTargetType)
         {
             case MoveTarget.Self:
                 return returnData = new()
                 {
-                    Targets = new List<StationIndex?> { moveData.SourceStationIndex }
+                   // Targets = new List<StationIndex?> { moveData }
                 };
             case MoveTarget.SingleEnemy:
                 return returnData = new()
                 {
-                    Targets = new List<StationIndex?> { moveData.TargetStationIndexes.FirstOrDefault() }
+                    //Targets = new List<StationIndex?> { moveData.TargetStationIndexes.FirstOrDefault() }
                 };
             case MoveTarget.SingleAlly:
                 return returnData = new()
                 {
-                    Targets = new List<StationIndex?> { moveData.AllyStationIndexes.FirstOrDefault() }
+                    //Targets = new List<StationIndex?> { moveData.AllyStationIndexes.FirstOrDefault() }
                 };
             case MoveTarget.AllEnemies:
                 return returnData = new()
                 {
-                    Targets = moveData.TargetStationIndexes
+                   // Targets = moveData.TargetStationIndexes
                 };
             case MoveTarget.AllAllies:
                 return returnData = new()
                 {
-                    Targets = moveData.AllyStationIndexes
+                   // Targets = moveData.AllyStationIndexes
                 };
             case MoveTarget.Area:
-                List<StationIndex?> targets = new();
-                targets.AddRange(moveData.TargetStationIndexes);
-                targets.AddRange(moveData.AllyStationIndexes);
+                //List<StationIndex?> targets = new();
+                //targets.AddRange(moveData.TargetStationIndexes);
+                //targets.AddRange(moveData.AllyStationIndexes);
 
                 return returnData = new()
                 {
-                    Targets = targets
+                    //Targets = targets
                 };
             default:
                 return new();

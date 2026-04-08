@@ -57,6 +57,7 @@ namespace TurnBased
 
         }
         private StationManager StationHandler;
+        private TurnBased.MoveSelection.MoveSelectorManager moveSelectorManager = new();
         [SerializeField] private List<UnitIndex> UnitIndexTurnOrderList = new();
         [SerializeField] private UnitIndex currentUnit;
 
@@ -139,6 +140,7 @@ namespace TurnBased
         private void Awake()
         {
             instance = this;
+            this.moveSelectorManager.Initalise();
         }
 
         private void Start()

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5a70537c79c94749958ff40d998d76f, type: 3}
   m_Name: PlayerHammer
   m_EditorClassIdentifier: 
-  name: 
+  name: Water Hammer
   maxHP: 5
   attack: 5
   speed: 10
@@ -22,6 +22,7 @@ MonoBehaviour:
   moves:
   - rid: 5544377919140265985
   - rid: 5544377919140265986
+  moveSelectorType: 1
   unitAnimator: {fileID: 9100000, guid: 212fd75ee11e56848afcb4a2c3d4fc0c, type: 2}
   references:
     version: 2

@@ -22,10 +22,15 @@ MonoBehaviour:
   moves:
   - rid: 5544377716436893698
   - rid: 5544377716436893699
+  moveSelector:
+    rid: 5199166267501314050
   unitAnimator: {fileID: 9100000, guid: 36962da2f91ca574e9f4a5beb2d06501, type: 2}
   references:
     version: 2
     RefIds:
+    - rid: 5199166267501314050
+      type: {class: RandomMoveSelector, ns: TurnBased.MoveSelection, asm: Assembly-CSharp}
+      data: 
     - rid: 5544377716436893698
       type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
       data: 

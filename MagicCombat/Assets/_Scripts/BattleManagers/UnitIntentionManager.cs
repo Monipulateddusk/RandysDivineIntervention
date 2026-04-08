@@ -1,12 +1,13 @@
 using System.Collections.Generic;
+using TurnBased;
 using UnityEngine;
 
 public struct UnitIntention
 {
-    public MoveSelectionData? MoveSelection;
+    public IBattleMoveAction MoveSelection;
     public List<int?> TargetIndexList;
 
-    public UnitIntention(MoveSelectionData moveData, List<int?> targetIndex)
+    public UnitIntention(IBattleMoveAction moveData, List<int?> targetIndex)
     {
         this.MoveSelection = moveData;
         this.TargetIndexList = targetIndex;

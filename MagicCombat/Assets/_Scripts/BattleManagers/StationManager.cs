@@ -474,13 +474,14 @@ public class StationManager
 
     /// <summary>
     /// Invoked when a Unit is Removed. When a unit is destroyed.   
+    /// [ Unit Index: The UnitIndex this Unit was correlated to. ]
     /// [ Station Index: StationIndex of the Destroyed Unit. Could be null if they were removed in resurve. ]
     /// [ BaseBattleUnit: Main Script of the Unit, allows use of the GameObject. ]
     /// 
     /// IMPORTANT: As we remove the UnitIndex, StationIndex from arrays, you cannot use any method within SceneUnitData to retrieve further information on the Unit. 
     /// However, you can use the StationIndex to consult another class to retrieve the Station's Location in worldSpace.
     /// </summary>
-    public static event Action<StationIndex?, BaseBattleUnit> OnRemoveUnit;
+    public static event Action<UnitIndex, StationIndex?, BaseBattleUnit> OnRemoveUnit;
 
     /// <summary>
     /// Invoked on Switching the stations of Units on the Same Team. 
@@ -584,13 +585,10 @@ public class StationManager
         bool sucess = this.SceneUnitData.RemoveUnit(unitIndex);
         if (sucess) 
         {
-            OnRemoveUnit?.Invoke(removedUnitStationIndex, removedUnit);
+            OnRemoveUnit?.Invoke(unitIndex, removedUnitStationIndex, removedUnit);
             return true;
         }
-        else
-        {
-            return false;
-        }
+        return false;        
     }
     public bool SwitchUnitStations(UnitIndex unitIndexA, UnitIndex unitIndexB)
     {   
