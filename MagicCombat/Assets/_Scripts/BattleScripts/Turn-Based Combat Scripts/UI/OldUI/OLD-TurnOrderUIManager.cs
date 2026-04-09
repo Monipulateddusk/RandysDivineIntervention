@@ -21,12 +21,12 @@ public class TurnOrderUIManager : MonoBehaviour
         CreateBackgroundTemplate();
         CreateIconTemplate();
 
-        BattleMediator.OnUpdateTurnOrder += OnUpdateTurnOrderList;
+        TurnBased.TurnOrder.TurnOrderManager.OnUpdateTurnOrder += OnUpdateTurnOrderList;
     }
 
     private void OnDestroy()
     {
-        BattleMediator.OnUpdateTurnOrder -= OnUpdateTurnOrderList;
+        TurnBased.TurnOrder.TurnOrderManager.OnUpdateTurnOrder -= OnUpdateTurnOrderList;
     }
 
     private void CreateBackgroundTemplate()
@@ -172,7 +172,7 @@ public class TurnOrderUIManager : MonoBehaviour
         DeleteIcons();
 
         /*  Push the Current Unit into the Icons List.  */
-        CreateChildUnitTurnIconObject(BattleMediator.Instance.GetCurrentUnit().Value, currentUnitSlot);
+        CreateChildUnitTurnIconObject(TurnBased.TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), currentUnitSlot);
 
         UpdateCurrentUnitSlotPosition(obj);
         UpdateOtherUnitSlotsSize(obj);

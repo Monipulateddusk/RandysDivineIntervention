@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using TurnBased.TurnOrder;
 using UnityEngine;
 
 namespace TurnBased
@@ -58,18 +59,10 @@ namespace TurnBased
         }
         private StationManager StationHandler;
 
-        private MoveSelection.MoveSelectorManager moveSelectorManager = new();
-        private TargetSelection.TargetSelectorManager targetSelectorManager = new();
-
-        [SerializeField] private List<UnitIndex> UnitIndexTurnOrderList = new();
-        [SerializeField] private UnitIndex currentUnit;
-        
-        Dictionary<PHASE_TYPES, Phase> PhaseDictionary;
-        [SerializeField] private PHASE_TYPES CurrentPhaseType;
-        private Phase CurrentPhase;
-
-         public static event System.Action<List<UnitIndex>> OnUpdateTurnOrder;
-
+        private readonly MoveSelection.MoveSelectorManager      moveSelectorManager     = new();
+        private readonly TargetSelection.TargetSelectorManager  targetSelectorManager   = new();
+        private readonly TurnOrder.TurnOrderManager             turnOrderManager        = new();
+        private readonly Phases.PhaseManager                    phaseManager            = new();
 
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
@@ -102,41 +95,13 @@ namespace TurnBased
             }
         }
 
-        public List<UnitIndex> CreateTurnOrderList()
-        {
-            this.UnitIndexTurnOrderList = this.StationHandler.GetAllActiveUnits();
-
-            /*  Sort the List so that slowest Units are processed last. */
-            this.UnitIndexTurnOrderList.Sort((g1, g2) =>
-            {
-                this.StationHandler.TryGetBattleUnitOfIndex(g1, out BaseBattleUnit unit1);
-                this.StationHandler.TryGetBattleUnitOfIndex(g2, out BaseBattleUnit unit2);
-
-                return unit1.GetBaseUnit().speed.CompareTo(unit2.GetBaseUnit().speed);
-            });
-     
-            this.UnitIndexTurnOrderList.Reverse();
-
-            OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
-            return this.UnitIndexTurnOrderList;
-        }
-
-        public UnitIndex? PopNextUnitInTurnOrder()
-        {
-            if(!(this.UnitIndexTurnOrderList.Count > 0)){ return null;  }
-
-            currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
-            UnitIndexTurnOrderList.RemoveAt(0);
-            OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
-            return currentUnit;     
-   
-        }
-
         private void Awake()
         {
             instance = this;
             this.moveSelectorManager.Initalise();
             this.targetSelectorManager.Initalise();
+            this.turnOrderManager.Initalise();
+            this.phaseManager.Initialise();
         }
 
         private void Start()
@@ -144,60 +109,17 @@ namespace TurnBased
             this.StationHandler = new StationManager();
 
             CreateCombatEncounter();
-            this.StationHandler.DeployUnitsForStartOfBattle();
-
-
-            PhaseDictionary = new()
-            {
-                {PHASE_TYPES.START_ROUND,   new BeginRoundPhase (concreteMediator : this) },
-                {PHASE_TYPES.PRE_UNIT_TURN, new PreTurnPhase    (concreteMediator : this) },
-                {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   (concreteMediator : this) },
-                {PHASE_TYPES.END_ROUND,     new EndRoundPhase   (concreteMediator : this) }
-            };
-
-            
-            CurrentPhaseType = PHASE_TYPES.START_ROUND;
-            ChangeState(CurrentPhaseType);
+            this.StationHandler.DeployUnitsForStartOfBattle();         
         }
 
         private void Update()
         {
-            CurrentPhase?.Update();
+            this.phaseManager.UpdatePhases();
 
             if (Input.GetKeyDown(KeyCode.H))
             {
-                this.StationHandler.RemoveUnit(currentUnit);
+                this.StationHandler.RemoveUnit(TurnOrderManager.Instance.GetCurrentUnit());
             }
         }
-
-        public void ChangeToNextStateInOrder()
-        {
-            // Get which state we are in, decide which state is next
-            int index = (int)CurrentPhaseType;
-
-            index++;
-
-            if (index > PhaseDictionary.Count -1)
-            {
-                index = 0;
-            }
-
-            ChangeState((PHASE_TYPES)index);
-        }
-
-        public void ChangeState(PHASE_TYPES newPhaseType)
-        {
-            CurrentPhase?.OnExit();
-
-            CurrentPhaseType = newPhaseType;
-            CurrentPhase = PhaseDictionary[newPhaseType];
-
-            CurrentPhase?.OnEnter();
-        }
-
-        #region Getter Methods
-        public List<UnitIndex>      GetTurnOrderList()                                                                          =>  this.UnitIndexTurnOrderList;
-        public UnitIndex?           GetCurrentUnit()                                                                            =>  this.currentUnit;
-        #endregion
     }
 }

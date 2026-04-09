@@ -54,15 +54,15 @@ namespace TurnBased
 
             this.instanciatedItems = new();
 
-            CreateTurnOrderUI(BattleMediator.Instance.GetCurrentUnit(), BattleMediator.Instance.GetTurnOrderList());
-            BattleMediator.OnUpdateTurnOrder += BattleMediator_OnUpdateTurnOrder;
+            CreateTurnOrderUI(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), TurnOrder.TurnOrderManager.Instance.GetTurnOrderList());
+            TurnOrder.TurnOrderManager.OnUpdateTurnOrder += TurnOrderManager_OnUpdateTurnOrder;
         }
 
         public override void Destroy()
         {
             base.Destroy();
             DeleteIcons();
-            BattleMediator.OnUpdateTurnOrder -= BattleMediator_OnUpdateTurnOrder;
+            TurnOrder.TurnOrderManager.OnUpdateTurnOrder -= TurnOrderManager_OnUpdateTurnOrder;
         }
 
         ~TurnOrderUIManager()
@@ -195,10 +195,10 @@ namespace TurnBased
             }
         }
 
-        private void BattleMediator_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
+        private void TurnOrderManager_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
         {
             DeleteIcons();
-            CreateTurnOrderUI(BattleMediator.Instance.GetCurrentUnit(), list);
+            CreateTurnOrderUI(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), list);
         }
     }
 }
