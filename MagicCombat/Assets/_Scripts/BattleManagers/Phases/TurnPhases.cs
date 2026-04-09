@@ -25,6 +25,9 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            Debug.Log("Entering begin round phase");
+
+
             /*  If the turn order list is not empty, move past here.    */
             if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count < 0)
             {
@@ -33,15 +36,17 @@ namespace TurnBased.Phases
             }
 
             /*  When we enter this phase, we want to create the Turn Order List awaiting any Tasks that need to be done from external classes.  */
-            TurnOrder.TurnOrderManager.Instance.CreateTurnOrderList();
+            List<UnitIndex> createdTurnOrder = TurnOrder.TurnOrderManager.Instance.CreateTurnOrderList();
 
             /*  If the turn order list is less than 0 because there is not enough units to make a turn order with. Stop!!!! */
-            if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count >= 0)
+            if (createdTurnOrder.Count <= 0)
             {
                 return;
             }
 
             /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
+            
+            if(Intention.IntentionResolver.Instance == null) { Debug.Log("Intention resolver is null BOZO!"); return; }
             Intention.IntentionResolver.Instance.DetermineEnemyUnitIntentions();
 
 

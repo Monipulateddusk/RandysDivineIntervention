@@ -25,17 +25,19 @@ namespace TurnBased.Intention
         private System.Collections.Generic.List<UnitIndex> unitIndexesProcessing;
         private UnitIndex unitIndexCurrentlyProcessing;
 
-        public void Initalise()
+        public void Awake()
         {
             /*  Initalise the Singleton.    */
-            if (instance != this)
-            {
-                return;
-            }
             instance = this;
 
             MoveSelectionResolver.OnMoveSelectionComplete       += MoveSelectionResolver_OnMoveSelectionComplete;
             TargetSelectionResolver.OnTargetSelectionComplete   += TargetSelectionResolver_OnTargetSelectionComplete;
+        }
+
+        ~IntentionResolver()
+        {
+            MoveSelectionResolver.OnMoveSelectionComplete       -= MoveSelectionResolver_OnMoveSelectionComplete;
+            TargetSelectionResolver.OnTargetSelectionComplete   -= TargetSelectionResolver_OnTargetSelectionComplete;
         }
 
         private void MoveSelectionResolver_OnMoveSelectionComplete(UnitIndex unitIndex)
@@ -55,10 +57,16 @@ namespace TurnBased.Intention
 
         public void DetermineEnemyUnitIntentions()
         {
+            Debug.Log("Starting enemy intent");
+
             if (!StationManager.Instance.TryGetUnitIndexesOfTeam(UnitTeam.ENEMY, out System.Collections.Generic.List<UnitIndex> enemyUnitIndexes)) { return; }
+
 
             this.unitIndexesProcessing = enemyUnitIndexes;
             this.unitIndexCurrentlyProcessing = this.unitIndexesProcessing.FirstOrDefault();
+
+            Debug.Log("Processing intention for unit index: " + this.unitIndexCurrentlyProcessing);
+
             ProcessIntention(this.unitIndexCurrentlyProcessing);
         }        
 

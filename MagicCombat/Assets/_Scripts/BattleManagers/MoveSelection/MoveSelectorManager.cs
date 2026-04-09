@@ -22,7 +22,7 @@ namespace TurnBased.MoveSelection {
 
         private readonly System.Collections.Generic.Dictionary<int, IMoveSelector> unitIndexMoveSelectionDictionary = new();
 
-        public void Initalise()
+        public void Awake()
         {
             /*  Initalise the Singleton.    */
             if (instance != null && instance != this)
@@ -38,7 +38,7 @@ namespace TurnBased.MoveSelection {
         {
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
-            RemoveAllUnitIndexesFromDictionary();
+           // RemoveAllUnitIndexesFromDictionary();
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)

@@ -521,7 +521,7 @@ public class StationManager
 
     #endregion
 
-    private readonly SceneUnitData SceneUnitData;
+    private readonly SceneUnitData SceneUnitData = new();
 
     readonly List<UnityEngine.Vector3> ALLY_STATION_LOCATIONS = new(){
         new(0,      0,  1),         new(-3,         0,      1),         new(3,      0,      1),
@@ -535,10 +535,9 @@ public class StationManager
     };
     private const int MAX_STATIONS_PER_SIDE = 9;
 
-    public StationManager()
+    public void Awake()
     {
         Instance = this;
-        this.SceneUnitData = new();
         CreateStartingStations();
     }
 

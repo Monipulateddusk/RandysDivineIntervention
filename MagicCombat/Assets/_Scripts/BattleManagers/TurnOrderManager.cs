@@ -26,7 +26,7 @@ namespace TurnBased.TurnOrder
 
         public static event System.Action<System.Collections.Generic.List<UnitIndex>> OnUpdateTurnOrder;
 
-        public void Initalise()
+        public void Awake()
         {
             instance = this;
         }

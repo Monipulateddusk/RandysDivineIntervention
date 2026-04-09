@@ -56,7 +56,7 @@ namespace TurnBased.UI
         [SerializeField, Tooltip("Required Field. Populate with a referance to the Cursor Image Spritesheet.")] Texture2D CursorImages;
         CursorManager CursorManager;
 
-        UserInterfaceUserInput UserInterfaceUserInput = new();
+        private readonly UserInterfaceUserInput UserInterfaceUserInput = new();
 
         private void InitialiseComponents()
         {

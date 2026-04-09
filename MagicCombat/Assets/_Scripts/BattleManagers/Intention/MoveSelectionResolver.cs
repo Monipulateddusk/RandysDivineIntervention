@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using TurnBased.UI;
+
 namespace TurnBased.Intention
 {
     public static class MoveSelectionResolver 
@@ -12,7 +15,12 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if(moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
-                OnMoveSelectionComplete?.Invoke(unitIndex);
+                /*  Select this Unit in our Station selector and tell the UI that we are awaiting calls.    */
+                if(!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return false; }
+                StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
+
+                /*  Alert the UI    */
+                UserInterfaceUserInput.Instance.StartMoveSelection(unitIndex);
                 return true;
             }
             else
@@ -24,6 +32,8 @@ namespace TurnBased.Intention
 
         public static void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
         {
+            if (moveSelector == null) { UnityEngine.Debug.Log("Move selector is null?"); return; }
+
             /*  Create the scene data for this unit.    */
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);

@@ -23,7 +23,7 @@ namespace TurnBased.TargetSelection
 
         private readonly System.Collections.Generic.Dictionary<int, ITargetSelector> unitIndexTargetSelectionDictionary = new();
 
-        public void Initalise()
+        public void Awake()
         {
             /*  Initalise the Singleton.    */
             if (instance != null && instance != this)
@@ -34,6 +34,7 @@ namespace TurnBased.TargetSelection
             StationManager.OnAddUnit += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
+
         ~TargetSelectorManager()
         {
             StationManager.OnAddUnit -= StationManager_OnAddUnit;
@@ -83,7 +84,7 @@ namespace TurnBased.TargetSelection
                 this.unitIndexTargetSelectionDictionary.Add(unitIndex.Index, targetSelector);
             }
 
-            UnityEngine.Debug.Log("Creating target selector of type: " + targetSelector.ToString() + " for index: " + unitIndex.Index);
+           // UnityEngine.Debug.Log("Creating target selector of type: " + targetSelector.ToString() + " for index: " + unitIndex.Index);
 
             return true;
         }

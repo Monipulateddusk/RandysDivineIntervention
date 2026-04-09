@@ -57,12 +57,14 @@ namespace TurnBased
             }
 
         }
-        private StationManager StationHandler;
+        private readonly StationManager                         StationHandler          = new();
 
         private readonly MoveSelection.MoveSelectorManager      moveSelectorManager     = new();
         private readonly TargetSelection.TargetSelectorManager  targetSelectorManager   = new();
         private readonly TurnOrder.TurnOrderManager             turnOrderManager        = new();
         private readonly Phases.PhaseManager                    phaseManager            = new();
+        private readonly Intention.IntentionResolver            intentionResolver       = new();
+        private readonly Intention.UnitIntentionManager         unitIntentionManager    = new();
 
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
@@ -98,18 +100,19 @@ namespace TurnBased
         private void Awake()
         {
             instance = this;
-            this.moveSelectorManager.Initalise();
-            this.targetSelectorManager.Initalise();
-            this.turnOrderManager.Initalise();
-            this.phaseManager.Initialise();
+            this.moveSelectorManager.Awake();
+            this.targetSelectorManager.Awake();
+            this.turnOrderManager.Awake();
+            this.intentionResolver.Awake();
+            this.unitIntentionManager.Awake();
+            this.StationHandler.Awake();
         }
 
         private void Start()
         {
-            this.StationHandler = new StationManager();
-
             CreateCombatEncounter();
-            this.StationHandler.DeployUnitsForStartOfBattle();         
+            this.StationHandler.DeployUnitsForStartOfBattle();
+            this.phaseManager.Initialise();
         }
 
         private void Update()

@@ -1,113 +1,107 @@
-using System.Collections.Generic;
-using TurnBased;
 using UnityEngine;
 
-public struct UnitIntention
+namespace TurnBased.Intention
 {
-    public IBattleMove MoveSelection { get; }
-    public List<StationIndex> TargetIndexList {  get; }
-
-    public UnitIntention(IBattleMove moveData, List<StationIndex> targetIndex)
+    public readonly struct UnitIntention
     {
-        this.MoveSelection = moveData;
-        this.TargetIndexList = targetIndex;
-    }
+        public IBattleMove MoveSelection { get; }
+        public System.Collections.Generic.List<StationIndex> TargetIndexList { get; }
 
-    public UnitIntention(IBattleMove moveData)
-    {
-        this.MoveSelection = moveData;
-        this.TargetIndexList = new();
-    }
-}
-
-
-public class UnitIntentionManager : MonoBehaviour
-{
-    private static UnitIntentionManager instance;
-    public static UnitIntentionManager Instance
-    {
-        get
+        public UnitIntention(IBattleMove moveData, System.Collections.Generic.List<StationIndex> targetIndex)
         {
-            try
-            {
-                return instance;
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError(e.ToString());
-                return null;
-            }
+            this.MoveSelection = moveData;
+            this.TargetIndexList = targetIndex;
+        }
+
+        public UnitIntention(IBattleMove moveData)
+        {
+            this.MoveSelection = moveData;
+            this.TargetIndexList = new();
         }
     }
 
-    private readonly Dictionary<int, UnitIntention> intentionDictionary = new();
 
-    public static event System.Action<UnitIndex> OnUnitIntentionAdded;
-    /// <summary>
-    /// Invoked when a unit's intention changes due to move selection, target selection, switching out
-    /// </summary>
-    public static event System.Action<UnitIndex, UnitIntention> OnUnitIntentionChanged;
-    public static event System.Action<UnitIndex> OnUnitIntentionRemoved;
-
-    private void Awake()
+    public class UnitIntentionManager
     {
-        InitaliseSingleton();
-    }
-
-    private void InitaliseSingleton()
-    {
-        /*  Initalise the Singleton.    */
-        if (instance != this)
+        private static UnitIntentionManager instance;
+        public static UnitIntentionManager Instance
         {
-            DestroyImmediate(this);
+            get
+            {
+                try
+                {
+                    return instance;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError(e.ToString());
+                    return null;
+                }
+            }
         }
-        instance = this;
-    }
 
-    public void AddUnitIndexToDictionary(UnitIndex unitIndex)
-    {
-        if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+        private readonly System.Collections.Generic.Dictionary<int, UnitIntention> intentionDictionary = new();
 
-        intentionDictionary.Add(unitIndex.Index, new());
-        OnUnitIntentionAdded?.Invoke(unitIndex);
-    }
-    public void RemoveIntention(UnitIndex unitIndex)
-    {
-        if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+        public static event System.Action<UnitIndex> OnUnitIntentionAdded;
+        /// <summary>
+        /// Invoked when a unit's intention changes due to move selection, target selection, switching out
+        /// </summary>
+        public static event System.Action<UnitIndex, UnitIntention> OnUnitIntentionChanged;
+        public static event System.Action<UnitIndex> OnUnitIntentionRemoved;
 
-        intentionDictionary.Remove(unitIndex.Index);
-        OnUnitIntentionRemoved?.Invoke(unitIndex);
-    }
+        public void Awake()
+        {
+            instance = this;
+        }
 
-    public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
-    {
-        if (!intentionDictionary.ContainsKey(unitIndex.Index)){ return;   }
+        public void AddUnitIndexToDictionary(UnitIndex unitIndex)
+        {
+            if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-        intentionDictionary[unitIndex.Index] = intention;
-        OnUnitIntentionChanged?.Invoke(unitIndex, intention);
-    }
+            intentionDictionary.Add(unitIndex.Index, new());
+            OnUnitIntentionAdded?.Invoke(unitIndex);
+        }
+        public void RemoveIntention(UnitIndex unitIndex)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-    public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
-    {
-        if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+            intentionDictionary.Remove(unitIndex.Index);
+            OnUnitIntentionRemoved?.Invoke(unitIndex);
+        }
 
-        intentionDictionary[unitIndex.Index] = new(battleMove);
-        OnUnitIntentionChanged?.Invoke(unitIndex, intentionDictionary[unitIndex.Index]);
-    }
+        public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-    public void ClearIntention(UnitIndex unitIndex)
-    {
-        if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+            intentionDictionary[unitIndex.Index] = intention;
+            OnUnitIntentionChanged?.Invoke(unitIndex, intention);
+        }
 
-        intentionDictionary[unitIndex.Index] = new();
-        OnUnitIntentionChanged?.Invoke(unitIndex, new());
-    }
-    public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
-    {
-        intention = default;
-        if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+        public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-        intention = intentionDictionary[unitIndex.Index];
-        return true;
+            intentionDictionary[unitIndex.Index] = new(battleMove);
+            OnUnitIntentionChanged?.Invoke(unitIndex, intentionDictionary[unitIndex.Index]);
+
+            Debug.Log("Setting Move Intention for Unit Index: " + unitIndex.Index + " Move Intention: " +  battleMove.GetMoveName()); 
+
+        }
+
+        public void ClearIntention(UnitIndex unitIndex)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            intentionDictionary[unitIndex.Index] = new();
+            OnUnitIntentionChanged?.Invoke(unitIndex, new());
+        }
+        public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
+        {
+            intention = default;
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+
+            intention = intentionDictionary[unitIndex.Index];
+            return true;
+        }
     }
 }

@@ -6,7 +6,7 @@ using TurnBased;
 /// </summary>
 public static class CombatAttackHandler
 {
-    public static void ProcessAttackStep(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, UnitIntention intentInfo)
+    public static void ProcessAttackStep(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, TurnBased.Intention.UnitIntention intentInfo)
     {
         //if (currentAttackInfo.Steps.Count < 0)
         //{
@@ -30,7 +30,7 @@ public static class CombatAttackHandler
     }
 
 
-    public static void ProcessAttackAction(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, UnitIntention intentInfo, AttackAction attackAction)
+    public static void ProcessAttackAction(CombatEnvironmentController environmentController, AttackResolutionInfo currentAttackInfo, TurnBased.Intention.UnitIntention intentInfo, AttackAction attackAction)
     {
         //foreach (BaseBattleUnit t in intentInfo.TargetSelection.Targets)
         //{

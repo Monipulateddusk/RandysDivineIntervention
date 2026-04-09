@@ -6,11 +6,6 @@ namespace TurnBased.Phases
         private PHASE_TYPES CurrentPhaseType;
         private Phase CurrentPhase;
 
-        public PhaseManager() 
-        {
-            Initialise();
-        }
-
         public void Initialise()
         {
             this.PhaseDictionary = new()
@@ -20,6 +15,7 @@ namespace TurnBased.Phases
                 {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   (this) },
                 {PHASE_TYPES.END_ROUND,     new EndRoundPhase   (this) }
             };
+            ChangeState(PHASE_TYPES.START_ROUND);
         }
 
         public void UpdatePhases()

@@ -161,9 +161,7 @@ public class StationSelectorManager : MonoBehaviour
         if (!WrapIndex(currentIndex, out int? wrappedIndex)) {  return; }
 
         /*  Invoke the event because we have switched. Pass the old index and the new one!  */
-        StationIndex oldStationIndex = this.selectedStationIndex;
-        this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
-        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
+        SetSelectedStationIndex(new StationIndex(wrappedIndex.Value));
     }
     public void DecrementIndex()
     {
@@ -175,9 +173,7 @@ public class StationSelectorManager : MonoBehaviour
         if (!WrapIndex(currentIndex, out int? wrappedIndex)) { return; }
 
         /*  Invoke the event because we have switched. Pass the old index and the new one!  */
-        StationIndex oldStationIndex = this.selectedStationIndex;
-        this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
-        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
+        SetSelectedStationIndex(new StationIndex(wrappedIndex.Value));
     }
 
     #endregion
@@ -185,5 +181,12 @@ public class StationSelectorManager : MonoBehaviour
     public StationIndex GetSelectedStationIndex()
     {
         return this.selectedStationIndex;
+    }
+
+    public void SetSelectedStationIndex(StationIndex newStationIndex)
+    {
+        StationIndex oldStationIndex = this.selectedStationIndex;
+        this.selectedStationIndex = this.stationIndexes[newStationIndex.Index];
+        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
 }

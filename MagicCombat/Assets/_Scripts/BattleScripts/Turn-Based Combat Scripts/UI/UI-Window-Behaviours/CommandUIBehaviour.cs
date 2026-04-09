@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TurnBased;
+using TurnBased.UI;
 using UnityEngine;
 
 public class CommandUIBehaviour : MonoBehaviour
@@ -91,14 +92,14 @@ public class CommandUIBehaviour : MonoBehaviour
             this.HealthText.text = currentHealth.ToString() + "/" + maximumHealth.ToString();
         }
     }
-    private void CreateMoveUIElement(string moveName)
+    private void CreateMoveUIElement(IBattleMove move)
     {
         if(this.InstanciatedMoveUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
 
         GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperGameObject.transform);
         if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
         {
-            instanciatedMoveUIData.Initalise(moveName);
+            instanciatedMoveUIData.Initalise(move);
             instanciatedMoveUIData.OnButtonClicked += OnMoveButtonClick;
             this.InstanciatedMoveUIElements.Add(instanciatedMoveUIData);
         }
@@ -111,6 +112,8 @@ public class CommandUIBehaviour : MonoBehaviour
             if(moveButtonData == buttonObject) { continue; }
 
             moveButtonData.IsButtonClicked = false;
+
+            UserInterfaceUserInput.Instance.OnMoveSelection();
         }
     }
     private void DestroyMoveUIElements()
@@ -130,7 +133,7 @@ public class CommandUIBehaviour : MonoBehaviour
 
         foreach(IBattleMove moveAction in battleUnit.GetBaseUnit().moves)
         {
-            CreateMoveUIElement(moveAction.GetMoveName());
+            CreateMoveUIElement(moveAction);
         }
     }
 
