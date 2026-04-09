@@ -4,13 +4,19 @@ using UnityEngine;
 
 public struct UnitIntention
 {
-    public IBattleMove MoveSelection;
-    public List<StationIndex> TargetIndexList;
+    public IBattleMove MoveSelection { get; }
+    public List<StationIndex> TargetIndexList {  get; }
 
     public UnitIntention(IBattleMove moveData, List<StationIndex> targetIndex)
     {
         this.MoveSelection = moveData;
         this.TargetIndexList = targetIndex;
+    }
+
+    public UnitIntention(IBattleMove moveData)
+    {
+        this.MoveSelection = moveData;
+        this.TargetIndexList = new();
     }
 }
 
@@ -80,6 +86,15 @@ public class UnitIntentionManager : MonoBehaviour
         intentionDictionary[unitIndex.Index] = intention;
         OnUnitIntentionChanged?.Invoke(unitIndex, intention);
     }
+
+    public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
+    {
+        if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+        intentionDictionary[unitIndex.Index] = new(battleMove);
+        OnUnitIntentionChanged?.Invoke(unitIndex, intentionDictionary[unitIndex.Index]);
+    }
+
     public void ClearIntention(UnitIndex unitIndex)
     {
         if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }

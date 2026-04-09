@@ -5,12 +5,6 @@ public enum UnitTeam
     ENEMY = 2 
 };
 
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-/// 
-/// COMBAT RESOLVING ENUMERATIONS
-/// 
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
 public enum StatusEffect
 {
     NULL,
@@ -20,6 +14,13 @@ public enum Element
 {
     NULL, FIRE, WATER, ICE, EARTH, LIGHT, DARKNESS,
 }
+
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+/// COMBAT RESOLVING ENUMERATIONS
+/// 
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
 
 public enum AttackActionType 
 { 

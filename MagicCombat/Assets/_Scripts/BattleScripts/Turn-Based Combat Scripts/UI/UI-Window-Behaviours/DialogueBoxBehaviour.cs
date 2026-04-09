@@ -238,12 +238,12 @@ public class DialogueBoxBehaviour : SizableWindowBaseBehaviour, IUISelectable
 
             if (currentButtonSelection == DialogueBoxButtonSelectionState.Minimise)
             {
-                await UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
+                await TurnBased.UI.UserInterfaceManager.Instance.GetTaskBarManager().OnMinimiseClicked(this.GetMinimisableIndex());
                 ResetBoxState();
             }
             else if (currentButtonSelection == DialogueBoxButtonSelectionState.Close)
             {
-                UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
+                TurnBased.UI.UserInterfaceManager.Instance.GetTaskBarManager().OnClosedClicked(this.GetMinimisableIndex());
 
             }
         }

@@ -42,6 +42,8 @@ namespace TurnBased.Phases
             }
 
             /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
+            Intention.IntentionResolver.Instance.DetermineEnemyUnitIntentions();
+
 
             /*  Once everything is done, we want to move onto the next Phase.   */
             this.PhaseManager.ChangeToNextStateInOrder();
