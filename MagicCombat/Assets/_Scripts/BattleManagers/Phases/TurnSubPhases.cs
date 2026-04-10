@@ -82,12 +82,12 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-            this.mainTurnManager.ExitCurrentPhase();
+
         }
 
         public override void Update()
         {
-            this.mainTurnManager.UpdateCurrentPhase();
+
         }
     }
 

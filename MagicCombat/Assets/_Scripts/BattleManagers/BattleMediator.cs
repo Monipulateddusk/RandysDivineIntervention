@@ -100,12 +100,12 @@ namespace TurnBased
         private void Awake()
         {
             instance = this;
-            this.moveSelectorManager.Awake();
-            this.targetSelectorManager.Awake();
             this.turnOrderManager.Awake();
             this.intentionResolver.Awake();
             this.unitIntentionManager.Awake();
             this.StationHandler.Awake();
+            this.moveSelectorManager.Awake();
+            this.targetSelectorManager.Awake();
         }
 
         private void Start()

@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using TurnBased.UI;
-
 namespace TurnBased.Intention
 {
     public static class MoveSelectionResolver 
@@ -9,22 +6,27 @@ namespace TurnBased.Intention
 
         public static bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
         {
+            UnityEngine.Debug.Log("Try get move selector!");
+
             /*  Determine if we need to invoke the Player's Input systems to resolve this. If so, halt processing until it is done! */
-            if(!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { return false; }
+            if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { UnityEngine.Debug.Log("Move selector invalid?!"); return false; }
+
+
 
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
-            if(moveSelector is MoveSelection.PlayerDrivenMoveSelector)
+            if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
                 /*  Select this Unit in our Station selector and tell the UI that we are awaiting calls.    */
                 if(!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return false; }
                 StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
 
                 /*  Alert the UI    */
-                UserInterfaceUserInput.Instance.StartMoveSelection(unitIndex);
+                TurnBased.UI.UserInterfaceUserInput.Instance.StartMoveSelection(unitIndex);
                 return true;
             }
             else
             {
+                UnityEngine.Debug.Log("Move Selector! " + moveSelector.ToString());
                 ProcessMoveSelector(unitIndex, moveSelector);
                 return true;
             }
@@ -38,8 +40,12 @@ namespace TurnBased.Intention
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
 
+
+
             /*  Add this selected move to intentionManager. */
             UnitIntentionManager.Instance.SetMoveIntention(unitIndex, selectedMove);
+
+            UnityEngine.Debug.Log("Invoking OnMoveSelectionComplete");
 
             OnMoveSelectionComplete?.Invoke(unitIndex);
  

@@ -116,13 +116,13 @@ namespace TurnBased.Phases
             currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
 
             /*  INITIALISE THE MAIN TURN MANAGER!!!!!!  */
-
+            mainTurnManager.EnterCurrentPhase();
 
         }
 
         public override void OnExit()
         {
-  
+            this.mainTurnManager.ExitCurrentPhase();
 
             /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
 
@@ -130,7 +130,7 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-
+            this.mainTurnManager.UpdateCurrentPhase();
 
             /*  Check if the Unit has an intention already planned. If so, execute it.  */
 

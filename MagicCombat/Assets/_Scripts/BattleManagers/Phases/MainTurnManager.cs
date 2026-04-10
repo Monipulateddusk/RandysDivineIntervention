@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using TurnBased.Intention;
+
 namespace TurnBased.Phases
 {
     public class MainTurnManager
@@ -65,9 +68,40 @@ namespace TurnBased.Phases
 
         private void SetActiveSubPhaseBasedOnUnitIntention(StationIndex newSelectedStation)
         {
+            UnityEngine.Debug.Log("Setting subphase based on intent");
             /*  Retrieve the UnitIndex of the Unit on this station. */
             if (!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndexOnStation)) { return; }
 
+            UnityEngine.Debug.Log("Index on station is: " + unitIndexOnStation.Index);
+
+
+            /*  Retrieve the Unit Intention.    */
+            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndexOnStation, out UnitIntention intention)) { return; }
+
+            UnityEngine.Debug.Log("Retrieved intent: " + intention.ResolutionState);
+            UnitIntentionResolutionState state = intention.ResolutionState;
+
+            UnityEngine.Debug.Log("intent state is: " + state.ToString());
+
+
+            switch (state)
+            {
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+                    SwitchSubPhase(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION);
+                    return;
+                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
+                    SwitchSubPhase(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION);
+                    return;
+
+                case UnitIntentionResolutionState.COMPLETE:
+                    SwitchSubPhase(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE);
+                    return;
+
+                case UnitIntentionResolutionState.NONE:
+                default:
+                    SwitchSubPhase(MAIN_TURN_STATE.IDLE);
+                    return; 
+            }
 
         }
 
