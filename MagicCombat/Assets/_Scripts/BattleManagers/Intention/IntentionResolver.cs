@@ -75,18 +75,19 @@ namespace TurnBased.Intention
             /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
             if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention unitIntention)) { return; }
 
-            //  Is move selection populated?
-            if (unitIntention.MoveSelection == null)
+            switch (unitIntention.ResolutionState)
             {
-                MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
-                return;
-            }
+                case UnitIntentionResolutionState.NONE:
+                    return;
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+                    MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
+                    return;
+                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
+                    TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
+                    return;
+                case UnitIntentionResolutionState.COMPLETE:
 
-            //  Is there a Target selected for the move?    
-            if (unitIntention.TargetIndexList.Count <= 0)
-            {
-                TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
-                return;
+                    return;
             }
         }
     }

@@ -7,16 +7,20 @@ namespace TurnBased.Intention
         public IBattleMove MoveSelection { get; }
         public System.Collections.Generic.List<StationIndex> TargetIndexList { get; }
 
+        public UnitIntentionResolutionState ResolutionState { get; }
+
         public UnitIntention(IBattleMove moveData, System.Collections.Generic.List<StationIndex> targetIndex)
         {
             this.MoveSelection = moveData;
             this.TargetIndexList = targetIndex;
+            this.ResolutionState = UnitIntentionResolutionState.COMPLETE;
         }
 
         public UnitIntention(IBattleMove moveData)
         {
             this.MoveSelection = moveData;
             this.TargetIndexList = new();
+            this.ResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
         }
     }
 

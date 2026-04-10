@@ -207,6 +207,29 @@ namespace TurnBased.Phases
         }
     }
 
+
+    public class UnitTurnPhase_ReadyToExecuteMove : UnitTurnSubPhase
+    {
+        public UnitTurnPhase_ReadyToExecuteMove(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, unitTurnPhase_main, currentUnit)
+        {
+        }
+
+        public override void OnEnter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnExit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Update()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
     {
         public UnitTurnPhase_ResolveAttack(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, unitTurnPhase_main, currentUnit)
@@ -239,6 +262,28 @@ namespace TurnBased.Phases
         }
     }
 
+    public class UnitTurnPhase_AttackComplete : UnitTurnSubPhase
+    {
+        public UnitTurnPhase_AttackComplete(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, unitTurnPhase_main, currentUnit)
+        {
+        }
+
+        public override void OnEnter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void OnExit()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Update()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class UnitTurnPhase : Phase
     {
         private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
@@ -258,19 +303,21 @@ namespace TurnBased.Phases
             currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(); 
 
             /*  Clear the previous Phases for this currentUnit and Initalise them.  */
-            MainPhaseStates.Clear();
+            this.MainPhaseStates.Clear();
 
-            MainPhaseStates.Add(MAIN_TURN_STATE.IDLE, new UnitTurnPhase_Idle(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.MOVE_SELECTION, new UnitTurnPhase_MoveSelection(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.TARGET_SELECTION, new UnitTurnPhase_TargetSelection(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK, new UnitTurnPhase_ResolveAttack(this.PhaseManager, this, currentUnitIndex));
-
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.IDLE,                      new UnitTurnPhase_Idle              (this.PhaseManager, this, this.currentUnitIndex));
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION,   new UnitTurnPhase_MoveSelection     (this.PhaseManager, this, this.currentUnitIndex));
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION, new UnitTurnPhase_TargetSelection   (this.PhaseManager, this, this.currentUnitIndex));
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE,     new UnitTurnPhase_ReadyToExecuteMove(this.PhaseManager, this, this.currentUnitIndex));
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK,            new UnitTurnPhase_ResolveAttack     (this.PhaseManager, this, this.currentUnitIndex));
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.ATTACK_COMPLETE,           new UnitTurnPhase_AttackComplete    (this.PhaseManager, this, this.currentUnitIndex));
+            
             SwitchSubPhase(MAIN_TURN_STATE.IDLE);
         }
 
         public override void OnExit()
         {
-            MainPhaseStates[currentState]?.OnExit();
+            this.MainPhaseStates[currentState]?.OnExit();
 
             /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
 
@@ -278,7 +325,7 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-            MainPhaseStates[currentState]?.Update();
+            this.MainPhaseStates[currentState]?.Update();
 
             /*  Check if the Unit has an intention already planned. If so, execute it.  */
 
@@ -298,18 +345,18 @@ namespace TurnBased.Phases
         public void SwitchToNextSubPhase()
         {
             /*  This should assign our current state to the next state in sequence as defined in the Enum.  */
-            MAIN_TURN_STATE nextState = (MAIN_TURN_STATE)((int)(currentState + 1) % Enum.GetValues(typeof(MAIN_TURN_STATE)).Length);
+            MAIN_TURN_STATE nextState = (MAIN_TURN_STATE)((int)(this.currentState + 1) % Enum.GetValues(typeof(MAIN_TURN_STATE)).Length);
 
             SwitchSubPhase(nextState);
         }
 
         public void SwitchSubPhase(MAIN_TURN_STATE newState)
         {
-            MainPhaseStates[currentState]?.OnExit();
+            this.MainPhaseStates[currentState]?.OnExit();
 
-            currentState = newState;
+            this.currentState = newState;
 
-            MainPhaseStates[currentState]?.OnEnter();
+            this.MainPhaseStates[currentState]?.OnEnter();
         }
     }
 
