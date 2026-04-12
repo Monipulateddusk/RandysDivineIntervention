@@ -1,3 +1,4 @@
+using TurnBased.MoveSelection;
 using UnityEngine;
 
 namespace TurnBased.TargetSelection
@@ -39,7 +40,6 @@ namespace TurnBased.TargetSelection
         {
             StationManager.OnAddUnit -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
-            RemoveAllUnitIndexesFromDictionary();
         }
 
         private void RemoveAllUnitIndexesFromDictionary()
@@ -95,6 +95,21 @@ namespace TurnBased.TargetSelection
             if (!this.unitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
 
             this.unitIndexTargetSelectionDictionary.Remove(unitIndex.Index);
+            return true;
+        }
+
+        public bool TryGetTargetSelector(UnitIndex unitIndex, out ITargetSelector targetSelector)
+        {
+            targetSelector = default;
+
+            /*  If we don't have this index, stop!    */
+            if (!this.unitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+
+
+
+            targetSelector = this.unitIndexTargetSelectionDictionary[unitIndex.Index];
+
+            UnityEngine.Debug.Log(targetSelector);
             return true;
         }
 

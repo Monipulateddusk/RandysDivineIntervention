@@ -22,71 +22,85 @@ namespace TurnBased.Intention
             }
         }
 
-        private System.Collections.Generic.List<UnitIndex> unitIndexesProcessing;
-        private UnitIndex unitIndexCurrentlyProcessing;
+        private System.Collections.Generic.Queue<UnitIndex> unitIndexesProcessingQueue;
 
         public void Awake()
         {
             /*  Initalise the Singleton.    */
             instance = this;
 
-            MoveSelectionResolver.OnMoveSelectionComplete       += MoveSelectionResolver_OnMoveSelectionComplete;
-            TargetSelectionResolver.OnTargetSelectionComplete   += TargetSelectionResolver_OnTargetSelectionComplete;
+            MoveSelectionResolver.OnMoveSelectionComplete       += ResumeProcessingIntention;
+            TargetSelectionResolver.OnTargetSelectionComplete   += ResumeProcessingIntention;
         }
 
         ~IntentionResolver()
         {
-            MoveSelectionResolver.OnMoveSelectionComplete       -= MoveSelectionResolver_OnMoveSelectionComplete;
-            TargetSelectionResolver.OnTargetSelectionComplete   -= TargetSelectionResolver_OnTargetSelectionComplete;
+            MoveSelectionResolver.OnMoveSelectionComplete       -= ResumeProcessingIntention;
+            TargetSelectionResolver.OnTargetSelectionComplete   -= ResumeProcessingIntention;
         }
 
-        private void MoveSelectionResolver_OnMoveSelectionComplete(UnitIndex unitIndex)
+        public void ResumeProcessingIntention(UnitIndex unitIndex)
         {
             ProcessIntention(unitIndex);
         }
-
-        private void TargetSelectionResolver_OnTargetSelectionComplete(UnitIndex unitIndex)
-        {
-            /*  This unit is done selecting it's target. Remove this unitIndex from the list and move onto the next one.    */
-            this.unitIndexesProcessing.Remove(unitIndex);
-
-            this.unitIndexCurrentlyProcessing = this.unitIndexesProcessing.FirstOrDefault();
-
-            ProcessIntention(this.unitIndexCurrentlyProcessing);
-        }
+       
 
         public void DetermineEnemyUnitIntentions()
         {
             Debug.Log("Starting enemy intent");
 
             if (!StationManager.Instance.TryGetUnitIndexesOfTeam(UnitTeam.ENEMY, out System.Collections.Generic.List<UnitIndex> enemyUnitIndexes)) { return; }
+            Debug.Log("Got indexes of team for purposes of IntentionResolver.   ");
 
+            unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(enemyUnitIndexes);
 
-            this.unitIndexesProcessing = enemyUnitIndexes;
-            this.unitIndexCurrentlyProcessing = this.unitIndexesProcessing.FirstOrDefault();
-
-            Debug.Log("Processing intention for unit index: " + this.unitIndexCurrentlyProcessing);
-
-            ProcessIntention(this.unitIndexCurrentlyProcessing);
+            ProcessNextUnitIndex();
         }        
+
+        private void ProcessNextUnitIndex()
+        {
+            if(this.unitIndexesProcessingQueue.Count == 0)
+            {
+                Debug.LogWarning("ALL UNITS PROCESSED!");
+
+                UnitIntentionManager.Instance.PrintOutAllIntents();
+                return;
+            }
+
+            UnitIndex unitIndex = this.unitIndexesProcessingQueue.Dequeue();    
+            ProcessIntention(unitIndex);
+        }
 
         private void ProcessIntention(UnitIndex unitIndex)
         {
             /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
-            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention unitIntention)) { return; }
-
-            //  Is move selection populated?
-            if (unitIntention.MoveSelection == null)
+            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention unitIntention)) 
             {
-                MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
-                return;
+                Debug.Log("There is no intention for this unit at index: " + unitIndex.Index + " Creating one!");
+                UnitIntentionManager.Instance.AddUnitIndexToDictionary(unitIndex);
+                
+                if(!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out unitIntention)) { UnityEngine.Debug.Log("Idk bro, this is just cursed."); return; }
             }
 
-            //  Is there a Target selected for the move?    
-            if (unitIntention.TargetIndexList.Count <= 0)
+            switch (unitIntention.ResolutionState)
             {
-                TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
-                return;
+                case UnitIntentionResolutionState.NONE:
+                    UnityEngine.Debug.Log("No state?");
+
+                    return;
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+                    UnityEngine.Debug.Log("Selecting move");
+                    MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
+                    return;
+                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
+                    UnityEngine.Debug.Log("Selecting target");
+
+                    TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
+                    return;
+                case UnitIntentionResolutionState.COMPLETE:
+                    UnityEngine.Debug.LogWarning("Complete?");
+                    ProcessNextUnitIndex();
+                    return;
             }
         }
     }

@@ -94,7 +94,7 @@ public static class SelectorUtility
             return false; 
         }
 
-        return false;
+        return true;
 
     }
 }

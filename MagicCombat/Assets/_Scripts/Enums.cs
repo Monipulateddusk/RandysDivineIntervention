@@ -130,9 +130,11 @@ public enum UIWindowFactoryWindowType
 public enum MAIN_TURN_STATE 
 { 
     IDLE = 0, 
-    MOVE_SELECTION = 1, 
-    TARGET_SELECTION = 2, 
-    RESOLVE_ATTACK = 3 
+    AWAITING_MOVE_SELECTION = 1, 
+    AWAITING_TARGET_SELECTION = 2, 
+    READY_TO_EXECUTE_MOVE = 3,
+    RESOLVE_ATTACK = 4,
+    ATTACK_COMPLETE = 5,
 }
 
 public enum PHASE_TYPES
@@ -142,6 +144,14 @@ public enum PHASE_TYPES
     UNIT_TURN,
     END_ROUND
 };
+
+public enum UnitIntentionResolutionState
+{
+    NONE = 0,
+    AWAITING_MOVE_SELECTION = 1,
+    AWAITING_TARGET_SELECTION = 2,
+    COMPLETE = 3,   
+}
 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 

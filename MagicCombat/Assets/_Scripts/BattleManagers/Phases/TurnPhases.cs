@@ -98,156 +98,14 @@ namespace TurnBased.Phases
         }
     }
 
-    public abstract class UnitTurnSubPhase : Phase
-    {
-        protected UnitIndex currentUnitIndex;
-        protected UnitTurnPhase UnitTurnPhase_main;
-        public UnitTurnSubPhase(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager)
-        {
-            this.currentUnitIndex = currentUnit;
-            this.UnitTurnPhase_main = unitTurnPhase_main;
-        }
-    }
-
-    public class UnitTurnPhase_Idle : UnitTurnSubPhase
-    {
-        private float _enemyTurnTimer;
-        public UnitTurnPhase_Idle(PhaseManager phaseManager, UnitTurnPhase UnitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, UnitTurnPhase_main, currentUnit)
-        {
-        }
-
-        public override void OnEnter()
-        {
-            _enemyTurnTimer = 2.0f;
-        }
-
-        public override void OnExit()
-        {
-
-        }
-
-        public override void Update()
-        {
-            //MonoBehaviour.print("<color=yellow>Idle for </color>" + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name);
-            if (StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ALLY)
-            {
-                if (Input.GetKeyDown(KeyCode.Escape))
-                {
-
-                    UnitTurnPhase_main.SwitchToNextSubPhase();
-                }
-
-            }
-            else if (StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ENEMY)
-            {
-                //Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
-                _enemyTurnTimer -= Time.deltaTime;
-                if (_enemyTurnTimer <= 0)
-                {
-                    //MonoBehaviour.print("<color=yellow>Idle</color>");
-                    //Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).gameObject.name);
-                    UnitTurnPhase_main.SwitchToNextSubPhase();
-                }
-            }
-        }
-    }
-
-    public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
-    {
-        public UnitTurnPhase_MoveSelection(PhaseManager phaseManager, UnitTurnPhase UnitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, UnitTurnPhase_main, currentUnit)
-        {
-        }
-
-
-        public override void OnEnter()
-        {
-            /*  Get the Current Unit's Move Selection Intention.    */
-            //SceneData_UnitTurn sceneData = ConcreteMediator.GetCombatSceneDataForSourceUnitIndex(currentUnitIndex);
-            //MoveSelectionData moveSelectionData = ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).GetMoveSelectorComponent().SelectMove(sceneData);
-
-            //if (moveSelectionData.SelectedMove != null)
-            //{
-
-            //    MonoBehaviour.print("Unit of name: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name + " has chosen move: " + moveSelectionData.SelectedMove.ToString());
-            //}
-        }
-
-        public override void OnExit()
-        {
-
-        }
-
-        public override void Update()
-        {
-            //MonoBehaviour.print("<color=purple>MoveSelection</color>");
-            UnitTurnPhase_main.SwitchToNextSubPhase();
-        }
-    }
-
-    public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
-    {
-        public UnitTurnPhase_TargetSelection(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, unitTurnPhase_main, currentUnit)
-        {
-        }
-
-        public override void OnEnter()
-        {
-
-        }
-
-        public override void OnExit()
-        {
-
-        }
-
-        public override void Update()
-        {
-            //MonoBehaviour.print("<color=pink>TargetSelection</color>");
-            UnitTurnPhase_main.SwitchToNextSubPhase();
-        }
-    }
-
-    public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
-    {
-        public UnitTurnPhase_ResolveAttack(PhaseManager phaseManager, UnitTurnPhase unitTurnPhase_main, UnitIndex currentUnit) : base(phaseManager, unitTurnPhase_main, currentUnit)
-        {
-
-        }
-
-        public override void OnEnter()
-        {
-            //MonoBehaviour.print("<color=green>ResolveAttack</color>");
-        }
-
-        public override void OnExit()
-        {
-
-        }
-
-        public override void Update()
-        {
-            if (Input.GetKey(KeyCode.Backspace))
-            {
-                UnitTurnPhase_main.SwitchToNextSubPhase();
-            }
-            else if (Input.GetKey(KeyCode.KeypadEnter))
-            {
-                this.PhaseManager.ChangeToNextStateInOrder();
-            }
-
-
-        }
-    }
-
     public class UnitTurnPhase : Phase
     {
-        private Dictionary<MAIN_TURN_STATE, Phase> MainPhaseStates = new();
-        private MAIN_TURN_STATE currentState = new();
-
+        MainTurnManager mainTurnManager;
         UnitIndex currentUnitIndex;
 
         public UnitTurnPhase(PhaseManager phaseManager) : base(phaseManager)
         {
+            this.mainTurnManager = new(phaseManager);
         }
 
         public override void OnEnter()
@@ -255,22 +113,16 @@ namespace TurnBased.Phases
             /*  When we enter this Phase, we want to process any Start-Of-Turn Status Effects.  */
 
             /*  Get the current Unit.   */
-            currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(); 
+            currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
 
-            /*  Clear the previous Phases for this currentUnit and Initalise them.  */
-            MainPhaseStates.Clear();
+            /*  INITIALISE THE MAIN TURN MANAGER!!!!!!  */
+            mainTurnManager.EnterCurrentPhase();
 
-            MainPhaseStates.Add(MAIN_TURN_STATE.IDLE, new UnitTurnPhase_Idle(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.MOVE_SELECTION, new UnitTurnPhase_MoveSelection(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.TARGET_SELECTION, new UnitTurnPhase_TargetSelection(this.PhaseManager, this, currentUnitIndex));
-            MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK, new UnitTurnPhase_ResolveAttack(this.PhaseManager, this, currentUnitIndex));
-
-            SwitchSubPhase(MAIN_TURN_STATE.IDLE);
         }
 
         public override void OnExit()
         {
-            MainPhaseStates[currentState]?.OnExit();
+            this.mainTurnManager.ExitCurrentPhase();
 
             /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
 
@@ -278,7 +130,7 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-            MainPhaseStates[currentState]?.Update();
+            this.mainTurnManager.UpdateCurrentPhase();
 
             /*  Check if the Unit has an intention already planned. If so, execute it.  */
 
@@ -295,22 +147,9 @@ namespace TurnBased.Phases
 
         }
 
-        public void SwitchToNextSubPhase()
-        {
-            /*  This should assign our current state to the next state in sequence as defined in the Enum.  */
-            MAIN_TURN_STATE nextState = (MAIN_TURN_STATE)((int)(currentState + 1) % Enum.GetValues(typeof(MAIN_TURN_STATE)).Length);
 
-            SwitchSubPhase(nextState);
-        }
 
-        public void SwitchSubPhase(MAIN_TURN_STATE newState)
-        {
-            MainPhaseStates[currentState]?.OnExit();
 
-            currentState = newState;
-
-            MainPhaseStates[currentState]?.OnEnter();
-        }
     }
 
     public class EndRoundPhase : Phase

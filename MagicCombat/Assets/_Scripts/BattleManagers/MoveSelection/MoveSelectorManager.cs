@@ -69,10 +69,9 @@ namespace TurnBased.MoveSelection {
             }
             /*  If not, just get a referance to this Class. */
             else
-                {
+            {
                 this.unitIndexMoveSelectionDictionary.Add(unitIndex.Index, moveSelector);
             }
-
 
             return true;
         }
@@ -97,10 +96,21 @@ namespace TurnBased.MoveSelection {
         public bool TryGetMoveSelector(UnitIndex unitIndex, out IMoveSelector moveSelector)
         {
             moveSelector = default;
+
+      
+            foreach (var ind in this.unitIndexMoveSelectionDictionary)
+            {
+                UnityEngine.Debug.Log(ind.Key + ", " + ind.Value);
+            }
+
             /*  If we don't have this index, stop!    */
             if (!this.unitIndexMoveSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
 
-            this.unitIndexMoveSelectionDictionary[unitIndex.Index] = moveSelector; 
+
+
+            moveSelector = this.unitIndexMoveSelectionDictionary[unitIndex.Index];
+
+            UnityEngine.Debug.Log(moveSelector);
             return true;
         }
     }
