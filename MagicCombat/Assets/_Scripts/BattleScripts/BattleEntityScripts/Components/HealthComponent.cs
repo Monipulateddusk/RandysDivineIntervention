@@ -2,15 +2,12 @@ using UnityEngine;
 
 public class HealthComponent : BaseComponent
 {
-
-    HealthBarController hBC;
     private int health;
 
 
     public HealthComponent()
     {
         battleUnit = null;
-        hBC = null;
         health = 0;
     }
 
@@ -20,19 +17,8 @@ public class HealthComponent : BaseComponent
         this.unitData = unitData;
         this.battleUnit.OnAlterHealth += HandleHealthChanges;
 
-        /*  Instanciate and Attach the Health Bar to the Unit   */
-        //GameObject healthUIChild = (GameObject)Resources.Load("UI/HealthBarUI");
-        //hBC = GameObject.Instantiate(healthUIChild.transform).GetComponent<HealthBarController>();
-        //hBC.transform.SetParent(this.battleUnit.transform, worldPositionStays: false);
-
         /*  Set up the Health Bar Component     */
         health = unitData.maxHP;
-        //hBC.UpdateUI(health, unitData.maxHP);
-    }
-
-    ~HealthComponent()
-    {
-        hBC = null;
     }
 
 
@@ -47,9 +33,6 @@ public class HealthComponent : BaseComponent
         /*  Handle health Loss or Gain. Clamp between 0 and MaxHealth   */
         int newHealthValue = (health += value * (isHealing ? 1 : -1)  );
         health = Mathf.Clamp(newHealthValue, 0, unitData.maxHP);
-
-        /*  Update the Health Bar to show new HP    */
-        //hBC.UpdateUI(health, unitData.maxHP);
     }
 
     public int GetHealth() => health;
