@@ -21,7 +21,7 @@ namespace TurnBased.Intention
                 StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
 
                 /*  Alert the UI    */
-                TurnBased.UI.UserInterfaceUserInput.Instance.StartMoveSelection(unitIndex);
+                TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
                 return true;
             }
             else

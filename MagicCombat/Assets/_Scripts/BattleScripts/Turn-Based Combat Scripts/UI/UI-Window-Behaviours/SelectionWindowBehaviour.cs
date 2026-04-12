@@ -91,14 +91,21 @@ public class SelectionWindowBehaviour : MonoBehaviour
         SetTextElementText("Current Unit Selected: " + unitData.name);
 
         /*  Check the StationSelectionManager. If it is in a disabled state, disable the buttons when we switch to this.    */
-        SetButtonStateForUnits();
+        SetButtonState();
     }
 
-    private void SetButtonStateForUnits() 
+    private void SetButtonState() 
     {
-        if (StationSelectorManager.Instance.GetStationSelectionState() == StationSelectionState.Locked)
+        if (this.currentSelectionState == SelectionUIBehaviourState.Units)
         {
-            DisableButtons();
+            if (StationSelectorManager.Instance.GetStationSelectionState() == StationSelectionState.Locked)
+            {
+                DisableButtons();
+            }
+            else
+            {
+                EnableButtons();
+            }
         }
         else
         {
@@ -117,7 +124,7 @@ public class SelectionWindowBehaviour : MonoBehaviour
         this.TextElement.text = text;
 
         /*  So far there is nothing that should limit the buttons for the Camera. So incase we switch to this tab, we need to re-enable them in the event they are disabled.    */
-        EnableButtons();
+        SetButtonState();
     }
 
     void SetTextElementText(string text)

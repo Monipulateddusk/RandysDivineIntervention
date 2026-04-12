@@ -112,6 +112,5 @@ namespace TurnBased.TargetSelection
             UnityEngine.Debug.Log(targetSelector);
             return true;
         }
-
     }
 }

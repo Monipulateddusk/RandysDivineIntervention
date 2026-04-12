@@ -20,7 +20,7 @@ namespace TurnBased.Intention
                 StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
 
                 /*  Alert the UI    */
-                 /// TurnBased.UI.UserInterfaceUserInput.Instance.StartMoveSelection(unitIndex);
+                TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
                 return true;
             }
             else
@@ -50,6 +50,16 @@ namespace TurnBased.Intention
             UnityEngine.Debug.Log("Invoking OnTargetSelectionComplete");
 
             OnTargetSelectionComplete?.Invoke(unitIndex);
+            return true;
+        }
+        public static bool OnPlayerDrivenSelection(UnitIndex unitIndex)
+        {
+            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return false; }
+
+            ProcessTargetSelector(unitIndex, targetSelector);
+
+            OnTargetSelectionComplete?.Invoke(unitIndex);
+
             return true;
         }
 

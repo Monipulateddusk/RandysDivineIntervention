@@ -68,6 +68,8 @@ namespace TurnBased
         private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
 
 
+        [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
+
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
         {
@@ -109,25 +111,46 @@ namespace TurnBased
             this.StationSelectorManager.Awake();
             this.MoveSelectorManager.Awake();
             this.TargetSelectorManager.Awake();
+
+
+            TurnBased.Intention.IntentionResolver.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
+        }
+
+        private void OnDestroy()
+        {
+            TurnBased.Intention.IntentionResolver.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
+        }
+
+        private void IntentionResolver_OnUnitIntentionResolutionStateChange(UnitIndex unitIndex, UnitIntentionResolutionState state)
+        {
+            if (tempUnitResolutionChangeVisualiser != null)
+            {
+                if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return; }
+
+                this.tempUnitResolutionChangeVisualiser.text = $"UnitIndex: {unitIndex.Index} named: {unitData.name} is in this Resolution State: {state}";
+            }
         }
 
         private void Start()
         {
             CreateCombatEncounter();
             this.StationHandler.DeployUnitsForStartOfBattle();
-            this.PhaseManager.Initialise();
             this.StationSelectorManager.Start();
+
+            this.PhaseManager.Initialise();
         }
 
         private void Update()
         {
             this.PhaseManager.UpdatePhases();
-            this.StationSelectorManager.Update();
 
             if (Input.GetKeyDown(KeyCode.H))
             {
                 this.StationHandler.RemoveUnit(TurnOrderManager.Instance.GetCurrentUnit());
             }
         }
+
+
+
     }
 }

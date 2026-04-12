@@ -55,21 +55,6 @@ public class StationSelectorManager
         UpdateStationIndexes();
     }
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            if(this.selectionState == StationSelectionState.Locked)
-            {
-                SetSelectorStateUnlocked();
-            }
-            else
-            {
-                SetSelectorStateLocked();
-            }
-        }
-    }
-
 
     #region Creation Of Station Indexes
     /// <summary>
@@ -205,6 +190,7 @@ public class StationSelectorManager
 
     public void SetSelectedStationIndex(StationIndex newStationIndex)
     {
+        Debug.LogWarning("Setting new StationIndex to: " + newStationIndex.Index);
         StationIndex oldStationIndex = this.selectedStationIndex;
         this.selectedStationIndex = this.stationIndexes[newStationIndex.Index];
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);

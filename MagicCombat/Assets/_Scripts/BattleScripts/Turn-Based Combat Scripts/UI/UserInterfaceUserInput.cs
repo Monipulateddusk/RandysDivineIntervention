@@ -28,14 +28,20 @@ namespace TurnBased.UI
             instance = this;
         }
 
-        public void StartMoveSelection(UnitIndex unitIndex)
+        public void StartSelection(UnitIndex unitIndex)
         {
             this.selectedUnit = unitIndex;
         }
 
+
         public void OnMoveSelection()
         {
             Intention.MoveSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
+        }
+
+        public void OnTargetSelection()
+        {
+            Intention.TargetSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
         }
     }
 }

@@ -27,6 +27,8 @@ namespace TurnBased.Phases
         {
             Debug.Log("Entering begin round phase");
 
+            /*  Set the StationSelector to be locked so the player cannot select units while processing initial intentions. */
+            StationSelectorManager.Instance.SetSelectorStateLocked();
 
             /*  If the turn order list is not empty, move past here.    */
             if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count < 0)
@@ -56,7 +58,8 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-
+            /*  Reenable selection when we are done processing all Start-of-Round effects and events.   */
+            StationSelectorManager.Instance.SetSelectorStateUnlocked();
         }
 
         public override void Update()

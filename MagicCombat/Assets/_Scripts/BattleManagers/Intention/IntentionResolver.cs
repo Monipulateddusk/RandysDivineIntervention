@@ -1,4 +1,3 @@
-using System.Linq;
 using TurnBased.MoveSelection;
 using UnityEngine;
 
@@ -24,6 +23,7 @@ namespace TurnBased.Intention
         }
 
         private System.Collections.Generic.Queue<UnitIndex> unitIndexesProcessingQueue;
+        public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
 
         public void Awake()
         {
@@ -64,18 +64,7 @@ namespace TurnBased.Intention
             this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(autonomousUnits);
 
             ProcessNextUnitIndex();
-        }
-        //public void DetermineEnemyUnitIntentions()
-        //{
-        //    Debug.Log("Starting enemy intent");
-
-        //    if (!StationManager.Instance.TryGetUnitIndexesOfTeam(UnitTeam.ENEMY, out System.Collections.Generic.List<UnitIndex> enemyUnitIndexes)) { return; }
-        //    Debug.Log("Got indexes of team for purposes of IntentionResolver.   ");
-
-        //    unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(enemyUnitIndexes);
-
-        //    ProcessNextUnitIndex();
-        //}        
+        }   
 
         private void ProcessNextUnitIndex()
         {
@@ -101,6 +90,8 @@ namespace TurnBased.Intention
                 
                 if(!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out unitIntention)) { UnityEngine.Debug.Log("Idk bro, this is just cursed."); return; }
             }
+
+            OnUnitIntentionResolutionStateChange?.Invoke(unitIndex, unitIntention.ResolutionState);
 
             switch (unitIntention.ResolutionState)
             {
