@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TurnBased.TargetSelection;
 
 public readonly struct UnitIndex     
 {  
@@ -741,6 +742,28 @@ public class StationManager
     }
 }
 
+
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+/// STATION MANAGER UTILITY METHODS
+/// 
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+public readonly struct TargettingSelectorInfo
+{
+    public List<StationIndex> PossibleTargets { get; }
+    public bool DoesRequireTargettingSelectorSelection { get; }
+    public string TargettingDisplayText { get; }
+
+    public TargettingSelectorInfo(List<StationIndex> targets, bool doesRequireSelection, string targetDisplayText)
+    {
+        this.PossibleTargets = targets;
+        this.DoesRequireTargettingSelectorSelection = doesRequireSelection;
+        this.TargettingDisplayText = targetDisplayText; 
+    }
+}
+
+
 public static class StationManagerUtilities
 {
     public static bool GetUnitIndexAndBattleUnitOnStation(StationIndex selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
@@ -794,6 +817,52 @@ public static class StationManagerUtilities
 
         // TO DO: PASS IN ENVIRONMENT DATA
         return new SceneData_UnitTurn(sourceStationIndex, allyStationIndexes, enemyStationIndexes);
+    }
+
+    /// <summary>
+    /// Allows the retrieval of a single List of StationIndexes to loop through for purposes of targetting selection 
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="moveTargetType"></param>
+    /// <returns>
+    /// A List of all possible Stations the Move can Target. If it can hit multiple Units, the bool will be set to true and the string will specify if it is all Units, all Allies, all enemies for purpose of text reasons.   
+    /// [bool] isTargettingMultipleTargets: True if the move selects AllEnemies, AllAllies or Area
+    /// [string] multipleTargetString: Populated with text that can be used in the creation of UI elements to describe the target.    /// 
+    /// </returns>
+    public static TargettingSelectorInfo FindAllPossibleTargettingStationIndexesOfTargettingType(SceneData_UnitTurn data, MoveTarget moveTargetType)
+    {
+        List<StationIndex> possibleTargetStationIndexes = new();
+        switch (moveTargetType)
+        {
+            case MoveTarget.Self:
+                possibleTargetStationIndexes.Add(data.SourceStationIndex);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Yourself");
+
+            case MoveTarget.SingleAlly:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Ally");
+
+            case MoveTarget.SingleEnemy:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Enemy");
+
+            case MoveTarget.AllEnemies:
+                possibleTargetStationIndexes.AddRange(data.EnemyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Enemies");
+
+            case MoveTarget.AllAllies:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Allies");
+
+            case MoveTarget.Area:
+                possibleTargetStationIndexes = TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Everyone");
+
+            default:
+                possibleTargetStationIndexes.Add(data.SourceStationIndex);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Uhh. Uhh...");
+
+        }
     }
 
     public static UnitTeam GetOppositeTeamType(UnitTeam team)

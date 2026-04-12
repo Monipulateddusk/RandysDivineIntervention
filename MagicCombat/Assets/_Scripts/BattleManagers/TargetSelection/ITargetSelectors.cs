@@ -12,17 +12,24 @@ namespace TurnBased.TargetSelection
 
         System.Collections.Generic.List<StationIndex> ITargetSelector.SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
         {
+            MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
             StationIndex selectedStationIndex;
             int wrappedIndex;
 
-            MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
-            switch (moveTargetType)
+
+
+            /*  If the this MoveTargetType is any of: Self, Area, AllEnemies, AllAllies. Then we don't need to figure out which of the stations we have available specifically is the target.   */
+            if (!selectorInfo.DoesRequireTargettingSelectorSelection)
             {
-                case MoveTarget.Self:
-                    return new() { data.SourceStationIndex };
-
-                case MoveTarget.SingleEnemy:
-
+                return selectorInfo.PossibleTargets;
+            }
+            /*  However, for SingleAlly or SingleEnemy, we need to pick from the all possible options who specifically we are targetting.   */
+            else
+            {
+                /// Single Enemy
+                if (moveTargetType == MoveTarget.SingleEnemy)
+                {
                     WrapSelectionIndex(data.EnemyStationIndexes, curSelectionIndex, out wrappedIndex);
 
                     /*  After we get the selected station index, increment it for next time.    */
@@ -30,9 +37,10 @@ namespace TurnBased.TargetSelection
                     curSelectionIndex++;
 
                     return new() { selectedStationIndex };
-
-                case MoveTarget.SingleAlly:
-
+                }
+                /// Single Ally
+                else
+                {
                     WrapSelectionIndex(data.AllyStationIndexes, curSelectionIndex, out wrappedIndex);
 
                     /*  After we get the selected station index, increment it for next time.    */
@@ -40,18 +48,7 @@ namespace TurnBased.TargetSelection
                     curSelectionIndex++;
 
                     return new() { selectedStationIndex };
-
-                case MoveTarget.AllEnemies:
-                    return data.EnemyStationIndexes;
-
-                case MoveTarget.AllAllies:
-                    return data.AllyStationIndexes;
-
-                case MoveTarget.Area:
-                    return TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
-
-                default:
-                    return new() { data.SourceStationIndex };
+                }
             }
         }
 
@@ -71,22 +68,29 @@ namespace TurnBased.TargetSelection
         public System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
-            return moveTargetType switch
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
+
+
+            /*  If the this MoveTargetType is any of: Self, Area, AllEnemies, AllAllies. Then we don't need to figure out which of the stations we have available specifically is the target.   */
+            if (!selectorInfo.DoesRequireTargettingSelectorSelection)
             {
-                MoveTarget.Self => new() { data.SourceStationIndex },
+                return selectorInfo.PossibleTargets;
+            }
+            /*  However, for SingleAlly or SingleEnemy, we need to pick from the all possible options who specifically we are targetting.   */
+            else
+            {
+                /// Single Enemy
+                if (moveTargetType == MoveTarget.SingleEnemy)
+                {
+                    return new() { GetRandomStationIndexFromList(data.EnemyStationIndexes) };
+                }
+                /// Single Ally
+                else
+                {
 
-                MoveTarget.SingleEnemy => new() { GetRandomStationIndexFromList(data.EnemyStationIndexes) },
-
-                MoveTarget.SingleAlly => new() { GetRandomStationIndexFromList(data.AllyStationIndexes) },
-
-                MoveTarget.AllEnemies => data.EnemyStationIndexes,
-
-                MoveTarget.AllAllies => data.AllyStationIndexes,
-
-                MoveTarget.Area => TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true),
-
-                _ => new() { data.SourceStationIndex },
-            };
+                    return new() { GetRandomStationIndexFromList(data.AllyStationIndexes) };
+                }
+            }
         }
 
         private StationIndex GetRandomStationIndexFromList(System.Collections.Generic.List<StationIndex> stationIndexes)
@@ -102,34 +106,32 @@ namespace TurnBased.TargetSelection
         public System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
 
-            switch (moveTargetType)
+
+            /*  If the this MoveTargetType is any of: Self, Area, AllEnemies, AllAllies. Then we don't need to figure out which of the stations we have available specifically is the target.   */
+            if (!selectorInfo.DoesRequireTargettingSelectorSelection)
             {
-                case MoveTarget.SingleEnemy:
+                return selectorInfo.PossibleTargets;
+            }
+            /*  However, for SingleAlly or SingleEnemy, we need to pick from the all possible options who specifically we are targetting.   */
+            else
+            {
+                /// Single Enemy
+                if (moveTargetType == MoveTarget.SingleEnemy)
+                {
                     /*  Confirm that the selected index the player chose is within the list's size. If not, abort!  */
                     if (this.SelectedTargetIndex > data.EnemyStationIndexes.Count - 1) { return null; }
 
                     return new() { data.EnemyStationIndexes[this.SelectedTargetIndex] };
-
-                case MoveTarget.SingleAlly:
+                }
+                /// Single Ally
+                else
+                {
                     if (this.SelectedTargetIndex > data.AllyStationIndexes.Count - 1) { return null; }
 
                     return new() { data.AllyStationIndexes[this.SelectedTargetIndex] };
-
-                case MoveTarget.Self:
-                    return new() { data.SourceStationIndex };
-
-                case MoveTarget.AllEnemies:
-                    return data.EnemyStationIndexes;
-
-                case MoveTarget.AllAllies:
-                    return data.AllyStationIndexes;
-
-                case MoveTarget.Area:
-                    return TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
-
-                default:
-                    return new() { data.SourceStationIndex };
+                }
             }
         }
     }
