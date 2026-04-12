@@ -17,6 +17,19 @@ public enum Element
 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
+/// STATION SELECTION ENUMERATIONS
+/// 
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+public enum StationSelectionState
+{
+    Unlocked = 0,
+    Locked = 1
+}
+
+
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
 /// COMBAT RESOLVING ENUMERATIONS
 /// 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

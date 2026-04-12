@@ -67,11 +67,12 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-
-
             /*  Get the Current Unit's Move Selection Intention.    */
-            //SceneData_UnitTurn sceneData = ConcreteMediator.GetCombatSceneDataForSourceUnitIndex(currentUnitIndex);
-            //MoveSelectionData moveSelectionData = ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).GetMoveSelectorComponent().SelectMove(sceneData);
+            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(currentUnitIndex);
+
+            
+
+
 
             //if (moveSelectionData.SelectedMove != null)
             //{
@@ -123,17 +124,18 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            throw new NotImplementedException();
+            Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
+
         }
 
         public override void OnExit()
         {
-            throw new NotImplementedException();
+
         }
 
         public override void Update()
         {
-            throw new NotImplementedException();
+           // throw new NotImplementedException();
         }
     }
 

@@ -1,4 +1,5 @@
 using System.Linq;
+using TurnBased.MoveSelection;
 using UnityEngine;
 
 namespace TurnBased.Intention
@@ -43,19 +44,38 @@ namespace TurnBased.Intention
         {
             ProcessIntention(unitIndex);
         }
-       
 
-        public void DetermineEnemyUnitIntentions()
+        /// <summary>
+        /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
+        /// IMPORTANT: This should mean we auto-select move, but if the Unit has a PLAYER-DRIVEN MOVE-SELECTOR, then the PLAYER should be able to select the targets.
+        /// </summary>
+        public void DetermineNonPlayerDrivenUnitIntentions()
         {
-            Debug.Log("Starting enemy intent");
+            System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
+            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
+            {
+                if (!MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out IMoveSelector moveSelector)) { continue; }
 
-            if (!StationManager.Instance.TryGetUnitIndexesOfTeam(UnitTeam.ENEMY, out System.Collections.Generic.List<UnitIndex> enemyUnitIndexes)) { return; }
-            Debug.Log("Got indexes of team for purposes of IntentionResolver.   ");
-
-            unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(enemyUnitIndexes);
+                if(moveSelector is not PlayerDrivenMoveSelector)
+                {
+                    autonomousUnits.Add(unitIndex);
+                }
+            }
+            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(autonomousUnits);
 
             ProcessNextUnitIndex();
-        }        
+        }
+        //public void DetermineEnemyUnitIntentions()
+        //{
+        //    Debug.Log("Starting enemy intent");
+
+        //    if (!StationManager.Instance.TryGetUnitIndexesOfTeam(UnitTeam.ENEMY, out System.Collections.Generic.List<UnitIndex> enemyUnitIndexes)) { return; }
+        //    Debug.Log("Got indexes of team for purposes of IntentionResolver.   ");
+
+        //    unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(enemyUnitIndexes);
+
+        //    ProcessNextUnitIndex();
+        //}        
 
         private void ProcessNextUnitIndex()
         {

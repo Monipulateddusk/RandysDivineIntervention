@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class StationSelectorManager : MonoBehaviour
+
+public class StationSelectorManager
 {
     /// <summary>
     /// Invoked when we change the selected Station. 
@@ -10,9 +10,11 @@ public class StationSelectorManager : MonoBehaviour
     /// [ StationIndex 2: De-Selected Station Index  ]
     /// </summary>
     public static event System.Action<StationIndex, StationIndex?> OnSelectionChange;
+    public static event System.Action<StationSelectionState> OnSelectionStateChange;
 
-    [SerializeField] List<StationIndex> stationIndexes = new();
-    [SerializeField] StationIndex selectedStationIndex;
+    System.Collections.Generic.List<StationIndex> stationIndexes = new();
+    StationIndex selectedStationIndex;
+    StationSelectionState selectionState;
 
     private static StationSelectorManager instance;
     public static StationSelectorManager Instance
@@ -25,13 +27,13 @@ public class StationSelectorManager : MonoBehaviour
             }
             catch (System.Exception e)
             {
-                Debug.LogError(e.ToString());
+                UnityEngine.Debug.LogError(e.ToString());
                 return null;
             }
         }
     }
 
-    private void Awake()
+    public void Awake()
     {
         InitaliseSingleton();
     }
@@ -39,21 +41,35 @@ public class StationSelectorManager : MonoBehaviour
     private void InitaliseSingleton()
     {        
         /*  Initalise the Singleton.    */
-        if (instance != null && instance != this)
+        if (instance == null)
         {
-            DestroyImmediate(this);
+            instance = this;
         }
-        instance = this;
-
     }
 
 
 
 
-    private void Start()
+    public void Start()
     {
         UpdateStationIndexes();
     }
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            if(this.selectionState == StationSelectionState.Locked)
+            {
+                SetSelectorStateUnlocked();
+            }
+            else
+            {
+                SetSelectorStateLocked();
+            }
+        }
+    }
+
 
     #region Creation Of Station Indexes
     /// <summary>
@@ -80,8 +96,8 @@ public class StationSelectorManager : MonoBehaviour
     {
         if (StationManager.Instance == null) { return; }
 
-        List<StationIndex> allyStationIndexes = new();
-        List<StationIndex> enemyStationIndexes = new();
+        System.Collections.Generic.List<StationIndex> allyStationIndexes = new();
+        System.Collections.Generic.List<StationIndex> enemyStationIndexes = new();
 
         /*  Loop through each StationIndex pulled from the StationManager, sort them by the team they are on.   */
         foreach (StationIndex stationIndex in this.stationIndexes)
@@ -94,8 +110,8 @@ public class StationSelectorManager : MonoBehaviour
         }
 
         /*  Once we sorted based on Team, sort the stations by numerical order. */
-        List<StationIndex> sortedAllyStationIndexes = allyStationIndexes.OrderBy(i => i.Index).ToList();
-        List<StationIndex> sortedEnemStationIndexes = enemyStationIndexes.OrderBy(i => i.Index).ToList();
+        System.Collections.Generic.List<StationIndex> sortedAllyStationIndexes = allyStationIndexes.OrderBy(i => i.Index).ToList();
+        System.Collections.Generic.List<StationIndex> sortedEnemStationIndexes = enemyStationIndexes.OrderBy(i => i.Index).ToList();
 
         /*  Recombine the indexes into our StationIndexes.  */
         this.stationIndexes = new();
@@ -153,6 +169,8 @@ public class StationSelectorManager : MonoBehaviour
 
     public void IncrementIndex()
     {
+        if(this.selectionState == StationSelectionState.Locked) { return; }
+
         /*  Find where this index is in the Stations list.  */
         if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
         currentIndex++;
@@ -165,6 +183,8 @@ public class StationSelectorManager : MonoBehaviour
     }
     public void DecrementIndex()
     {
+        if (this.selectionState == StationSelectionState.Locked) { return; }
+
         /*  Find where this index is in the Stations list.  */
         if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
         currentIndex--;
@@ -189,4 +209,16 @@ public class StationSelectorManager : MonoBehaviour
         this.selectedStationIndex = this.stationIndexes[newStationIndex.Index];
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
+
+    public void SetSelectorStateLocked()
+    {
+        this.selectionState = StationSelectionState.Locked;
+        OnSelectionStateChange?.Invoke(this.selectionState);
+    }
+    public void SetSelectorStateUnlocked()
+    {
+        this.selectionState = StationSelectionState.Unlocked;
+        OnSelectionStateChange?.Invoke(this.selectionState);
+    }
+    public StationSelectionState GetStationSelectionState() => this.selectionState;
 }

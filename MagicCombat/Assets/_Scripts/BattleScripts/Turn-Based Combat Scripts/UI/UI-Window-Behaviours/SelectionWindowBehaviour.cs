@@ -20,6 +20,9 @@ public class SelectionWindowBehaviour : MonoBehaviour
 
         this.LeftButton.onClick.AddListener(LeftButtonClickEvent);
         this.RightButton.onClick.AddListener(RightButtonClickEvent);
+
+        /*  Subscribe to the event when the Selector Manager is disabled so we know when to disable input for the player.   */
+        StationSelectorManager.OnSelectionStateChange += StationSelectorManager_OnSelectionStateChange;
     }
 
     private void OnDestroy()
@@ -29,6 +32,8 @@ public class SelectionWindowBehaviour : MonoBehaviour
 
         this.LeftButton.onClick.RemoveAllListeners();
         this.RightButton.onClick.RemoveAllListeners();
+
+        StationSelectorManager.OnSelectionStateChange -= StationSelectorManager_OnSelectionStateChange;
     }
 
     private void Start()
@@ -60,22 +65,22 @@ public class SelectionWindowBehaviour : MonoBehaviour
                 break;  
         }
 
-        SetTextElementText();
+        SetSelectionWindowState();
     }
 
-    private void SetTextElementText()
+    private void SetSelectionWindowState()
     {
         if(this.currentSelectionState == SelectionUIBehaviourState.Units)
         {
-            SetTextElementUnits();
+            SetSelectionWindowStateUnits();
         }
         else
         {
-           SetTextElementCamera();
+            SetSelectionWindowStateCamera();
         }
     }
 
-    private void SetTextElementUnits()
+    private void SetSelectionWindowStateUnits()
     {
         /*  Default declaration if values are invalid when we retrieve them.    */
         SetTextElementText("Current Unit Selected: Unit");
@@ -84,14 +89,35 @@ public class SelectionWindowBehaviour : MonoBehaviour
         if(!StationManager.Instance.TryGetUnitDataOnStation(StationSelectorManager.Instance.GetSelectedStationIndex(), out UnitData unitData)) { return; }
 
         SetTextElementText("Current Unit Selected: " + unitData.name);
+
+        /*  Check the StationSelectionManager. If it is in a disabled state, disable the buttons when we switch to this.    */
+        SetButtonStateForUnits();
     }
-    private void SetTextElementCamera()
+
+    private void SetButtonStateForUnits() 
     {
+        if (StationSelectorManager.Instance.GetStationSelectionState() == StationSelectionState.Locked)
+        {
+            DisableButtons();
+        }
+        else
+        {
+            EnableButtons();
+        }
+    }
+
+
+    private void SetSelectionWindowStateCamera()
+    {
+        /*  Set the text element to the correct information.    */
         string numberText = CameraController.Instance.CurrentCameraIndex.ToString();
 
         string text = "Current Camera Selected: " + numberText;
 
         this.TextElement.text = text;
+
+        /*  So far there is nothing that should limit the buttons for the Camera. So incase we switch to this tab, we need to re-enable them in the event they are disabled.    */
+        EnableButtons();
     }
 
     void SetTextElementText(string text)
@@ -112,6 +138,28 @@ public class SelectionWindowBehaviour : MonoBehaviour
         this.RightButton.interactable = true;
         this.LeftButton.interactable = true;
     }
+
+    private void StationSelectorManager_OnSelectionStateChange(StationSelectionState currentState)
+    {
+        switch (currentState)
+        {
+            case StationSelectionState.Unlocked:
+                if(this.currentSelectionState == SelectionUIBehaviourState.Units)
+                {
+                    EnableButtons();
+                }
+                return;
+            case StationSelectionState.Locked:
+                if (this.currentSelectionState == SelectionUIBehaviourState.Units)
+                {
+                    DisableButtons();
+                }
+                return;
+            default:
+                return;
+        }
+    }
+
     void LeftButtonClickEvent()
     {
         _ = OnLeftButtonClick();

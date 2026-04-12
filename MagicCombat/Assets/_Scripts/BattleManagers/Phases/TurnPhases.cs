@@ -47,7 +47,7 @@ namespace TurnBased.Phases
             /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
             
             if(Intention.IntentionResolver.Instance == null) { Debug.Log("Intention resolver is null BOZO!"); return; }
-            Intention.IntentionResolver.Instance.DetermineEnemyUnitIntentions();
+            Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions();
 
 
             /*  Once everything is done, we want to move onto the next Phase.   */

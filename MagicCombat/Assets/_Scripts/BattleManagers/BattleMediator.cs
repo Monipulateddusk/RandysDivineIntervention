@@ -58,13 +58,15 @@ namespace TurnBased
 
         }
         private readonly StationManager                         StationHandler          = new();
+        private readonly StationSelectorManager                 StationSelectorManager  = new();
 
-        private readonly MoveSelection.MoveSelectorManager      moveSelectorManager     = new();
-        private readonly TargetSelection.TargetSelectorManager  targetSelectorManager   = new();
-        private readonly TurnOrder.TurnOrderManager             turnOrderManager        = new();
-        private readonly Phases.PhaseManager                    phaseManager            = new();
-        private readonly Intention.IntentionResolver            intentionResolver       = new();
-        private readonly Intention.UnitIntentionManager         unitIntentionManager    = new();
+        private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager     = new();
+        private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager   = new();
+        private readonly TurnOrder.TurnOrderManager             TurnOrderManager        = new();
+        private readonly Phases.PhaseManager                    PhaseManager            = new();
+        private readonly Intention.IntentionResolver            IntentionResolver       = new();
+        private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
+
 
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
@@ -100,24 +102,27 @@ namespace TurnBased
         private void Awake()
         {
             instance = this;
-            this.turnOrderManager.Awake();
-            this.intentionResolver.Awake();
-            this.unitIntentionManager.Awake();
+            this.TurnOrderManager.Awake();
+            this.IntentionResolver.Awake();
+            this.UnitIntentionManager.Awake();
             this.StationHandler.Awake();
-            this.moveSelectorManager.Awake();
-            this.targetSelectorManager.Awake();
+            this.StationSelectorManager.Awake();
+            this.MoveSelectorManager.Awake();
+            this.TargetSelectorManager.Awake();
         }
 
         private void Start()
         {
             CreateCombatEncounter();
             this.StationHandler.DeployUnitsForStartOfBattle();
-            this.phaseManager.Initialise();
+            this.PhaseManager.Initialise();
+            this.StationSelectorManager.Start();
         }
 
         private void Update()
         {
-            this.phaseManager.UpdatePhases();
+            this.PhaseManager.UpdatePhases();
+            this.StationSelectorManager.Update();
 
             if (Input.GetKeyDown(KeyCode.H))
             {

@@ -124,6 +124,8 @@ namespace TurnBased.Phases
             /*  Try and get the Unit index on that station to pass to the subphase we are entering. */
             if(!StationManager.Instance.TryGetUnitIndexOnStation(selectedStation, out UnitIndex unitIndexOnStation)) { return; }
 
+            UnityEngine.Debug.Log($"Selecting current unit for subphase as: {unitIndexOnStation.Index}");
+
             this.MainPhaseStates[this.currentState]?.SetCurrentUnitIndex(unitIndexOnStation);
         }
     }
