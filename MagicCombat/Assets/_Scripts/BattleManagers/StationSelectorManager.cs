@@ -190,9 +190,13 @@ public class StationSelectorManager
 
     public void SetSelectedStationIndex(StationIndex newStationIndex)
     {
-        Debug.LogWarning("Setting new StationIndex to: " + newStationIndex.Index);
+        Debug.LogWarning($"Setting new StationIndex to: {newStationIndex.Index}. Size of collection is: {this.stationIndexes.Count}");
         StationIndex oldStationIndex = this.selectedStationIndex;
-        this.selectedStationIndex = this.stationIndexes[newStationIndex.Index];
+
+        /*  Check to see if this new station index is contained within our StationIndexes. */
+        if (!this.stationIndexes.Contains(newStationIndex)) { return; }
+
+        this.selectedStationIndex = newStationIndex;
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
 

@@ -114,6 +114,7 @@ public class CommandUIBehaviour : MonoBehaviour
             moveButtonData.IsButtonClicked = false;
 
             UserInterfaceUserInput.Instance.OnMoveSelection();
+            return;
         }
     }
     private void DestroyMoveUIElements()

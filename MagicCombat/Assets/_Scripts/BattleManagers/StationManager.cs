@@ -253,7 +253,7 @@ public class SceneUnitData
         {
             Station station = stationKeyValuePairs.Value;
             if (!station.UnitOnStation.HasValue) { continue; }
-            if(station.UnitOnStation.Value.Index != unitIndex.Index)
+            if(station.UnitOnStation.Value.Index == unitIndex.Index)
             {
                 stationIndexOfUnitIndex = station.StationIndex;
                 return true;
