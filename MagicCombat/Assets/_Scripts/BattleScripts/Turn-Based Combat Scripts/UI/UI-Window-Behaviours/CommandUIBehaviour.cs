@@ -1,192 +1,325 @@
-using System;
 using System.Collections.Generic;
-using TurnBased;
-using TurnBased.UI;
 using UnityEngine;
 
-public class CommandUIBehaviour : MonoBehaviour
+namespace TurnBased.UI
 {
-    [Header("Inspector Variables")]
-    [SerializeField] private UnityEngine.UI.Image UnitImage;
-    [SerializeField, Tooltip("Assign with the 'Health' Object in HealthBG")] private RectTransform HealthRectTransform;
-    [SerializeField, Tooltip("Assign with the 'HealthValueString' Object in HealthBG")] TMPro.TextMeshProUGUI HealthText;
-
-    [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")] GameObject CommandWrapperGameObject;
-    [SerializeField, Tooltip("Assign with the 'Inspection' Object in InspectionSubWindow")] GameObject InspectionGameObject;
-    [SerializeField, Tooltip("Assign with the 'PopupBuffer' Object in InspectionSubWindow")] GameObject PopupBufferGameObject;
-    [SerializeField, Tooltip("Assign with the 'UnitImageHealthWrapper' Object in VIew")] GameObject UnitImageHealthWrapperGameObject;
-    [SerializeField, Tooltip("Assign with the 'TargetSelection' Object in VIew")] GameObject TargetSelectionGameObject;
-
-
-    [Header("Prefabs")]
-    [SerializeField] private GameObject MoveUIPrefab;
-
-    private List<MoveUIPrefabData> InstanciatedMoveUIElements = new();
-
-    private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.Default;
-
-    private void Awake()
+    public class CommandUIBehaviour : MonoBehaviour
     {
-        StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
-    }
-    private void OnDestroy()
-    {
-        StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
-    }
+        [Header("Inspector Variables")]
+        [SerializeField] private UnityEngine.UI.Image UnitImage;
+        [SerializeField, Tooltip("Assign with the 'Health' Object in HealthBG")] private RectTransform HealthRectTransform;
+        [SerializeField, Tooltip("Assign with the 'HealthValueString' Object in HealthBG")] TMPro.TextMeshProUGUI HealthText;
 
-    private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
-    {
-        if(!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { Debug.Log("Invalid selection change!"); return; }
+        [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")] GameObject CommandWrapperGameObject;
+        [SerializeField, Tooltip("Assign with the 'Inspection' Object in InspectionSubWindow")] GameObject InspectionGameObject;
+        [SerializeField, Tooltip("Assign with the 'PopupBuffer' Object in InspectionSubWindow")] GameObject PopupBufferGameObject;
+        [SerializeField, Tooltip("Assign with the 'UnitImageHealthWrapper' Object in VIew")] GameObject UnitImageHealthWrapperGameObject;
+        [SerializeField, Tooltip("Assign with the 'TargetSelection' Object in VIew")] GameObject TargetSelectionGameObject;
 
-        if (!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit bBU)) { Debug.Log("Invalid selection change!"); return; }
 
-        SetImage(bBU);
-        SetHealthValues(bBU);
-        SetMoves(bBU);
-    }
+        [Header("Prefabs")]
+        [SerializeField] private GameObject MoveUIPrefab;
+        [SerializeField] private GameObject TargetUIPrefab;
 
-    private void Start()
-    {
+        private System.Collections.Generic.List<MoveUIPrefabData>   InstanciatedMoveUIElements = new();
+        private System.Collections.Generic.List<TargetUIPrefabData> InstanciatedTargetUIElements = new();
 
-        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationIndex(), null);
-        SetState(CommandUIBehaviourStates.Default);
-    }
+        private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.Default;
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Keypad0))
+        private void Awake()
         {
-            int stateValue = (int)currentState;
-            stateValue++;
-            Debug.LogWarning(stateValue);
-            if (stateValue > (int)CommandUIBehaviourStates.UnitEndTurn) { stateValue = 0; }
-
-            SetState((CommandUIBehaviourStates)stateValue);
-         
+            StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
+            Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
         }
-    }
 
-
-
-    private float GetValueNormalisation(float minimum, float maximum, float current)
-    {
-        return (current - minimum) / (maximum - minimum);
-    }
-    private void SetImage(BaseBattleUnit battleUnit)
-    {
-        if (this.UnitImage == null) { return; }
-        this.UnitImage.sprite = battleUnit.GetBaseUnit().sprite;
-        this.UnitImage.color = battleUnit.GetBaseUnit().color;
-    }
-    
-    private void SetHealthValues(BaseBattleUnit battleUnit)
-    {
-        if(this.HealthRectTransform != null && this.HealthText != null)
+        private void OnDestroy()
         {
-            int currentHealth = battleUnit.GetHealthComponent().GetHealth();
-            int maximumHealth = battleUnit.GetBaseUnit().maxHP;
-
-            float value = GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
-
-            this.HealthRectTransform.localScale = new(value, 1);
-            this.HealthText.text = currentHealth.ToString() + "/" + maximumHealth.ToString();
+            StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
+            Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
         }
-    }
-    private void CreateMoveUIElement(IBattleMove move)
-    {
-        if(this.InstanciatedMoveUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
 
-        GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperGameObject.transform);
-        if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
+        private void Start()
         {
-            instanciatedMoveUIData.Initalise(move);
-            instanciatedMoveUIData.OnButtonClicked += OnMoveButtonClick;
-            this.InstanciatedMoveUIElements.Add(instanciatedMoveUIData);
+            OnUnitIntentionChanged();
         }
-    }
 
-    private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
-    {
-        foreach(MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
+        private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
         {
-            if(moveButtonData == buttonObject) { continue; }
-
-            moveButtonData.IsButtonClicked = false;
-
-            UserInterfaceUserInput.Instance.OnMoveSelection();
-            return;
+            OnUnitIntentionChanged();
         }
-    }
-    private void DestroyMoveUIElements()
-    {
-        if (this.InstanciatedMoveUIElements == null) { return; }
 
-        foreach (MoveUIPrefabData obj in this.InstanciatedMoveUIElements)
+        private void OnUnitIntentionChanged()
         {
-            Destroy(obj.gameObject);
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(StationSelectorManager.Instance.GetSelectedStationIndex(), out UnitIndex unitIndex)) { return; }
+
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
+            if (intention.MoveSelection != null) { return; }
+            UnitIntentionManager_OnUnitIntentionChanged(unitIndex, intention);
         }
-        this.InstanciatedMoveUIElements.Clear();
-    }
 
-    private void SetMoves(BaseBattleUnit battleUnit)
-    {
-        DestroyMoveUIElements();
-
-        foreach(IBattleMove moveAction in battleUnit.GetBaseUnit().moves)
+        private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, Intention.UnitIntention intentionOfTheUnitIndex)
         {
-            CreateMoveUIElement(moveAction);
+            if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return; }
+
+            /*  
+             *  Only update this UI element if the intention belonged to the selected Unit. 
+             *  Basically, if an enemy aren't selected changes it's intention, we don't want to do anything as we aren't displaying that unit.  
+             */
+            if (stationIndexOfUnitIndex.Index != StationSelectorManager.Instance.GetSelectedStationIndex().Index) { return; }
+
+            SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
         }
-    }
 
-
-    void DisableAllWindows()
-    {
-        if(this.InspectionGameObject == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null || this.TargetSelectionGameObject == null) { return; }
-        
-        this.InspectionGameObject.SetActive(false);
-        this.PopupBufferGameObject.SetActive(false);
-        this.UnitImageHealthWrapperGameObject.SetActive(false);
-        this.TargetSelectionGameObject.SetActive(false);
-    }
-
-    private void SetState(CommandUIBehaviourStates nextState)
-    {
-        this.currentState = nextState;
-        UpdateState();
-    }
-
-    private void UpdateState()
-    {
-        DisableAllWindows();
-        switch (this.currentState)
+        private void SetStateBasedOnUnitIntention(Intention.UnitIntention intentionOfTheUnitIndex)
         {
-            case CommandUIBehaviourStates.UnitEndTurn:
-                Debug.LogWarning("End Turn Enable");
+            switch (intentionOfTheUnitIndex.ResolutionState)
+            {
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+                case UnitIntentionResolutionState.NONE:
+                default:
+                    SetState(CommandUIBehaviourStates.Default);
+                    break;
 
-                this.PopupBufferGameObject.SetActive(true);
-                break;
-            case CommandUIBehaviourStates.TargetSelection:
-                Debug.LogWarning("Target Selection Enable");
+                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
+                    SetState(CommandUIBehaviourStates.TargetSelection);
+                    break;
 
-                this.InspectionGameObject.SetActive(true);
-                this.TargetSelectionGameObject.SetActive(true);
-                break;
-            case CommandUIBehaviourStates.Default:
-                Debug.LogWarning("Default Enable");
+                case UnitIntentionResolutionState.COMPLETE:
+                    SetState(CommandUIBehaviourStates.UnitEndTurn);
+                    break;
+            }
+        }
 
-
-                this.InspectionGameObject.SetActive(true);
-                this.UnitImageHealthWrapperGameObject.SetActive(true);
-                break;
-
-            default:
-                Debug.LogWarning("Default Enable");
+        private void SetState(CommandUIBehaviourStates nextState)
+        {
+            this.currentState = nextState;
+            UpdateState();
+        }
 
 
-                this.InspectionGameObject.SetActive(true);
-                this.UnitImageHealthWrapperGameObject.SetActive(true);
-                break;
+        private void UpdateState()
+        {
+            DisableAllWindows();
 
+            StationIndex selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationIndex();
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { Debug.Log("Invalid selection change!"); return; }
+            if (!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit bBU)) { Debug.Log("Invalid selection change!"); return; }
+
+
+            switch (this.currentState)
+            {
+                case CommandUIBehaviourStates.UnitEndTurn:
+                    VisualiseForUnitEndOfTurn(unitIndex, bBU);
+                    break;
+
+                case CommandUIBehaviourStates.TargetSelection:
+                    VisualiseForTargetSelection(unitIndex, bBU);
+                    break;
+
+                case CommandUIBehaviourStates.Default:
+                default:      
+                    VisualiseForDefaultSelection(unitIndex, bBU);
+                    break;
+
+            }
+        }
+
+
+        private void VisualiseForUnitEndOfTurn(UnitIndex unitIndex, BaseBattleUnit bBU)
+        {
+            Debug.LogWarning("End Turn Enable");
+
+            /*  Enable the Popup Window to show the End of Turn.    */
+            this.PopupBufferGameObject.SetActive(true);
+
+        }
+
+        private void VisualiseForTargetSelection(UnitIndex unitIndex, BaseBattleUnit bBU)
+        {
+            Debug.LogWarning("Target Selection Enable");
+
+            /*  Enable the Keep the inspection window open to show the selected Move but also show the possible targets for the move.   */
+            this.InspectionGameObject.SetActive(true);
+            this.TargetSelectionGameObject.SetActive(true);
+
+            SetMoves(bBU);
+
+            /*  Get the currently selected Unit's intention to visualise it.    */
+            if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
+            if(intention.MoveSelection != null) {   return; }
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(unitIndex, intention.MoveSelection.GetMoveTargetType());
+            SetTargets(selectorInfo);
+        }
+
+        private void VisualiseForDefaultSelection(UnitIndex unitIndex, BaseBattleUnit bBU)
+        {
+            Debug.LogWarning("Default Enable");
+
+            /*  Enable the Inspection for the Health and Status as well as the Unit's Moves.    */
+            this.InspectionGameObject.SetActive(true);
+            this.UnitImageHealthWrapperGameObject.SetActive(true);
+
+            SetImage(bBU);
+            SetHealthValues(bBU);
+            SetMoves(bBU);
+        }
+
+        private void SetImage(BaseBattleUnit battleUnit)
+        {
+            if (this.UnitImage == null) { return; }
+            this.UnitImage.sprite = battleUnit.GetBaseUnit().sprite;
+            this.UnitImage.color = battleUnit.GetBaseUnit().color;
+        }
+
+        private void SetHealthValues(BaseBattleUnit battleUnit)
+        {
+            if (this.HealthRectTransform != null && this.HealthText != null)
+            {
+                int currentHealth = battleUnit.GetHealthComponent().GetHealth();
+                int maximumHealth = battleUnit.GetBaseUnit().maxHP;
+
+                float value = UserInterfaceUtility.GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
+
+                this.HealthRectTransform.localScale = new(value, 1);
+                this.HealthText.text = currentHealth.ToString() + "/" + maximumHealth.ToString();
+            }
+        }
+
+        #region Move UI Methods
+
+        private void SetMoves(BaseBattleUnit battleUnit)
+        {
+            DestroyMoveUIElements();
+
+            foreach (IBattleMove moveAction in battleUnit.GetBaseUnit().moves)
+            {
+                CreateMoveUIElement(moveAction);
+            }
+        }
+
+        private void CreateMoveUIElement(IBattleMove move)
+        {
+            if (this.InstanciatedMoveUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
+
+            GameObject instanciatedObject = GameObject.Instantiate(this.MoveUIPrefab, this.CommandWrapperGameObject.transform);
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out MoveUIPrefabData instanciatedMoveUIData))
+            {
+                instanciatedMoveUIData.Initalise(move);
+                instanciatedMoveUIData.OnButtonClicked += OnMoveButtonClick;
+                this.InstanciatedMoveUIElements.Add(instanciatedMoveUIData);
+            }
+        }
+
+        private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
+        {
+            foreach (MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
+            {
+                if (moveButtonData == buttonObject) { continue; }
+
+                moveButtonData.IsButtonClicked = false;
+
+                UserInterfaceUserInput.Instance.OnMoveSelection();
+                return;
+            }
+        }
+        private void DestroyMoveUIElements()
+        {
+            if (this.InstanciatedMoveUIElements == null) { return; }
+
+            foreach (MoveUIPrefabData obj in this.InstanciatedMoveUIElements)
+            {
+                obj.OnButtonClicked -= OnMoveButtonClick;
+                Destroy(obj.gameObject);
+            }
+            this.InstanciatedMoveUIElements.Clear();
+        }
+
+
+        #endregion
+
+        #region Target UI Methods
+
+        private void SetTargets(TargettingSelectorInfo targettingSelectorInfo)
+        {
+            DestroyTargetUIElements();
+
+            /*  
+             *  The Selector Info says if we need to select from among the targets or if they are amalgamated into one option.
+             *  I.e. if the selected move can only target everyone on the field, there is no point making multiple Target buttons for each target if we are hitting all of them.
+             */
+
+            if (!targettingSelectorInfo.DoesRequireTargettingSelectorSelection)
+            {
+                CreateTargetUIElement(targettingSelectorInfo.TargettingDisplayText);
+                return;
+            }
+
+            foreach (StationIndex possibleTargetStation in targettingSelectorInfo.PossibleTargets)
+            {
+                CreateTargetUIElement(possibleTargetStation);
+            }          
+        }
+
+        private void CreateTargetUIElement(StationIndex targetedStationIndex)
+        {
+            if (this.InstanciatedTargetUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
+
+            GameObject instanciatedObject = GameObject.Instantiate(this.TargetSelectionGameObject, this.CommandWrapperGameObject.transform);
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out TargetUIPrefabData instanciatedTargetUIData))
+            {
+                instanciatedTargetUIData.Initalise(targetedStationIndex);
+                instanciatedTargetUIData.OnButtonClicked += OnTargetButtonClick;
+                this.InstanciatedTargetUIElements.Add(instanciatedTargetUIData);
+            }
+        }
+
+        private void CreateTargetUIElement(string targetText)
+        {
+            if (this.InstanciatedTargetUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
+            GameObject instanciatedObject = GameObject.Instantiate(this.TargetSelectionGameObject, this.CommandWrapperGameObject.transform);
+            if (instanciatedObject != null && instanciatedObject.TryGetComponent(out TargetUIPrefabData instanciatedTargetUIData))
+            {
+                instanciatedTargetUIData.Initalise(targetText);
+                instanciatedTargetUIData.OnButtonClicked += OnTargetButtonClick;
+                this.InstanciatedTargetUIElements.Add(instanciatedTargetUIData);
+            }
+        }
+
+        private void OnTargetButtonClick(TargetUIPrefabData buttonObject, bool isPressed)
+        {
+            foreach (MoveUIPrefabData targetButtonData in this.InstanciatedMoveUIElements)
+            {
+                if (targetButtonData == buttonObject) { continue; }
+
+                targetButtonData.IsButtonClicked = false;
+
+                UserInterfaceUserInput.Instance.OnTargetSelection();
+                return;
+            }
+        }
+        private void DestroyTargetUIElements()
+        {
+            if (this.InstanciatedTargetUIElements == null) { return; }
+
+            foreach (TargetUIPrefabData obj in this.InstanciatedTargetUIElements)
+            {
+                obj.OnButtonClicked -= OnTargetButtonClick;
+                Destroy(obj.gameObject);
+            }
+            this.InstanciatedTargetUIElements.Clear();
+        }
+
+
+
+        #endregion
+        void DisableAllWindows()
+        {
+            if (this.InspectionGameObject == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null || this.TargetSelectionGameObject == null) { return; }
+
+            this.InspectionGameObject.SetActive(false);
+            this.PopupBufferGameObject.SetActive(false);
+            this.UnitImageHealthWrapperGameObject.SetActive(false);
+            this.TargetSelectionGameObject.SetActive(false);
         }
     }
 }

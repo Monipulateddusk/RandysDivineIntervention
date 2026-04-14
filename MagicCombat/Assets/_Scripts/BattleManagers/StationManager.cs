@@ -865,6 +865,43 @@ public static class StationManagerUtilities
         }
     }
 
+    public static TargettingSelectorInfo FindAllPossibleTargettingStationIndexesOfTargettingType(UnitIndex unitIndex, MoveTarget moveTargetType)
+    {
+        SceneData_UnitTurn data = CreateCombatSceneDataForUnitIndex(unitIndex);
+        List<StationIndex> possibleTargetStationIndexes = new();
+        switch (moveTargetType)
+        {
+            case MoveTarget.Self:
+                possibleTargetStationIndexes.Add(data.SourceStationIndex);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Yourself");
+
+            case MoveTarget.SingleAlly:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Ally");
+
+            case MoveTarget.SingleEnemy:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Enemy");
+
+            case MoveTarget.AllEnemies:
+                possibleTargetStationIndexes.AddRange(data.EnemyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Enemies");
+
+            case MoveTarget.AllAllies:
+                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Allies");
+
+            case MoveTarget.Area:
+                possibleTargetStationIndexes = TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Everyone");
+
+            default:
+                possibleTargetStationIndexes.Add(data.SourceStationIndex);
+                return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Uhh. Uhh...");
+
+        }
+    }
+
     public static UnitTeam GetOppositeTeamType(UnitTeam team)
     {
         switch (team)
@@ -888,5 +925,18 @@ public static class StationManagerUtilities
             }
         }
         return indexCollection;
+    }
+
+    public static List<UnitData> GetUnitDataOfStationIndexes(List<StationIndex> stationIndexes)
+    {
+        List<UnitData> dataCollection = new();
+
+        foreach (StationIndex stationIndex in stationIndexes)
+        {
+            if (!StationManager.Instance.TryGetUnitDataOnStation(stationIndex, out UnitData unitData)) { continue; }
+
+            dataCollection.Add(unitData);
+        }
+        return dataCollection;
     }
 }

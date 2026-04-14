@@ -221,4 +221,29 @@ namespace TurnBased.UI
 
         public UITaskBarManager GetTaskBarManager() { return TaskBarManager; }
     }
+
+
+
+    public static class UserInterfaceUtility
+    {
+        public static Color COLOR_SLATEGRAY = new()
+        {
+            r = 0.3551086f,
+            b = 0.5660378f,
+            g = 0.5036566f,
+            a = 1f
+        };
+        public static Color COLOR_BLUEVIOLET = new()
+        {
+            r = 0.25f,
+            b = 1f,
+            g = 0.3299609f,
+            a = 1f
+        };
+
+        public static float GetValueNormalisation(float minimum, float maximum, float current)
+        {
+            return (current - minimum) / (maximum - minimum);
+        }
+    }
 }

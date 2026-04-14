@@ -2,20 +2,18 @@ using UnityEngine;
 
 namespace TurnBased.UI
 {
-    public class MoveUIPrefabData : MonoBehaviour
+    public class TargetUIPrefabData : MonoBehaviour
     {
-        public event System.Action<MoveUIPrefabData, bool> OnButtonClicked;
+        public event System.Action<TargetUIPrefabData, bool> OnButtonClicked;
 
-        [SerializeField, Tooltip("Assign with the Button Component on 'MoveUIElement'")] private UnityEngine.UI.Button MoveUIElementClickableButton;
-        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on 'MoveText'")] private TMPro.TextMeshProUGUI MoveUIElementText;
+        [SerializeField, Tooltip("Assign with the Button Component on 'MoveUIElement'")] private UnityEngine.UI.Button TargetUIElementClickableButton;
+        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on 'MoveText'")] private TMPro.TextMeshProUGUI TargetUIElementText;
 
         [SerializeField, Tooltip("Assign with each Shadow on this GameObject, Drag the component itself into the fields.")]
         private UnityEngine.UI.Shadow whiteShadow, blackShadow;
 
 
-
         private bool isButtonClicked = false;
-
         public bool IsButtonClicked
         {
             get { return this.isButtonClicked; }
@@ -32,19 +30,18 @@ namespace TurnBased.UI
                 }
             }
         }
-
         private void Awake()
         {
-            if (this.MoveUIElementClickableButton != null)
+            if (this.TargetUIElementClickableButton != null)
             {
-                this.MoveUIElementClickableButton.onClick.AddListener(OnButtonPressed);
+                this.TargetUIElementClickableButton.onClick.AddListener(OnButtonPressed);
             }
         }
         private void OnDestroy()
         {
-            if (this.MoveUIElementClickableButton != null)
+            if (this.TargetUIElementClickableButton != null)
             {
-                this.MoveUIElementClickableButton.onClick.RemoveAllListeners();
+                this.TargetUIElementClickableButton.onClick.RemoveAllListeners();
             }
             this.OnButtonClicked = null;
         }
@@ -65,16 +62,32 @@ namespace TurnBased.UI
             }
         }
 
-        public void Initalise(IBattleMove move)
+        public void Initalise(StationIndex targetStationIndex)
         {
-            if (this.MoveUIElementText != null)
+            if (this.TargetUIElementText != null)
             {
-                this.MoveUIElementText.text = move.GetMoveName();
+                /*  Get the Name of the target on the station.  */
+                if(!StationManager.Instance.TryGetUnitDataOnStation(targetStationIndex, out UnitData unitData))
+                {
+                    this.TargetUIElementText.text = string.Empty;
+                    return;
+                }
+                
+                this.TargetUIElementText.text = unitData.name;
+            }
+        }
+
+        public void Initalise(string uiText)
+        {
+            if (this.TargetUIElementText != null)
+            {
+                this.TargetUIElementText.text = uiText;
             }
         }
         private void OnButtonPressed()
         {
             this.IsButtonClicked = !this.IsButtonClicked;
         }
+
     }
 }
