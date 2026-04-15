@@ -51,17 +51,7 @@ namespace TurnBased.Intention
         /// </summary>
         public void DetermineNonPlayerDrivenUnitIntentions()
         {
-            System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
-            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
-            {
-                if (!MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out IMoveSelector moveSelector)) { continue; }
-
-                if(moveSelector is not PlayerDrivenMoveSelector)
-                {
-                    autonomousUnits.Add(unitIndex);
-                }
-            }
-            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(autonomousUnits);
+            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(GetAllAutonomousUnits());
 
             ProcessNextUnitIndex();
         }   
@@ -113,6 +103,20 @@ namespace TurnBased.Intention
                     ProcessNextUnitIndex();
                     return;
             }
+        }
+        private System.Collections.Generic.List<UnitIndex> GetAllAutonomousUnits()
+        {
+            System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
+            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
+            {
+                if (!MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out IMoveSelector moveSelector)) { continue; }
+
+                if (moveSelector is not PlayerDrivenMoveSelector)
+                {
+                    autonomousUnits.Add(unitIndex);
+                }
+            }
+            return autonomousUnits; 
         }
     }
 }
