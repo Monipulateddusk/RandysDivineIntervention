@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -179,17 +178,17 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public override void OnExit()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
 
         public override void Update()
         {
-            throw new NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 }

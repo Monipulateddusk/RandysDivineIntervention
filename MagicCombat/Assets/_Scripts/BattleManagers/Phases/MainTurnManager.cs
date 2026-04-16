@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using TurnBased.Intention;
-
 namespace TurnBased.Phases
 {
     public class MainTurnManager
@@ -17,7 +14,6 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Clear();
 
             /*  Add all phases to the dictionary.   */
-            this.MainPhaseStates.Add(MAIN_TURN_STATE.IDLE,                      new UnitTurnPhase_Idle              (phaseManager, this));
             this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION,   new UnitTurnPhase_MoveSelection     (phaseManager, this));
             this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION, new UnitTurnPhase_TargetSelection   (phaseManager, this));
             this.MainPhaseStates.Add(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE,     new UnitTurnPhase_ReadyToExecuteMove(phaseManager, this));
@@ -76,7 +72,7 @@ namespace TurnBased.Phases
 
 
             /*  Retrieve the Unit Intention.    */
-            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndexOnStation, out UnitIntention intention)) { return; }
+            if (!TurnBased.Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndexOnStation, out TurnBased.Intention.UnitIntention intention)) { return; }
 
             UnityEngine.Debug.Log("Retrieved intent: " + intention.ResolutionState);
             UnitIntentionResolutionState state = intention.ResolutionState;
