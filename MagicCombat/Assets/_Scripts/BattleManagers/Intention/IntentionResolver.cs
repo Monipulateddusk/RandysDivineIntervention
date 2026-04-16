@@ -78,10 +78,7 @@ namespace TurnBased.Intention
             /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
             if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention unitIntention)) 
             {
-                Debug.Log("There is no intention for this unit at index: " + unitIndex.Index + " Creating one!");
-                UnitIntentionManager.Instance.AddUnitIndexToDictionary(unitIndex);
-                
-                if(!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out unitIntention)) { UnityEngine.Debug.Log("Idk bro, this is just cursed."); return; }
+                return; 
             }
 
             OnUnitIntentionResolutionStateChange?.Invoke(unitIndex, unitIntention.ResolutionState);
