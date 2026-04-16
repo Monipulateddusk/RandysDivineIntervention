@@ -4,11 +4,9 @@ namespace TurnBased.Phases
 {
     public abstract class UnitTurnSubPhase : Phase
     {
-        protected MainTurnManager mainTurnManager;
         protected UnitIndex currentUnitIndex;
-        public UnitTurnSubPhase(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager)
+        public UnitTurnSubPhase() : base()
         {
-            this.mainTurnManager = mTM;
         }
 
         public void SetCurrentUnitIndex(UnitIndex unitIndex) { this.currentUnitIndex = unitIndex; }
@@ -17,7 +15,7 @@ namespace TurnBased.Phases
     public class UnitTurnPhase_Idle : UnitTurnSubPhase
     {
         private float _enemyTurnTimer;
-        public UnitTurnPhase_Idle(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_Idle() : base()
         {
         }
 
@@ -39,7 +37,7 @@ namespace TurnBased.Phases
                 if (Input.GetKeyDown(KeyCode.Escape))
                 {
 
-                    this.mainTurnManager.SwitchToNextSubPhase();
+                   // this.mainTurnManager.SwitchToNextSubPhase();
                 }
 
             }
@@ -51,7 +49,7 @@ namespace TurnBased.Phases
                 {
                     //MonoBehaviour.print("<color=yellow>Idle</color>");
                     //Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).gameObject.name);
-                    this.mainTurnManager.SwitchToNextSubPhase();
+                  //  this.mainTurnManager.SwitchToNextSubPhase();
                 }
             }
         }
@@ -59,7 +57,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
     {
-        public UnitTurnPhase_MoveSelection(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_MoveSelection() : base()
         {
         }
 
@@ -93,7 +91,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
     {
-        public UnitTurnPhase_TargetSelection(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_TargetSelection() : base()
         {
         }
 
@@ -110,14 +108,14 @@ namespace TurnBased.Phases
         public override void Update()
         {
             //MonoBehaviour.print("<color=pink>TargetSelection</color>");
-            this.mainTurnManager.SwitchToNextSubPhase();
+         //   this.mainTurnManager.SwitchToNextSubPhase();
         }
     }
 
 
     public class UnitTurnPhase_ReadyToExecuteMove : UnitTurnSubPhase
     {
-        public UnitTurnPhase_ReadyToExecuteMove(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_ReadyToExecuteMove() : base()
         {
         }
 
@@ -140,7 +138,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
     {
-        public UnitTurnPhase_ResolveAttack(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_ResolveAttack() : base()
         {
 
         }
@@ -159,11 +157,11 @@ namespace TurnBased.Phases
         {
             if (Input.GetKey(KeyCode.Backspace))
             {
-                this.mainTurnManager.SwitchToNextSubPhase();
+             //   this.mainTurnManager.SwitchToNextSubPhase();
             }
             else if (Input.GetKey(KeyCode.KeypadEnter))
             {
-                this.PhaseManager.ChangeToNextStateInOrder();
+                PhaseManager.Instance.ChangeToNextStateInOrder();
             }
 
 
@@ -172,7 +170,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_AttackComplete : UnitTurnSubPhase
     {
-        public UnitTurnPhase_AttackComplete(PhaseManager phaseManager, MainTurnManager mTM) : base(phaseManager, mTM)
+        public UnitTurnPhase_AttackComplete() : base()
         {
         }
 

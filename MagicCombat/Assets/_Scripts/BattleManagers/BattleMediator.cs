@@ -64,6 +64,7 @@ namespace TurnBased
         private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager   = new();
         private readonly TurnOrder.TurnOrderManager             TurnOrderManager        = new();
         private readonly Phases.PhaseManager                    PhaseManager            = new();
+        private readonly Phases.MainTurnManager                 mainTurnManager         = new();
         private readonly Intention.IntentionResolver            IntentionResolver       = new();
         private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
 

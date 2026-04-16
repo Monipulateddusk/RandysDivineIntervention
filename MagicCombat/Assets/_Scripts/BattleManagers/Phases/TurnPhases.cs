@@ -1,16 +1,11 @@
 using UnityEngine;
-using System.Collections.Generic;
-using System;
 
 namespace TurnBased.Phases
 {
     public abstract class Phase
     {
-        public PhaseManager PhaseManager;
-
-        public Phase(PhaseManager phaseManager)
+        public Phase()
         {
-            this.PhaseManager = phaseManager;
         }
         public abstract void OnEnter();
         public abstract void Update();
@@ -19,7 +14,9 @@ namespace TurnBased.Phases
 
     public class BeginRoundPhase : Phase
     {
-        public BeginRoundPhase(PhaseManager phaseManager) : base(phaseManager)
+        PhaseTaskCompletionManager completionManager;
+
+        public BeginRoundPhase(PhaseManager phaseManager) : base()
         {
         }
 
@@ -30,30 +27,9 @@ namespace TurnBased.Phases
             /*  Set the StationSelector to be locked so the player cannot select units while processing initial intentions. */
             StationSelectorManager.Instance.SetSelectorStateLocked();
 
-            /*  If the turn order list is not empty, move past here.    */
-            if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count < 0)
-            {
-                this.PhaseManager.ChangeToNextStateInOrder();
-                return;
-            }
+            InitaliseTurnOrderForTheRound();
 
-            /*  When we enter this phase, we want to create the Turn Order List awaiting any Tasks that need to be done from external classes.  */
-            List<UnitIndex> createdTurnOrder = TurnOrder.TurnOrderManager.Instance.CreateTurnOrderList();
-
-            /*  If the turn order list is less than 0 because there is not enough units to make a turn order with. Stop!!!! */
-            if (createdTurnOrder.Count <= 0)
-            {
-                return;
-            }
-
-            /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
-            
-            if(Intention.IntentionResolver.Instance == null) { Debug.Log("Intention resolver is null BOZO!"); return; }
-            Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions();
-
-
-            /*  Once everything is done, we want to move onto the next Phase.   */
-            this.PhaseManager.ChangeToNextStateInOrder();
+            SubscribeEventsForStartOfRound();
         }
 
         public override void OnExit()
@@ -66,11 +42,44 @@ namespace TurnBased.Phases
         {
 
         }
+
+        private void OnBeginRoundComplete()
+        {
+            Intention.IntentionResolver.OnAllIntentionsProcessed -= this.completionManager.OnActionComplete;
+
+            /*  Once everything is done, we want to move onto the next Phase.   */
+            PhaseManager.Instance.ChangeToNextStateInOrder();
+        }
+
+        private void InitaliseTurnOrderForTheRound()
+        {
+            TurnOrderCreationState turnOrderCreationState = TurnOrder.TurnOrderManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
+
+            if (turnOrderCreationState == TurnOrderCreationState.InsufficentUnits) { throw new System.Exception("ERROR — START OF ROUND: INSUSFICIENT UNIT COUNT!"); }
+            else if (turnOrderCreationState == TurnOrderCreationState.OldTurnOrderList)
+            {
+                PhaseManager.Instance.ChangeToNextStateInOrder();
+                return;
+            }
+        }
+
+        private void SubscribeEventsForStartOfRound()
+        {
+            this.completionManager = new(OnBeginRoundComplete);
+
+            this.completionManager.AddAction();
+            Intention.IntentionResolver.OnAllIntentionsProcessed += this.completionManager.OnActionComplete;
+
+            /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
+            Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions();
+
+        }
+
     }
 
     public class PreTurnPhase : Phase
     {
-        public PreTurnPhase(PhaseManager phaseManager) : base(phaseManager)
+        public PreTurnPhase(PhaseManager phaseManager) : base()
         {
         }
 
@@ -81,12 +90,12 @@ namespace TurnBased.Phases
             if (unit != null)
             {
 
-                this.PhaseManager.ChangeToNextStateInOrder();
+            PhaseManager.Instance.ChangeToNextStateInOrder();
             }
             /*  If there is no Unit available in the Turn order, we are at the end of the Turn order and then we want to start the Round anew.  */
             else
             {
-                this.PhaseManager.ChangeState(PHASE_TYPES.END_ROUND);
+                PhaseManager.Instance.ChangeState(PHASE_TYPES.END_ROUND);
             }
         }
 
@@ -103,12 +112,10 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase : Phase
     {
-        MainTurnManager mainTurnManager;
         UnitIndex currentUnitIndex;
 
-        public UnitTurnPhase(PhaseManager phaseManager) : base(phaseManager)
+        public UnitTurnPhase(PhaseManager phaseManager) : base()
         {
-            this.mainTurnManager = new(phaseManager);
         }
 
         public override void OnEnter()
@@ -119,13 +126,11 @@ namespace TurnBased.Phases
             currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
 
             /*  INITIALISE THE MAIN TURN MANAGER!!!!!!  */
-            mainTurnManager.EnterCurrentPhase();
 
         }
 
         public override void OnExit()
         {
-            this.mainTurnManager.ExitCurrentPhase();
 
             /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
 
@@ -133,7 +138,6 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-            this.mainTurnManager.UpdateCurrentPhase();
 
             /*  Check if the Unit has an intention already planned. If so, execute it.  */
 
@@ -157,7 +161,7 @@ namespace TurnBased.Phases
 
     public class EndRoundPhase : Phase
     {
-        public EndRoundPhase(PhaseManager phaseManager) : base(phaseManager)
+        public EndRoundPhase(PhaseManager phaseManager) : base()
         {
         }
 
@@ -166,13 +170,13 @@ namespace TurnBased.Phases
             /*  Check if the Turn-Order List is empty. If not, we don't want to be here.    */
             if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0)
             {
-                this.PhaseManager.ChangeToNextStateInOrder();
+            PhaseManager.Instance.ChangeToNextStateInOrder();
                 return;
             }
             /*  If we are supposed to be here. Process any end of round effects. Start the Round anew. */
             else
             {
-                this.PhaseManager.ChangeState(PHASE_TYPES.START_ROUND);
+                PhaseManager.Instance.ChangeState(PHASE_TYPES.START_ROUND);
             }
 
         }

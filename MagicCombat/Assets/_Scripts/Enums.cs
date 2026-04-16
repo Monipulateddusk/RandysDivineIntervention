@@ -166,6 +166,14 @@ public enum UnitIntentionResolutionState
     COMPLETE = 3,   
 }
 
+public enum TurnOrderCreationState
+{
+    InsufficentUnits = 0,
+    NewTurnOrderList = 1,
+    OldTurnOrderList = 2,
+}
+
+
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
 /// CAMERA ENUMERATIONS

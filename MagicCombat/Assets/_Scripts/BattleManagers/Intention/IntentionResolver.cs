@@ -24,6 +24,7 @@ namespace TurnBased.Intention
 
         private System.Collections.Generic.Queue<UnitIndex> unitIndexesProcessingQueue;
         public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
+        public static event System.Action OnAllIntentionsProcessed;
 
         public void Awake()
         {
@@ -61,6 +62,8 @@ namespace TurnBased.Intention
             if(this.unitIndexesProcessingQueue.Count == 0)
             {
                 Debug.LogWarning("ALL UNITS PROCESSED!");
+
+                OnAllIntentionsProcessed?.Invoke();
 
                 UnitIntentionManager.Instance.PrintOutAllIntents();
                 return;

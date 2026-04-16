@@ -2,6 +2,22 @@ namespace TurnBased.Phases
 {
     public class PhaseManager
     {
+        private static PhaseManager instance;
+        public static PhaseManager Instance
+        {
+            get
+            {
+                return instance;
+            }
+            set
+            {
+                if(instance != null)
+                {
+                    instance = value;
+                }
+            }
+        }
+
         System.Collections.Generic.Dictionary<PHASE_TYPES, Phase> PhaseDictionary = new();
         private PHASE_TYPES CurrentPhaseType;
         private Phase CurrentPhase;

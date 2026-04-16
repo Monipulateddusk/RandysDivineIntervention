@@ -31,7 +31,36 @@ namespace TurnBased.TurnOrder
             instance = this;
         }
 
-        public System.Collections.Generic.List<UnitIndex> CreateTurnOrderList()
+        /// <summary>
+        /// Called at the start of the round. If the current turn order is empty, then we want to make a new one and return true. If it was not empty, don't do anything and return false.
+        /// </summary>
+        /// <returns></returns>
+        public TurnOrderCreationState TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> turnOrderList)
+        {
+            /*  If we didn't need to create a new turn order list.  */
+            if(this.UnitIndexTurnOrderList.Count > 0)
+            {
+                turnOrderList = this.UnitIndexTurnOrderList;
+                return TurnOrderCreationState.OldTurnOrderList;
+            }
+            else
+            {
+                turnOrderList = CreateTurnOrderList();
+
+                /*  If we created a populated turn order list.  */
+                if (turnOrderList.Count > 0)
+                {
+                    return TurnOrderCreationState.NewTurnOrderList;
+                }
+                /*  If we created a turn order list which is empty due to insufficient units.   */
+                else
+                {
+                    return TurnOrderCreationState.InsufficentUnits;
+                }
+            }
+        }
+
+        private System.Collections.Generic.List<UnitIndex> CreateTurnOrderList()
         {
             this.UnitIndexTurnOrderList = StationManager.Instance.GetAllActiveUnits();
 
