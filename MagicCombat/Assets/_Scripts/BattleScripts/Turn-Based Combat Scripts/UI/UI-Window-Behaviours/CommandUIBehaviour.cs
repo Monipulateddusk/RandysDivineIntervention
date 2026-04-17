@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -20,11 +21,13 @@ namespace TurnBased.UI
         [Header("Prefabs")]
         [SerializeField] private GameObject MoveUIPrefab;
         [SerializeField] private GameObject TargetUIPrefab;
+        [SerializeField] private GameObject IntentionTextPrefab;
 
         private System.Collections.Generic.List<MoveUIPrefabData>   InstanciatedMoveUIElements = new();
         private System.Collections.Generic.List<TargetUIPrefabData> InstanciatedTargetUIElements = new();
+        private System.Collections.Generic.List<GameObject>         InstanciatedIntentionTextElements = new();
 
-        private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.Default;
+        private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.MoveSelection;
 
         private void Awake()
         {
@@ -74,18 +77,18 @@ namespace TurnBased.UI
         {
             switch (intentionOfTheUnitIndex.ResolutionState)
             {
-                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
-                case UnitIntentionResolutionState.NONE:
-                default:
-                    SetState(CommandUIBehaviourStates.Default);
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:       
+                    SetState(CommandUIBehaviourStates.MoveSelection);
                     break;
 
                 case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
                     SetState(CommandUIBehaviourStates.TargetSelection);
                     break;
 
+                default:
+                case UnitIntentionResolutionState.NONE:
                 case UnitIntentionResolutionState.COMPLETE:
-                    SetState(CommandUIBehaviourStates.UnitEndTurn);
+                    SetState(CommandUIBehaviourStates.UnitIntention);
                     break;
             }
         }
@@ -108,23 +111,32 @@ namespace TurnBased.UI
 
             switch (this.currentState)
             {
-                case CommandUIBehaviourStates.UnitEndTurn:
-                    VisualiseForUnitEndOfTurn(unitIndex, bBU);
+                case CommandUIBehaviourStates.MoveSelection:
+                    VisualiseForMoveSelection(unitIndex, bBU);
                     break;
 
                 case CommandUIBehaviourStates.TargetSelection:
                     VisualiseForTargetSelection(unitIndex, bBU);
                     break;
 
-                case CommandUIBehaviourStates.Default:
+                case CommandUIBehaviourStates.UnitIntention:
                 default:      
-                    VisualiseForDefaultSelection(unitIndex, bBU);
+                    VisualiseForIntention(unitIndex, bBU);
                     break;
 
             }
         }
 
+        private void VisualiseForMoveSelection(UnitIndex unitIndex, BaseBattleUnit bBU)
+        {
+            /*  Enable the Inspection for the Health and Status as well as the Unit's Moves.    */
+            this.InspectionGameObject.SetActive(true);
+            this.UnitImageHealthWrapperGameObject.SetActive(true);
 
+            SetImage(bBU);
+            SetHealthValues(bBU);
+            SetMoves(bBU);
+        }
         private void VisualiseForUnitEndOfTurn(UnitIndex unitIndex, BaseBattleUnit bBU)
         {
             Debug.LogWarning("End Turn Enable");
@@ -145,14 +157,16 @@ namespace TurnBased.UI
             SetMoves(bBU);
 
             /*  Get the currently selected Unit's intention to visualise it.    */
-            if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-            if(intention.MoveSelection != null) {   return; }
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(unitIndex, intention.MoveSelection.GetMoveTargetType());
             SetTargets(selectorInfo);
+            SetMovesSelectedState(intention.MoveSelection);
         }
 
-        private void VisualiseForDefaultSelection(UnitIndex unitIndex, BaseBattleUnit bBU)
+        private void VisualiseForIntention(UnitIndex unitIndex, BaseBattleUnit bBU)
         {
+            if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
+
             Debug.LogWarning("Default Enable");
 
             /*  Enable the Inspection for the Health and Status as well as the Unit's Moves.    */
@@ -161,7 +175,36 @@ namespace TurnBased.UI
 
             SetImage(bBU);
             SetHealthValues(bBU);
-            SetMoves(bBU);
+            SetIntentionTextElement(bBU, intention);
+        }
+
+        private void DestroyIntentionTextUIElements()
+        {
+            foreach(GameObject obj in this.InstanciatedIntentionTextElements)
+            {
+                Destroy(obj);
+            }
+            this.InstanciatedIntentionTextElements.Clear();
+        }
+        private void SetIntentionTextElement(BaseBattleUnit battleUnit, Intention.UnitIntention unitIntention)
+        {
+            DestroyIntentionTextUIElements();
+            DestroyMoveUIElements();
+
+            GameObject instanciatedTextElement = GameObject.Instantiate(this.IntentionTextPrefab, this.CommandWrapperGameObject.transform);
+
+            /*  Set the intention Text. */
+            if (instanciatedTextElement != null && instanciatedTextElement.TryGetComponent(out TextMeshProUGUI textMeshPro))
+            {
+                textMeshPro.text = GetIntentionText(battleUnit, unitIntention);
+                this.InstanciatedIntentionTextElements.Add(instanciatedTextElement);
+            }
+        }
+
+        private string GetIntentionText(BaseBattleUnit battleUnit, Intention.UnitIntention unitIntention)
+        {
+            if (!StationManager.Instance.TryGetUnitDataOnStation(unitIntention.TargetIndexList.FirstOrDefault(), out UnitData targetUnitData)) { return string.Empty; }
+            return $"{battleUnit.GetBaseUnit().name} is intending to attack {targetUnitData.name} with a {unitIntention.MoveSelection.GetMoveName()}";
         }
 
         private void SetImage(BaseBattleUnit battleUnit)
@@ -189,11 +232,27 @@ namespace TurnBased.UI
 
         private void SetMoves(BaseBattleUnit battleUnit)
         {
+            DestroyIntentionTextUIElements();
             DestroyMoveUIElements();
 
             foreach (IBattleMove moveAction in battleUnit.GetBaseUnit().moves)
             {
                 CreateMoveUIElement(moveAction);
+            }
+        }
+
+        private void SetMovesSelectedState(IBattleMove selectedMove)
+        {
+            Debug.LogWarning("Setting moves for selected move state");
+
+            foreach (MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
+            {
+                if (moveButtonData.GetCorrelatingMove() == selectedMove)
+                {
+                    moveButtonData.LockButtonClickedStatus(true);
+                    continue;
+                }
+                moveButtonData.LockButtonClickedStatus(false); 
             }
         }
 
@@ -264,7 +323,7 @@ namespace TurnBased.UI
         {
             if (this.InstanciatedTargetUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
 
-            GameObject instanciatedObject = GameObject.Instantiate(this.TargetSelectionGameObject, this.CommandWrapperGameObject.transform);
+            GameObject instanciatedObject = GameObject.Instantiate(this.TargetUIPrefab, this.TargetSelectionGameObject.transform);
             if (instanciatedObject != null && instanciatedObject.TryGetComponent(out TargetUIPrefabData instanciatedTargetUIData))
             {
                 instanciatedTargetUIData.Initalise(targetedStationIndex);
@@ -287,7 +346,7 @@ namespace TurnBased.UI
 
         private void OnTargetButtonClick(TargetUIPrefabData buttonObject, bool isPressed)
         {
-            foreach (MoveUIPrefabData targetButtonData in this.InstanciatedMoveUIElements)
+            foreach (TargetUIPrefabData targetButtonData in this.InstanciatedTargetUIElements)
             {
                 if (targetButtonData == buttonObject) { continue; }
 

@@ -74,10 +74,11 @@ public enum UnitTargetSelectorType
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 public enum CommandUIBehaviourStates 
-{ 
-    Default = 0, 
-    TargetSelection = 1, 
-    UnitEndTurn = 2 
+{
+    UnitIntention = 0,
+    MoveSelection = 1, 
+    TargetSelection = 2, 
+    UnitEndTurn = 3,
 };
 
 

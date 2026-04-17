@@ -11,7 +11,7 @@ namespace TurnBased.UI
 
         [SerializeField, Tooltip("Assign with each Shadow on this GameObject, Drag the component itself into the fields.")]
         private UnityEngine.UI.Shadow whiteShadow, blackShadow;
-
+        private IBattleMove correlatingMove;
 
 
         private bool isButtonClicked = false;
@@ -24,7 +24,7 @@ namespace TurnBased.UI
                 this.isButtonClicked = value;
 
                 /*  Visual feedback for the button being selected or deselected.    */
-                OnPressed(IsButtonClicked);
+                OnPressed(isButtonClicked);
 
                 if (this.isButtonClicked)
                 {
@@ -69,6 +69,7 @@ namespace TurnBased.UI
         {
             if (this.MoveUIElementText != null)
             {
+                this.correlatingMove = move;    
                 this.MoveUIElementText.text = move.GetMoveName();
             }
         }
@@ -76,5 +77,25 @@ namespace TurnBased.UI
         {
             this.IsButtonClicked = !this.IsButtonClicked;
         }
+
+        public void LockButtonClickedStatus(bool buttonClickedStatus)
+        {
+            this.MoveUIElementClickableButton.enabled = false;
+            SetClickedStatus(buttonClickedStatus);
+        }
+
+        public void UnlockButtonClickedStatus(bool buttonClickedStatus)
+        {
+            this.MoveUIElementClickableButton.enabled = true;
+            SetClickedStatus(buttonClickedStatus);
+        }
+
+        private void SetClickedStatus(bool buttonClickedStatus)
+        {
+            this.isButtonClicked = buttonClickedStatus;
+            OnPressed(this.isButtonClicked);
+        }
+
+        public IBattleMove GetCorrelatingMove() => this.correlatingMove;
     }
 }
