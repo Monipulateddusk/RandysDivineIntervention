@@ -146,11 +146,6 @@ namespace TurnBased
         private void Update()
         {
             this.PhaseManager.UpdatePhases();
-
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                this.StationHandler.RemoveUnit(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit());
-            }
         }
 
 

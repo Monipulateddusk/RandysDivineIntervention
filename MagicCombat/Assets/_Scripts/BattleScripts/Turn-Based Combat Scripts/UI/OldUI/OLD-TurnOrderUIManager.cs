@@ -172,7 +172,7 @@ public class TurnOrderUIManager : MonoBehaviour
         DeleteIcons();
 
         /*  Push the Current Unit into the Icons List.  */
-        CreateChildUnitTurnIconObject(TurnBased.TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), currentUnitSlot);
+       // CreateChildUnitTurnIconObject(TurnBased.TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), currentUnitSlot);
 
         UpdateCurrentUnitSlotPosition(obj);
         UpdateOtherUnitSlotsSize(obj);

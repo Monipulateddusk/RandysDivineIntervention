@@ -63,6 +63,7 @@ namespace TurnBased.Phases
                 PhaseManager.Instance.ChangeToNextStateInOrder();
                 return;
             }
+            //TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
         }
 
         private void SubscribeEventsForStartOfRound()
@@ -171,7 +172,7 @@ namespace TurnBased.Phases
             /*  When we enter this Phase, we want to process any Start-Of-Turn Status Effects.  */
 
             /*  Get the current Unit.   */
-            currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
+           // currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
 
             /*  INITIALISE THE MAIN TURN MANAGER!!!!!!  */
 

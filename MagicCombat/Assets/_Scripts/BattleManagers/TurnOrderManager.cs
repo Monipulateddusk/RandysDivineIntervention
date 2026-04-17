@@ -22,7 +22,7 @@ namespace TurnBased.TurnOrder
         }
 
         private System.Collections.Generic.List<UnitIndex> UnitIndexTurnOrderList = new();
-        private UnitIndex currentUnit;
+        private UnitIndex? currentUnit = null;
 
         public static event System.Action<System.Collections.Generic.List<UnitIndex>> OnUpdateTurnOrder;
 
@@ -62,6 +62,7 @@ namespace TurnBased.TurnOrder
 
         private System.Collections.Generic.List<UnitIndex> CreateTurnOrderList()
         {
+            this.currentUnit = null;    
             this.UnitIndexTurnOrderList = StationManager.Instance.GetAllActiveUnits();
 
             /*  Sort the List so that slowest Units are processed last. */
@@ -76,6 +77,9 @@ namespace TurnBased.TurnOrder
             this.UnitIndexTurnOrderList.Reverse();
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
+
+            UnityEngine.Debug.LogError($"TurnOrderList count is {this.UnitIndexTurnOrderList.Count}");
+
             return this.UnitIndexTurnOrderList;
         }
 
@@ -91,6 +95,6 @@ namespace TurnBased.TurnOrder
         }
 
         public System.Collections.Generic.List<UnitIndex> GetTurnOrderList() => this.UnitIndexTurnOrderList;
-        public UnitIndex GetCurrentUnit() => this.currentUnit;
+        public UnitIndex? GetCurrentUnit() => this.currentUnit;
     }
 }

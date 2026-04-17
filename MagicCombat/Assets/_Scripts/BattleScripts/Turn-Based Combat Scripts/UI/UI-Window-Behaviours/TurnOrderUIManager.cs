@@ -152,13 +152,20 @@ namespace TurnBased
 
         private void CreateTurnOrderUI(UnitIndex? currentUnit, System.Collections.Generic.List<UnitIndex> subsequentUnits)
         {
-            if(currentUnit == null) { Debug.LogWarning("CURRENT UNIT IS NULL!"); return; }
-
-            List<UnitIndex> turnOrder = new()
+            List<UnitIndex> turnOrder = new();
+            if (currentUnit.HasValue) 
             {
-                currentUnit.Value
-            };
-            turnOrder.AddRange(subsequentUnits);
+                turnOrder = new()
+                {
+                    currentUnit.Value
+                };
+                turnOrder.AddRange(subsequentUnits);
+            }
+            else
+            {
+                turnOrder.AddRange(subsequentUnits);
+            }
+
             /*  For each entry in the list, we need to create a slot for each entry.
              *  The 0-index slot, needs to be on the Summoning Circle however.
              */
