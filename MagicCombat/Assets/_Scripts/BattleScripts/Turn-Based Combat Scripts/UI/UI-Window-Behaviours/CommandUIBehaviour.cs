@@ -53,7 +53,7 @@ namespace TurnBased.UI
             if (!StationManager.Instance.TryGetUnitIndexOnStation(StationSelectorManager.Instance.GetSelectedStationIndex(), out UnitIndex unitIndex)) { return; }
 
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-            if (intention.MoveSelection != null) { return; }
+
             UnitIntentionManager_OnUnitIntentionChanged(unitIndex, intention);
         }
 
