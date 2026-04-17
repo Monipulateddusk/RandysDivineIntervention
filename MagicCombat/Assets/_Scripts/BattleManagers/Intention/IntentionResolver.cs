@@ -37,14 +37,26 @@ namespace TurnBased.Intention
         /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
         /// IMPORTANT: This should mean we auto-select move, but if the Unit has a PLAYER-DRIVEN MOVE-SELECTOR, then the PLAYER should be able to select the targets.
         /// </summary>
-        public void DetermineNonPlayerDrivenUnitIntentions()
+        public bool DetermineNonPlayerDrivenUnitIntentions()
         {
-            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(GetAllAutonomousUnits());
-
-
-
-            ProcessNextUnitIndex();
-        }   
+            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(GetAllAutonomousUnits());      
+            if (this.unitIndexesProcessingQueue.Count > 0)
+            {
+                ProcessNextUnitIndex();
+                return true;
+            }
+            return false;
+        }
+        public bool DeterminePlayerDrivenUnitIntentions()
+        {
+            this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(GetAllPlayerDrivenUnits());
+            if (this.unitIndexesProcessingQueue.Count > 0)
+            {
+                ProcessNextUnitIndex();
+                return true;
+            }
+            return false;
+        }
 
         public void ProcessNextUnitIndex()
         {
@@ -78,6 +90,21 @@ namespace TurnBased.Intention
                 }
             }
             return autonomousUnits; 
+        }
+
+        private System.Collections.Generic.List<UnitIndex> GetAllPlayerDrivenUnits()
+        {
+            System.Collections.Generic.List<UnitIndex> playerDrivenUnits = new();
+            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
+            {
+                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
+
+                if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
+                {
+                    playerDrivenUnits.Add(unitIndex);
+                }
+            }
+            return playerDrivenUnits;
         }
 
         public int GetQueueCount() => this.unitIndexesProcessingQueue.Count;

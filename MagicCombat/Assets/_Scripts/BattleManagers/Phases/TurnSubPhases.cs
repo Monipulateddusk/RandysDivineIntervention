@@ -165,7 +165,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            //MonoBehaviour.print("<color=green>ResolveAttack</color>");
+            MonoBehaviour.print("<color=green>Entering in ResolveAttack</color>");
         }
 
         public override void OnExit()
