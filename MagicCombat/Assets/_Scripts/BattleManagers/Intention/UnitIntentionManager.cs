@@ -62,6 +62,12 @@ namespace TurnBased.Intention
         public void Awake()
         {
             instance = this;
+            StationManager.OnAddUnit += AddUnitIndexToDictionary;
+        }
+
+        ~UnitIntentionManager()
+        {
+            StationManager.OnAddUnit -= AddUnitIndexToDictionary;
         }
 
         public void AddUnitIndexToDictionary(UnitIndex unitIndex)

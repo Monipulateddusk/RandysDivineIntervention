@@ -160,11 +160,8 @@ public class StationSelectorManager
         if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
         currentIndex++;
 
-        /*  Wrap the index between 0 and the length of the Populated Station List.  */
-        if (!WrapIndex(currentIndex, out int? wrappedIndex)) {  return; }
-
         /*  Invoke the event because we have switched. Pass the old index and the new one!  */
-        SetSelectedStationIndex(new StationIndex(wrappedIndex.Value));
+        SetSelectedStationIndex(currentIndex);
     }
     public void DecrementIndex()
     {
@@ -172,13 +169,11 @@ public class StationSelectorManager
 
         /*  Find where this index is in the Stations list.  */
         if (!FindCurrentIndexInStationIndexesList(out int currentIndex)) { return; }
+
         currentIndex--;
 
-        /*  Wrap the index between 0 and the length of the Populated Station List.  */
-        if (!WrapIndex(currentIndex, out int? wrappedIndex)) { return; }
-
         /*  Invoke the event because we have switched. Pass the old index and the new one!  */
-        SetSelectedStationIndex(new StationIndex(wrappedIndex.Value));
+        SetSelectedStationIndex(currentIndex);
     }
 
     #endregion
@@ -188,15 +183,27 @@ public class StationSelectorManager
         return this.selectedStationIndex;
     }
 
+    private void SetSelectedStationIndex(int newListIndex)
+    {
+        /*  Wrap the index between 0 and the length of the Populated Station List.  */
+        if (!WrapIndex(newListIndex, out int? wrappedIndex)) { return; }
+
+        StationIndex oldStationIndex = this.selectedStationIndex;
+
+        this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
+
+        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
+    }
+
     public void SetSelectedStationIndex(StationIndex newStationIndex)
     {
-        Debug.LogWarning($"Setting new StationIndex to: {newStationIndex.Index}. Size of collection is: {this.stationIndexes.Count}");
         StationIndex oldStationIndex = this.selectedStationIndex;
 
         /*  Check to see if this new station index is contained within our StationIndexes. */
-        if (!this.stationIndexes.Contains(newStationIndex)) { return; }
+        if (!DoesStationIndexExistInStationIndexes(newStationIndex)) { return; }
 
         this.selectedStationIndex = newStationIndex;
+
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
 
@@ -211,4 +218,13 @@ public class StationSelectorManager
         OnSelectionStateChange?.Invoke(this.selectionState);
     }
     public StationSelectionState GetStationSelectionState() => this.selectionState;
+
+    private bool DoesStationIndexExistInStationIndexes(StationIndex index) 
+    {
+        foreach (StationIndex s in this.stationIndexes)
+        {
+            if(s.Index == index.Index) {  return true; }    
+        }
+        return false;
+    }
 }

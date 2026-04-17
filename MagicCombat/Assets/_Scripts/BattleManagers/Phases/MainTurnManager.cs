@@ -2,23 +2,9 @@ namespace TurnBased.Phases
 {
     public class MainTurnManager
     {
-        private static MainTurnManager instance;
-        public static MainTurnManager Instance
-        {
-            get
-            {
-                return instance;
-            }
-            set
-            {
-                if (instance != null)
-                {
-                    instance = value;
-                }
-            }
-        }
+        public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
 
-        private System.Collections.Generic.Dictionary<MAIN_TURN_STATE, UnitTurnSubPhase> MainPhaseStates = new();
+        private readonly System.Collections.Generic.Dictionary<MAIN_TURN_STATE, UnitTurnSubPhase> MainPhaseStates = new();
         private MAIN_TURN_STATE currentState = new();
 
         public MainTurnManager() 
@@ -34,27 +20,32 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK,            new UnitTurnPhase_ResolveAttack());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.ATTACK_COMPLETE,           new UnitTurnPhase_AttackComplete());
 
-            StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
+            StationSelectorManager.OnSelectionChange            += StationSelectorManager_OnSelectionChange;
         }
 
         ~MainTurnManager()
         {
             this.MainPhaseStates.Clear();
-            StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+            StationSelectorManager.OnSelectionChange            -= StationSelectorManager_OnSelectionChange;
         }
 
+        public void ContinueProcessIntention(UnitIndex unitIndex)
+        {
+            if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
+            OnUnitIntentionResolutionStateChange?.Invoke(unitIndex, intention.ResolutionState);
+
+            /*  
+             *  When the intention changes (I.e. when a move OR target is done selecting), jump to the Idle Phase.  
+             */
+            SwitchSubPhase(MAIN_TURN_STATE.IDLE);
+        }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex newSelectedStation, StationIndex? oldStation)
         {
             /*  Get the selected Unit's unit Index  */
-            if(!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndex)) { return; }
+            //if(!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndex)) { return; }
 
-            InitaliseMainTurnManagerForUnit(unitIndex);
-        }
-
-        private void InitaliseMainTurnManagerForUnit(UnitIndex unitIndex)
-        {
-            SetActiveSubPhaseBasedOnUnitIntention(unitIndex);
+           // ContinueProcessIntention(unitIndex);
         }
 
         public void EnterCurrentPhase()
@@ -70,45 +61,6 @@ namespace TurnBased.Phases
         {
             this.MainPhaseStates[this.currentState]?.OnExit();
         }
-        public void SwitchToNextSubPhase()
-        {
-            /*  This should assign our current state to the next state in sequence as defined in the Enum.  */
-            MAIN_TURN_STATE nextState = (MAIN_TURN_STATE)((int)(this.currentState + 1) % System.Enum.GetValues(typeof(MAIN_TURN_STATE)).Length);
-
-            SwitchSubPhase(nextState);
-        }
-
-        private void SetActiveSubPhaseBasedOnUnitIntention(UnitIndex newSelectedUnit)
-        {
-            /*  Retrieve the Unit Intention.    */
-            if (!TurnBased.Intention.UnitIntentionManager.Instance.TryGetIntention(newSelectedUnit, out TurnBased.Intention.UnitIntention intention)) { return; }
-
-            UnityEngine.Debug.Log("Retrieved intent: " + intention.ResolutionState);
-            UnitIntentionResolutionState state = intention.ResolutionState;
-
-            UnityEngine.Debug.Log("intent state is: " + state.ToString());
-
-
-            switch (state)
-            {
-                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
-                    SwitchSubPhase(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION);
-                    return;
-                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
-                    SwitchSubPhase(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION);
-                    return;
-
-                case UnitIntentionResolutionState.COMPLETE:
-                    SwitchSubPhase(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE);
-                    return;
-
-                case UnitIntentionResolutionState.NONE:
-                default:
-                    SwitchSubPhase(MAIN_TURN_STATE.IDLE);
-                    return; 
-            }
-
-        }
 
         public void SwitchSubPhase(MAIN_TURN_STATE newState)
         {
@@ -117,6 +69,7 @@ namespace TurnBased.Phases
             this.currentState = newState;
 
             SetSelectedCurrentUnitForSubPhase();
+            UnityEngine.Debug.LogWarning($"Switching to Phase: {newState} ");
 
             this.MainPhaseStates[this.currentState]?.OnEnter();
         }

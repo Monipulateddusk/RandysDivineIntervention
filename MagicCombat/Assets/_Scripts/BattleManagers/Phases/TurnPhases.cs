@@ -30,6 +30,8 @@ namespace TurnBased.Phases
             InitaliseTurnOrderForTheRound();
 
             SubscribeEventsForStartOfRound();
+
+
         }
 
         public override void OnExit()
@@ -170,7 +172,7 @@ namespace TurnBased.Phases
             /*  Check if the Turn-Order List is empty. If not, we don't want to be here.    */
             if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0)
             {
-            PhaseManager.Instance.ChangeToNextStateInOrder();
+                PhaseManager.Instance.ChangeToNextStateInOrder();
                 return;
             }
             /*  If we are supposed to be here. Process any end of round effects. Start the Round anew. */

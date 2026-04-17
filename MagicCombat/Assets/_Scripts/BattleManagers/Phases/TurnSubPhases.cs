@@ -1,3 +1,4 @@
+using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -14,14 +15,35 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_Idle : UnitTurnSubPhase
     {
-        private float _enemyTurnTimer;
         public UnitTurnPhase_Idle() : base()
         {
         }
 
         public override void OnEnter()
         {
-            _enemyTurnTimer = 2.0f;
+            /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentUnitIndex, out Intention.UnitIntention unitIntention)) { return;  }
+
+            switch (unitIntention.ResolutionState)
+            {
+                case UnitIntentionResolutionState.NONE:
+                    UnityEngine.Debug.Log("No state?");
+
+                    return;
+                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+                    UnityEngine.Debug.Log("Selecting move");
+                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION);
+                    return;
+                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
+                    UnityEngine.Debug.Log("Selecting target");
+                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION);
+
+                    return;
+                case UnitIntentionResolutionState.COMPLETE:
+                   // UnityEngine.Debug.LogWarning("Complete?");
+                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE);
+                    return;
+            }
         }
 
         public override void OnExit()
@@ -31,27 +53,7 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-            //MonoBehaviour.print("<color=yellow>Idle for </color>" + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name);
-            if (StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ALLY)
-            {
-                if (Input.GetKeyDown(KeyCode.Escape))
-                {
-
-                   // this.mainTurnManager.SwitchToNextSubPhase();
-                }
-
-            }
-            else if (StationManager.Instance.GetUnitTeamOfIndex(currentUnitIndex) == UnitTeam.ENEMY)
-            {
-                //Debug.LogWarning("EnemyTurnTimer is: " + _enemyTurnTimer);
-                _enemyTurnTimer -= Time.deltaTime;
-                if (_enemyTurnTimer <= 0)
-                {
-                    //MonoBehaviour.print("<color=yellow>Idle</color>");
-                    //Debug.LogWarning("Processing Update in IDLE SubPhase for Unit named: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).gameObject.name);
-                  //  this.mainTurnManager.SwitchToNextSubPhase();
-                }
-            }
+            
         }
     }
 
@@ -67,7 +69,7 @@ namespace TurnBased.Phases
             /*  Get the Current Unit's Move Selection Intention.    */
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(currentUnitIndex);
 
-            
+            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(currentUnitIndex);
 
 
 
@@ -97,7 +99,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-
+            Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(currentUnitIndex);
         }
 
         public override void OnExit()
@@ -123,6 +125,17 @@ namespace TurnBased.Phases
         {
             Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
 
+            if(Intention.IntentionResolver.Instance.GetQueueCount() > 0)
+            {
+                Intention.IntentionResolver.Instance.ProcessNextUnitIndex();
+
+            }
+            else
+            {
+                Debug.Log("No one left to resolve.");
+                PhaseManager.Instance.ChangeToNextStateInOrder();
+            }
+         
         }
 
         public override void OnExit()

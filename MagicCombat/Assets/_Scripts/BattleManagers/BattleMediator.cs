@@ -1,13 +1,11 @@
-using System.Collections.Generic;
 using System.Linq;
-using TurnBased.TurnOrder;
 using UnityEngine;
 
 namespace TurnBased
 {
     public struct CombatReturnData
     {
-        public CombatReturnData(IBattleMove battleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
+        public CombatReturnData(IBattleMove battleMoveAction, UnitTeam source, BaseBattleUnit unitSource, System.Collections.Generic.List<BaseBattleUnit> users, System.Collections.Generic.List<BaseBattleUnit> targets, bool requiresMovement = false)
         {
             this.battleMoveAction = battleMoveAction;
             this.battleElementalMoveAction = null;
@@ -19,7 +17,7 @@ namespace TurnBased
 
             this.requiresMovement = requiresMovement;
         }
-        public CombatReturnData(IElementalMoveAction elementalBattleMoveAction, UnitTeam source, BaseBattleUnit unitSource, List<BaseBattleUnit> users, List<BaseBattleUnit> targets, bool requiresMovement = false)
+        public CombatReturnData(IElementalMoveAction elementalBattleMoveAction, UnitTeam source, BaseBattleUnit unitSource, System.Collections.Generic.List<BaseBattleUnit> users, System.Collections.Generic.List<BaseBattleUnit> targets, bool requiresMovement = false)
         {
             this.battleMoveAction = null;
             this.battleElementalMoveAction = elementalBattleMoveAction;
@@ -32,8 +30,8 @@ namespace TurnBased
             this.requiresMovement = requiresMovement;
         }
         public BaseBattleUnit sourceUnit;
-        public List<BaseBattleUnit> users;
-        public List<BaseBattleUnit> targets;
+        public System.Collections.Generic.List<BaseBattleUnit> users;
+        public System.Collections.Generic.List<BaseBattleUnit> targets;
         public UnitTeam teamSource;
         public IBattleMove battleMoveAction;
         public IElementalMoveAction battleElementalMoveAction;
@@ -64,7 +62,6 @@ namespace TurnBased
         private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager   = new();
         private readonly TurnOrder.TurnOrderManager             TurnOrderManager        = new();
         private readonly Phases.PhaseManager                    PhaseManager            = new();
-        private readonly Phases.MainTurnManager                 mainTurnManager         = new();
         private readonly Intention.IntentionResolver            IntentionResolver       = new();
         private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
 
@@ -112,14 +109,15 @@ namespace TurnBased
             this.StationSelectorManager.Awake();
             this.MoveSelectorManager.Awake();
             this.TargetSelectorManager.Awake();
+            this.PhaseManager.Awake();
 
 
-            TurnBased.Intention.IntentionResolver.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
+            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
         }
 
         private void OnDestroy()
         {
-            TurnBased.Intention.IntentionResolver.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
+            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
         }
 
         private void IntentionResolver_OnUnitIntentionResolutionStateChange(UnitIndex unitIndex, UnitIntentionResolutionState state)
@@ -147,7 +145,7 @@ namespace TurnBased
 
             if (Input.GetKeyDown(KeyCode.H))
             {
-                this.StationHandler.RemoveUnit(TurnOrderManager.Instance.GetCurrentUnit());
+                this.StationHandler.RemoveUnit(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit());
             }
         }
 

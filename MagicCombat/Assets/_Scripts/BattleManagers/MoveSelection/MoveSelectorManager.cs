@@ -98,10 +98,10 @@ namespace TurnBased.MoveSelection {
             moveSelector = default;
 
       
-            foreach (var ind in this.unitIndexMoveSelectionDictionary)
-            {
-                UnityEngine.Debug.Log(ind.Key + ", " + ind.Value);
-            }
+            //foreach (var ind in this.unitIndexMoveSelectionDictionary)
+            //{
+            //    UnityEngine.Debug.Log(ind.Key + ", " + ind.Value);
+            //}
 
             /*  If we don't have this index, stop!    */
             if (!this.unitIndexMoveSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
@@ -110,7 +110,7 @@ namespace TurnBased.MoveSelection {
 
             moveSelector = this.unitIndexMoveSelectionDictionary[unitIndex.Index];
 
-            UnityEngine.Debug.Log(moveSelector);
+            //UnityEngine.Debug.Log(moveSelector);
             return true;
         }
     }

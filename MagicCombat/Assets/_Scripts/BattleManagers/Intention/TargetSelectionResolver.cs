@@ -2,7 +2,6 @@ namespace TurnBased.Intention
 {
     public static class TargetSelectionResolver
     {
-        public static event System.Action<UnitIndex> OnTargetSelectionComplete;
         public static bool ProcessIntentionTargetSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.Log("Try get Target selector!");
@@ -49,18 +48,14 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.Log("Invoking OnTargetSelectionComplete");
 
-            OnTargetSelectionComplete?.Invoke(unitIndex);
+            IntentionResolver.Instance.ContinueProcessIntention(unitIndex);
             return true;
         }
-        public static bool OnPlayerDrivenSelection(UnitIndex unitIndex)
+        public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
         {
-            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return false; }
+            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return; }
 
             ProcessTargetSelector(unitIndex, targetSelector);
-
-            OnTargetSelectionComplete?.Invoke(unitIndex);
-
-            return true;
         }
 
     }

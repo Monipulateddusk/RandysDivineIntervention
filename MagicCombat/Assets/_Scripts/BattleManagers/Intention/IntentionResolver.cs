@@ -1,6 +1,3 @@
-using TurnBased.MoveSelection;
-using UnityEngine;
-
 namespace TurnBased.Intention
 {
     public class IntentionResolver
@@ -16,35 +13,25 @@ namespace TurnBased.Intention
                 }
                 catch (System.Exception e)
                 {
-                    Debug.LogError(e.ToString());
+                    UnityEngine.Debug.LogError(e.ToString());
                     return null;
                 }
             }
         }
 
+        private Phases.MainTurnManager MainTurnManager = new();
+
         private System.Collections.Generic.Queue<UnitIndex> unitIndexesProcessingQueue;
-        public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
         public static event System.Action OnAllIntentionsProcessed;
 
         public void Awake()
         {
             /*  Initalise the Singleton.    */
             instance = this;
-
-            MoveSelectionResolver.OnMoveSelectionComplete       += ResumeProcessingIntention;
-            TargetSelectionResolver.OnTargetSelectionComplete   += ResumeProcessingIntention;
         }
 
-        ~IntentionResolver()
-        {
-            MoveSelectionResolver.OnMoveSelectionComplete       -= ResumeProcessingIntention;
-            TargetSelectionResolver.OnTargetSelectionComplete   -= ResumeProcessingIntention;
-        }
-
-        public void ResumeProcessingIntention(UnitIndex unitIndex)
-        {
-            ProcessIntention(unitIndex);
-        }
+        public void SwitchSubPhase(MAIN_TURN_STATE newPhase) => this.MainTurnManager.SwitchSubPhase(newPhase);
+        public void ContinueProcessIntention(UnitIndex unitIndex) => this.MainTurnManager.ContinueProcessIntention(unitIndex);
 
         /// <summary>
         /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
@@ -57,11 +44,11 @@ namespace TurnBased.Intention
             ProcessNextUnitIndex();
         }   
 
-        private void ProcessNextUnitIndex()
+        public void ProcessNextUnitIndex()
         {
             if(this.unitIndexesProcessingQueue.Count == 0)
             {
-                Debug.LogWarning("ALL UNITS PROCESSED!");
+                UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
 
                 OnAllIntentionsProcessed?.Invoke();
 
@@ -69,54 +56,26 @@ namespace TurnBased.Intention
                 return;
             }
 
-            UnitIndex unitIndex = this.unitIndexesProcessingQueue.Dequeue();    
-            ProcessIntention(unitIndex);
+            UnitIndex unitIndex = this.unitIndexesProcessingQueue.Dequeue();
+
+            ContinueProcessIntention(unitIndex);            
         }
 
-        private void ProcessIntention(UnitIndex unitIndex)
-        {
-            /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
-            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention unitIntention)) 
-            {
-                return; 
-            }
-
-            OnUnitIntentionResolutionStateChange?.Invoke(unitIndex, unitIntention.ResolutionState);
-
-            switch (unitIntention.ResolutionState)
-            {
-                case UnitIntentionResolutionState.NONE:
-                    UnityEngine.Debug.Log("No state?");
-
-                    return;
-                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
-                    UnityEngine.Debug.Log("Selecting move");
-                    MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
-                    return;
-                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
-                    UnityEngine.Debug.Log("Selecting target");
-
-                    TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
-                    return;
-                case UnitIntentionResolutionState.COMPLETE:
-                    UnityEngine.Debug.LogWarning("Complete?");
-                    ProcessNextUnitIndex();
-                    return;
-            }
-        }
         private System.Collections.Generic.List<UnitIndex> GetAllAutonomousUnits()
         {
             System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
             foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
             {
-                if (!MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out IMoveSelector moveSelector)) { continue; }
+                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
 
-                if (moveSelector is not PlayerDrivenMoveSelector)
+                if (moveSelector is not MoveSelection.PlayerDrivenMoveSelector)
                 {
                     autonomousUnits.Add(unitIndex);
                 }
             }
             return autonomousUnits; 
         }
+
+        public int GetQueueCount() => this.unitIndexesProcessingQueue.Count;
     }
 }

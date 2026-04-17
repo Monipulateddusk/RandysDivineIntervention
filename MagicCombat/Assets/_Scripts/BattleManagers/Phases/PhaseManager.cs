@@ -22,6 +22,11 @@ namespace TurnBased.Phases
         private PHASE_TYPES CurrentPhaseType;
         private Phase CurrentPhase;
 
+        public void Awake()
+        {
+            instance = this;
+        }
+
         public void Initialise()
         {
             this.PhaseDictionary = new()

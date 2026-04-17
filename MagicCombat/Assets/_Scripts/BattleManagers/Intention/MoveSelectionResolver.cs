@@ -2,8 +2,6 @@ namespace TurnBased.Intention
 {
     public static class MoveSelectionResolver 
     {
-        public static event System.Action<UnitIndex> OnMoveSelectionComplete;
-
         public static bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.Log("Try get move selector!");
@@ -47,19 +45,15 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.Log("Invoking OnMoveSelectionComplete");
 
-            OnMoveSelectionComplete?.Invoke(unitIndex);
- 
+            IntentionResolver.Instance.ContinueProcessIntention(unitIndex);
+
         }
 
-        public static bool OnPlayerDrivenSelection(UnitIndex unitIndex)
+        public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
         {
-            if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { return false; }
+            if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { return; }
 
             ProcessMoveSelector(unitIndex, moveSelector);
-
-            OnMoveSelectionComplete?.Invoke(unitIndex);
-
-            return true;
         }
 
     }

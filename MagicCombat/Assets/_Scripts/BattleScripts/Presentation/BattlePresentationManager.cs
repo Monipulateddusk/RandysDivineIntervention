@@ -17,7 +17,7 @@ public class BattlePresentationManager : MonoBehaviour
     private void OnDestroy()
     {
         StationManager.OnDeployUnit                 -= StationManager_OnDeployUnit;
-        StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+        StationSelectorManager.OnSelectionChange    -= StationSelectorManager_OnSelectionChange;
     }
 
     private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
