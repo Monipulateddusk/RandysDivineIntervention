@@ -20,7 +20,7 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
   element: 2
   moves:
-  - rid: 5544377919140265985
+  - rid: 5303009852325101568
   - rid: 5544377919140265986
   moveSelectorType: 2
   targetSelectorType: 2
@@ -28,8 +28,8 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 5544377919140265985
-      type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+    - rid: 5303009852325101568
+      type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
       data: 
     - rid: 5544377919140265986
       type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}

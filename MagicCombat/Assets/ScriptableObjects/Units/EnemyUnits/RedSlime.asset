@@ -22,8 +22,8 @@ MonoBehaviour:
   moves:
   - rid: 5544377716436893700
   - rid: 5544377716436893701
-  moveSelectorType: 0
-  targetSelectorType: 0
+  moveSelectorType: 1
+  targetSelectorType: 1
   unitAnimator: {fileID: 9100000, guid: 36962da2f91ca574e9f4a5beb2d06501, type: 2}
   references:
     version: 2

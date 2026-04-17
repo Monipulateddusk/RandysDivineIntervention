@@ -73,7 +73,10 @@ namespace TurnBased.Phases
             Intention.IntentionResolver.OnAllIntentionsProcessed += this.completionManager.OnActionComplete;
 
             /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
-            Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions();
+            if (!Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions())
+            {
+                OnBeginRoundComplete();
+            }
 
         }
 

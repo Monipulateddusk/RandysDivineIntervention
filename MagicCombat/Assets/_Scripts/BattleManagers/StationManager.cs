@@ -880,7 +880,7 @@ public static class StationManagerUtilities
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Ally");
 
             case MoveTarget.SingleEnemy:
-                possibleTargetStationIndexes.AddRange(data.AllyStationIndexes);
+                possibleTargetStationIndexes.AddRange(data.EnemyStationIndexes);
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, true, "One Enemy");
 
             case MoveTarget.AllEnemies:
