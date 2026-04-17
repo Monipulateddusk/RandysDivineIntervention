@@ -31,10 +31,10 @@ namespace TurnBased.Phases
         {
             this.PhaseDictionary = new()
             {
-                {PHASE_TYPES.START_ROUND,   new BeginRoundPhase (this) },
-                {PHASE_TYPES.PRE_UNIT_TURN, new PreTurnPhase    (this) },
-                {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   (this) },
-                {PHASE_TYPES.END_ROUND,     new EndRoundPhase   (this) }
+                {PHASE_TYPES.START_ROUND,   new BeginRoundPhase () },
+                {PHASE_TYPES.PRE_UNIT_TURN, new PreTurnPhase    () },
+                {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   () },
+                {PHASE_TYPES.END_ROUND,     new EndRoundPhase   () }
             };
             ChangeState(PHASE_TYPES.START_ROUND);
         }

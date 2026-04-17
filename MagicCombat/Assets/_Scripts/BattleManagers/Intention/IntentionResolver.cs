@@ -41,12 +41,16 @@ namespace TurnBased.Intention
         {
             this.unitIndexesProcessingQueue = new System.Collections.Generic.Queue<UnitIndex>(GetAllAutonomousUnits());
 
+
+
             ProcessNextUnitIndex();
         }   
 
         public void ProcessNextUnitIndex()
         {
-            if(this.unitIndexesProcessingQueue.Count == 0)
+            UnityEngine.Debug.LogWarning($"Current Process Queue length is: {this.unitIndexesProcessingQueue.Count} ");
+
+            if (this.unitIndexesProcessingQueue.Count == 0)
             {
                 UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
 
@@ -57,7 +61,7 @@ namespace TurnBased.Intention
             }
 
             UnitIndex unitIndex = this.unitIndexesProcessingQueue.Dequeue();
-
+            StationSelectorManager.Instance.SetSelectedStationIndex(unitIndex);
             ContinueProcessIntention(unitIndex);            
         }
 

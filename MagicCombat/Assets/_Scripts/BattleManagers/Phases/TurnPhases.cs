@@ -16,7 +16,7 @@ namespace TurnBased.Phases
     {
         PhaseTaskCompletionManager completionManager;
 
-        public BeginRoundPhase(PhaseManager phaseManager) : base()
+        public BeginRoundPhase() : base()
         {
         }
 
@@ -81,7 +81,7 @@ namespace TurnBased.Phases
 
     public class PreTurnPhase : Phase
     {
-        public PreTurnPhase(PhaseManager phaseManager) : base()
+        public PreTurnPhase() : base()
         {
         }
 
@@ -116,7 +116,7 @@ namespace TurnBased.Phases
     {
         UnitIndex currentUnitIndex;
 
-        public UnitTurnPhase(PhaseManager phaseManager) : base()
+        public UnitTurnPhase() : base()
         {
         }
 
@@ -163,7 +163,7 @@ namespace TurnBased.Phases
 
     public class EndRoundPhase : Phase
     {
-        public EndRoundPhase(PhaseManager phaseManager) : base()
+        public EndRoundPhase() : base()
         {
         }
 

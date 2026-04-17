@@ -64,10 +64,11 @@ namespace TurnBased
         private readonly Phases.PhaseManager                    PhaseManager            = new();
         private readonly Intention.IntentionResolver            IntentionResolver       = new();
         private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
+        private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager = new();
 
 
         [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
-
+        [SerializeField] GameObject textPrefab;
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
         {
@@ -110,6 +111,7 @@ namespace TurnBased
             this.MoveSelectorManager.Awake();
             this.TargetSelectorManager.Awake();
             this.PhaseManager.Awake();
+            this.IntentionVisualiserManager.Awake();
 
 
             Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
@@ -132,6 +134,8 @@ namespace TurnBased
 
         private void Start()
         {
+            this.IntentionVisualiserManager.SetTextPrefab(textPrefab);
+
             CreateCombatEncounter();
             this.StationHandler.DeployUnitsForStartOfBattle();
             this.StationSelectorManager.Start();

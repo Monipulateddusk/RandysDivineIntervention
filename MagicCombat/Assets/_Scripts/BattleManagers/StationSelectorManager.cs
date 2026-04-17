@@ -195,6 +195,20 @@ public class StationSelectorManager
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }
 
+    public void SetSelectedStationIndex(UnitIndex unitIndex)
+    {
+        if(!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex newStationIndex)) { return; }
+
+        StationIndex oldStationIndex = this.selectedStationIndex;
+
+        /*  Check to see if this new station index is contained within our StationIndexes. */
+        if (!DoesStationIndexExistInStationIndexes(newStationIndex)) { return; }
+
+
+        this.selectedStationIndex = newStationIndex;
+        OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
+    }
+
     public void SetSelectedStationIndex(StationIndex newStationIndex)
     {
         StationIndex oldStationIndex = this.selectedStationIndex;

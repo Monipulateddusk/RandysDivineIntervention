@@ -21,8 +21,12 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            UnityEngine.Debug.Log($"Entering IDLE! TRYING TO GET UNIT INTENTIONS!");
+
             /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentUnitIndex, out Intention.UnitIntention unitIntention)) { return;  }
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentUnitIndex, out Intention.UnitIntention unitIntention)) { UnityEngine.Debug.LogWarning($"UNABLE TO GET INTENTIONS!"); return;  }
+
+            UnityEngine.Debug.Log($"Obtained UNIT INTENTIONS!");
 
             switch (unitIntention.ResolutionState)
             {
@@ -31,16 +35,16 @@ namespace TurnBased.Phases
 
                     return;
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
-                    UnityEngine.Debug.Log("Selecting move");
+                    UnityEngine.Debug.Log($"Selecting move for unitIndex: {currentUnitIndex.Index}");
                     Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION);
                     return;
                 case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
-                    UnityEngine.Debug.Log("Selecting target");
+                    UnityEngine.Debug.Log($"Selecting target for unitIndex: {currentUnitIndex.Index}");
                     Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION);
 
                     return;
                 case UnitIntentionResolutionState.COMPLETE:
-                   // UnityEngine.Debug.LogWarning("Complete?");
+                    UnityEngine.Debug.Log($"Complete? for unitIndex: {currentUnitIndex.Index}");
                     Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE);
                     return;
             }
@@ -66,6 +70,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            Debug.Log($"Entering : MoveSelection for UnitIndex: {currentUnitIndex.Index}");
+
             /*  Get the Current Unit's Move Selection Intention.    */
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(currentUnitIndex);
 
@@ -99,6 +105,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            Debug.Log($"Entering : TargetSelection for UnitIndex: {currentUnitIndex.Index}");
             Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(currentUnitIndex);
         }
 

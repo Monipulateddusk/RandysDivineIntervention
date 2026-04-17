@@ -74,8 +74,6 @@ namespace TurnBased.Intention
         {
             if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            UnityEngine.Debug.Log("Adding intent index to dict of unit index: " + unitIndex.Index); 
-
             intentionDictionary.Add(unitIndex.Index, new());
             OnUnitIntentionAdded?.Invoke(unitIndex);
         }
