@@ -19,7 +19,7 @@ namespace TurnBased.Intention
             }
         }
 
-        private Phases.MainTurnManager MainTurnManager = new();
+        private readonly Phases.MainTurnManager MainTurnManager = new();
 
         private System.Collections.Generic.Queue<UnitIndex> unitIndexesProcessingQueue;
         public static event System.Action OnAllIntentionsProcessed;

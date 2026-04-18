@@ -48,20 +48,6 @@ namespace TurnBased.Phases
            // ContinueProcessIntention(unitIndex);
         }
 
-        public void EnterCurrentPhase()
-        {
-            this.MainPhaseStates[this.currentState]?.OnEnter();
-        }
-
-        public void UpdateCurrentPhase()
-        {
-            this.MainPhaseStates[this.currentState]?.Update();
-        }
-        public void ExitCurrentPhase()
-        {
-            this.MainPhaseStates[this.currentState]?.OnExit();
-        }
-
         public void SwitchSubPhase(MAIN_TURN_STATE newState)
         {
             this.MainPhaseStates[this.currentState]?.OnExit();

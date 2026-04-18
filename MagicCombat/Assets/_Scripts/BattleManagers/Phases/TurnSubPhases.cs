@@ -1,4 +1,3 @@
-using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -72,18 +71,7 @@ namespace TurnBased.Phases
         {
             Debug.Log($"Entering : MoveSelection for UnitIndex: {currentUnitIndex.Index}");
 
-            /*  Get the Current Unit's Move Selection Intention.    */
-            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(currentUnitIndex);
-
             Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(currentUnitIndex);
-
-
-
-            //if (moveSelectionData.SelectedMove != null)
-            //{
-
-            //    MonoBehaviour.print("Unit of name: " + ConcreteMediator.GetBattleUnitOfUnitIndex(currentUnitIndex).name + " has chosen move: " + moveSelectionData.SelectedMove.ToString());
-            //}
         }
 
         public override void OnExit()
@@ -139,10 +127,20 @@ namespace TurnBased.Phases
             }
             else
             {
-                Debug.Log("No one left to resolve.");
-                PhaseManager.Instance.ChangeToNextStateInOrder();
-            }
-         
+                /*  
+                 *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
+                 *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
+                 */
+                if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
+                {
+                    PhaseManager.Instance.ChangeToNextStateInOrder();
+                }
+                else
+                {
+                    Debug.Log("No one left to resolve. Switching to Resolve Attack");
+                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
+                }
+            }         
         }
 
         public override void OnExit()
@@ -183,8 +181,6 @@ namespace TurnBased.Phases
             {
                 PhaseManager.Instance.ChangeToNextStateInOrder();
             }
-
-
         }
     }
 
