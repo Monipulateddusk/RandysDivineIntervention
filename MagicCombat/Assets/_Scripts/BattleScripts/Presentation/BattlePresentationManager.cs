@@ -32,7 +32,7 @@ public class BattlePresentationManager : MonoBehaviour
 
     private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
     {
-        StationManagerUtilities.GetUnitIndexAndBattleUnitOnStation(selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation);
+        StationManagerUtilities.GetBattleUnitOnStation(selectedStationIndex, out BaseBattleUnit battleUnitOnStation);
 
         if (tempVisual != null)
         {

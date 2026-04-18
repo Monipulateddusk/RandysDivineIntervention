@@ -55,16 +55,17 @@ namespace TurnBased
             }
 
         }
-        private readonly StationManager                         StationHandler          = new();
-        private readonly StationSelectorManager                 StationSelectorManager  = new();
+        private readonly StationManager                         StationHandler              = new();
+        private readonly StationSelectorManager                 StationSelectorManager      = new();
 
-        private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager     = new();
-        private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager   = new();
-        private readonly TurnOrder.TurnOrderManager             TurnOrderManager        = new();
-        private readonly Phases.PhaseManager                    PhaseManager            = new();
-        private readonly Intention.IntentionResolver            IntentionResolver       = new();
-        private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
-        private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager = new();
+        private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager         = new();
+        private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager       = new();
+        private readonly TurnOrder.TurnOrderManager             TurnOrderManager            = new();
+        private readonly Phases.PhaseManager                    PhaseManager                = new();
+        private readonly Intention.IntentionResolver            IntentionResolver           = new();
+        private readonly Intention.UnitIntentionManager         UnitIntentionManager        = new();
+        private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager  = new();
+        private readonly AttackResolution.AttackResolutionManager AttackResolutionManager   = new();
 
 
         [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
@@ -112,6 +113,7 @@ namespace TurnBased
             this.TargetSelectorManager.Awake();
             this.PhaseManager.Awake();
             this.IntentionVisualiserManager.Awake();
+            this.AttackResolutionManager.Awake();
 
 
             Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;

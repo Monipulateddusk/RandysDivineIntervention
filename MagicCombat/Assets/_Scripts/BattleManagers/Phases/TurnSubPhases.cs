@@ -156,6 +156,8 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
     {
+        PhaseTaskCompletionManager resolveAttackResolutionCompletionManager;
+
         public UnitTurnPhase_ResolveAttack() : base()
         {
 
@@ -164,6 +166,13 @@ namespace TurnBased.Phases
         public override void OnEnter()
         {
             MonoBehaviour.print("<color=green>Entering in ResolveAttack</color>");
+
+            this.resolveAttackResolutionCompletionManager = new(OnAttackResolutionPhaseComplete);
+
+            this.resolveAttackResolutionCompletionManager.AddAction();
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += this.resolveAttackResolutionCompletionManager.OnActionComplete;
+            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
+
         }
 
         public override void OnExit()
@@ -173,15 +182,16 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-            if (Input.GetKey(KeyCode.Backspace))
-            {
-             //   this.mainTurnManager.SwitchToNextSubPhase();
-            }
-            else if (Input.GetKey(KeyCode.KeypadEnter))
-            {
-                PhaseManager.Instance.ChangeToNextStateInOrder();
-            }
+
         }
+
+
+        private void OnAttackResolutionPhaseComplete()
+        {
+            /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
+            Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.ATTACK_COMPLETE);
+        }
+
     }
 
     public class UnitTurnPhase_AttackComplete : UnitTurnSubPhase

@@ -766,10 +766,9 @@ public readonly struct TargettingSelectorInfo
 
 public static class StationManagerUtilities
 {
-    public static bool GetUnitIndexAndBattleUnitOnStation(StationIndex selectedStationIndex, out UnitIndex unitIndexOnStation, out BaseBattleUnit battleUnitOnStation)
+    public static bool GetBattleUnitOnStation(StationIndex selectedStationIndex, out BaseBattleUnit battleUnitOnStation)
     {
         /*  Default declaration if invalid. */
-        unitIndexOnStation = default;
         battleUnitOnStation = default;
 
         /*  Get the UnitIndex on the station. If this is invalid, Abort!  */
@@ -778,7 +777,6 @@ public static class StationManagerUtilities
         /*  Send out the UnitIndex and BaseBattleUnit.  */
         if(!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit battleUnit)) { return false; }
 
-        unitIndexOnStation = unitIndex;
         battleUnitOnStation = battleUnit;
         return true;
     }
