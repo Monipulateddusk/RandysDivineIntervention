@@ -24,5 +24,6 @@ MonoBehaviour:
   OptionsMainPrefab: {fileID: 895138503738454293, guid: a4c1477a555035b40a66977602a1d55c, type: 3}
   SliderElementPrefab: {fileID: 8662943914223791374, guid: 397f616e81a67ce4b94c516432ca5ca2, type: 3}
   InspectionPrefab: {fileID: 1139865160203292711, guid: ba7d4c78ce903be48b01179acea6fde4, type: 3}
+  InspectionHealthPrefab: {fileID: 2086028032986980008, guid: 116d4e6aeffc22741b1a1c1bc9e10358, type: 3}
   WindowManagerPrefab: {fileID: 6570136656129842540, guid: 2c5617499c9a3b8459e4ddb10f9c62bd, type: 3}
   SelectorManagerPrefab: {fileID: 393109512884838205, guid: d35406a22fa3adb469bf067d0ef67003, type: 3}

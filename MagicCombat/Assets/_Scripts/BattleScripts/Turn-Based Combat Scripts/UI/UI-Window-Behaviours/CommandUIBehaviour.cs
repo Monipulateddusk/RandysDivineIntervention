@@ -1,5 +1,4 @@
 using System.Linq;
-using TMPro;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -8,15 +7,12 @@ namespace TurnBased.UI
     {
         [Header("Inspector Variables")]
         [SerializeField] private UnityEngine.UI.Image UnitImage;
-        [SerializeField, Tooltip("Assign with the 'Health' Object in HealthBG")] private RectTransform HealthRectTransform;
-        [SerializeField, Tooltip("Assign with the 'HealthValueString' Object in HealthBG")] TMPro.TextMeshProUGUI HealthText;
-
-        [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")] GameObject CommandWrapperGameObject;
-        [SerializeField, Tooltip("Assign with the 'Inspection' Object in InspectionSubWindow")] GameObject InspectionGameObject;
-        [SerializeField, Tooltip("Assign with the 'PopupBuffer' Object in InspectionSubWindow")] GameObject PopupBufferGameObject;
-        [SerializeField, Tooltip("Assign with the 'UnitImageHealthWrapper' Object in VIew")] GameObject UnitImageHealthWrapperGameObject;
-        [SerializeField, Tooltip("Assign with the 'TargetSelection' Object in VIew")] GameObject TargetSelectionGameObject;
-
+        [SerializeField, Tooltip("Assign with the 'CommandWrapper' Object in Command")]             GameObject CommandWrapperGameObject;
+        [SerializeField, Tooltip("Assign with the 'Inspection' Object in InspectionSubWindow")]     GameObject InspectionGameObject;
+        [SerializeField, Tooltip("Assign with the 'PopupBuffer' Object in InspectionSubWindow")]    GameObject PopupBufferGameObject;
+        [SerializeField, Tooltip("Assign with the 'UnitImageHealthWrapper' Object in VIew")]        GameObject UnitImageHealthWrapperGameObject;
+        [SerializeField, Tooltip("Assign with the 'TargetSelection' Object in VIew")]               GameObject TargetSelectionGameObject;
+        [SerializeField, Tooltip("Assign with the 'UnitHealthBuffer' object with the 'UnitHealthDisplayUI' script")] private UnitHealthDisplayUI healthDisplayUI;
 
         [Header("Prefabs")]
         [SerializeField] private GameObject MoveUIPrefab;
@@ -134,7 +130,7 @@ namespace TurnBased.UI
             this.UnitImageHealthWrapperGameObject.SetActive(true);
 
             SetImage(bBU);
-            SetHealthValues(bBU);
+            SetHealthValues(unitIndex);
             SetMoves(bBU);
         }
         private void VisualiseForUnitEndOfTurn(UnitIndex unitIndex, BaseBattleUnit bBU)
@@ -174,7 +170,7 @@ namespace TurnBased.UI
             this.UnitImageHealthWrapperGameObject.SetActive(true);
 
             SetImage(bBU);
-            SetHealthValues(bBU);
+            SetHealthValues(unitIndex);
             SetIntentionTextElement(bBU, intention);
         }
 
@@ -194,7 +190,7 @@ namespace TurnBased.UI
             GameObject instanciatedTextElement = GameObject.Instantiate(this.IntentionTextPrefab, this.CommandWrapperGameObject.transform);
 
             /*  Set the intention Text. */
-            if (instanciatedTextElement != null && instanciatedTextElement.TryGetComponent(out TextMeshProUGUI textMeshPro))
+            if (instanciatedTextElement != null && instanciatedTextElement.TryGetComponent(out TMPro.TextMeshProUGUI textMeshPro))
             {
                 textMeshPro.text = GetIntentionText(battleUnit, unitIntention);
                 this.InstanciatedIntentionTextElements.Add(instanciatedTextElement);
@@ -214,17 +210,11 @@ namespace TurnBased.UI
             this.UnitImage.color = battleUnit.GetBaseUnit().color;
         }
 
-        private void SetHealthValues(BaseBattleUnit battleUnit)
+        private void SetHealthValues(UnitIndex unitIndex)
         {
-            if (this.HealthRectTransform != null && this.HealthText != null)
+            if(this.healthDisplayUI != null)
             {
-                int currentHealth = battleUnit.GetHealthComponent().GetHealth();
-                int maximumHealth = battleUnit.GetBaseUnit().maxHP;
-
-                float value = UserInterfaceUtility.GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
-
-                this.HealthRectTransform.localScale = new(value, 1);
-                this.HealthText.text = currentHealth.ToString() + "/" + maximumHealth.ToString();
+                this.healthDisplayUI.Initalise(unitIndex);
             }
         }
 

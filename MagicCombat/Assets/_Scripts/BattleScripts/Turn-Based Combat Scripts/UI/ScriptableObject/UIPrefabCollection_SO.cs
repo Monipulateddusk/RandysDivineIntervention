@@ -23,6 +23,7 @@ public class UICollection_SO : ScriptableObject
 
     [Header("Inspection UI")]
     public GameObject   InspectionPrefab;
+    public GameObject   InspectionHealthPrefab;
 
     [Header("Window Manager UI")]
     public GameObject   WindowManagerPrefab;

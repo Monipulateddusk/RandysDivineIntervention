@@ -121,13 +121,20 @@ namespace TurnBased
             return GameObject.Instantiate(this.UI_PrefabData.ScrollableSlotPrefab, parent);
         }
 
-        private void SetImageOfSlot(GameObject slot, UnityEngine.Sprite img)
+        private UnitHealthDisplayUI CreateSlotHealth(Transform parent)
+        {
+            GameObject instanciatedHealthDisplayUI = GameObject.Instantiate(this.UI_PrefabData.InspectionHealthPrefab, parent);
+            return instanciatedHealthDisplayUI.GetComponent<UnitHealthDisplayUI>();
+        }
+
+        private void SetImageOfSlot(GameObject slot, UnitData data)
         {
             if (slot != null && slot.TryGetComponent(out SlotPrefabData slotData))
             {
                 if(slotData.GetUnitImageTransform().gameObject.TryGetComponent(out UnityEngine.UI.Image image))
                 {
-                    image.sprite = img;
+                    image.sprite = data.sprite;
+                    image.color = data.color;
                 }
                 else
                 {
@@ -138,6 +145,27 @@ namespace TurnBased
             {
                 Debug.LogWarning("ERROR: SLOT IS NULL OR NOT NAMED 'SLOT'!");
             }
+        }
+
+        private void SetHealthOfSlot(UnitIndex unitIndex, Transform parent)
+        {
+            UnitHealthDisplayUI instancedHealthUI = CreateSlotHealth(parent);
+            RectTransform instancedHealthRectTransform = (RectTransform)instancedHealthUI.gameObject.transform;
+
+            /*  Scale assignment    */
+            instancedHealthRectTransform.localScale = new Vector3(1, 1, 1);
+
+            /*  Set the anchor and position to be correct when initalising it.  */
+            instancedHealthRectTransform.anchorMin  = Vector3.zero;
+            instancedHealthRectTransform.anchorMax  = new Vector2(1,1);
+            instancedHealthRectTransform.pivot      = new Vector2(0.5f, 0);
+
+            /*  Hardcoded values of position.   */
+            instancedHealthRectTransform.SetLeft(50);
+            instancedHealthRectTransform.SetRight(50);
+            instancedHealthRectTransform.SetTop(-30);
+
+            instancedHealthUI.Initalise(unitIndex);
         }
 
         private void DeleteIcons()
@@ -183,24 +211,24 @@ namespace TurnBased
                 {
                     GetSummoningCircleUIPrefab();
                     summoningCircleParent = CreateSummoningCircle(bgTransform);
-                    slot = CreateSlot(summoningCircleParent.transform);
-
-                    /*  Get the image of the Unit. And Set it  */
-                    if(!StationManager.Instance.TryGetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
-                    SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
+                    slot = CreateSlot(summoningCircleParent.transform);  
                 }
                 else
                 {
                     slot = CreateSlot(bgTransform.transform);
-
-                    /*  Get the image of the Unit. And Set it  */
-                    if (!StationManager.Instance.TryGetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { return; }
-                    SetImageOfSlot(slot, battleUnit.GetBaseUnit().sprite);
                 }
+
+                /*  Get the image of the Unit. And Set it  */
+                if (!StationManager.Instance.TryGetBattleUnitOfIndex(turnOrder[i], out battleUnit)) { Debug.LogError("ERROR — TurnOrderUIManager: UNABLE TO GET BATTLE UNIT OF INDEX"); return; }
+                SetImageOfSlot(slot, battleUnit.GetBaseUnit());
+                SetHealthOfSlot(turnOrder[i], bgTransform);
+
 
                 instanciatedItems.Add(itemObject);
             }
         }
+
+
 
         private void TurnOrderManager_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
         {
