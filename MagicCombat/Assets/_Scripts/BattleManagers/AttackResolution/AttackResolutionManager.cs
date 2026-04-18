@@ -78,8 +78,17 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {intention.MoveSelection.GetMoveName()}! ");
 
+            /*  Get the unit data for the User, their Allies, their enemies.    */
+            SceneData_UnitTurn sceneUnitData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
+
+            if (!StationManager.Instance.TryGetUnitDataOnStation(sceneUnitData.SourceStationIndex, out UnitData unitDataSource)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE SCENE UNIT DATA OF USER!"); return; }
+            System.Collections.Generic.List<UnitData> ally_UnitData = StationManagerUtilities.GetUnitDataOfStationIndexes(sceneUnitData.AllyStationIndexes);
+            System.Collections.Generic.List<UnitData> enemyUnitData = StationManagerUtilities.GetUnitDataOfStationIndexes(sceneUnitData.EnemyStationIndexes);
+
+
+
             /*  Process the move based on the information for that UnitIndex.   */
-            AttackResolutionInfo resolutionInfo = intention.MoveSelection.ExecuteMove();
+            AttackResolutionInfo resolutionInfo = intention.MoveSelection.ExecuteMove(unitDataSource, ally_UnitData, enemyUnitData);
 
             UnityEngine.Debug.LogWarning($"Executing Move: {intention.MoveSelection.GetMoveName()}! ");
 
