@@ -71,7 +71,7 @@ namespace TurnBased.Phases
         {
             Debug.Log($"Entering : MoveSelection for UnitIndex: {currentUnitIndex.Index}");
 
-            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(currentUnitIndex);
+            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -94,7 +94,7 @@ namespace TurnBased.Phases
         public override void OnEnter()
         {
             Debug.Log($"Entering : TargetSelection for UnitIndex: {currentUnitIndex.Index}");
-            Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(currentUnitIndex);
+            Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -122,7 +122,7 @@ namespace TurnBased.Phases
 
             if(Intention.IntentionResolver.Instance.GetQueueCount() > 0)
             {
-                Intention.IntentionResolver.Instance.ProcessNextUnitIndex();
+                Intention.IntentionResolver.Instance.ProcessUnit(this.currentUnitIndex);
 
             }
             else

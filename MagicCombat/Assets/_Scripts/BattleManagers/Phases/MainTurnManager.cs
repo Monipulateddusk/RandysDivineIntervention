@@ -2,8 +2,6 @@ namespace TurnBased.Phases
 {
     public class MainTurnManager
     {
-        public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
-
         private readonly System.Collections.Generic.Dictionary<MAIN_TURN_STATE, UnitTurnSubPhase> MainPhaseStates = new();
         private MAIN_TURN_STATE currentState = new();
 
@@ -19,33 +17,11 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Add(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE,     new UnitTurnPhase_ReadyToExecuteMove());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK,            new UnitTurnPhase_ResolveAttack());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.ATTACK_COMPLETE,           new UnitTurnPhase_AttackComplete());
-
-            StationSelectorManager.OnSelectionChange            += StationSelectorManager_OnSelectionChange;
         }
 
         ~MainTurnManager()
         {
             this.MainPhaseStates.Clear();
-            StationSelectorManager.OnSelectionChange            -= StationSelectorManager_OnSelectionChange;
-        }
-
-        public void ContinueProcessIntention(UnitIndex unitIndex)
-        {
-            if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-            OnUnitIntentionResolutionStateChange?.Invoke(unitIndex, intention.ResolutionState);
-
-            /*  
-             *  When the intention changes (I.e. when a move OR target is done selecting), jump to the Idle Phase.  
-             */
-            SwitchSubPhase(MAIN_TURN_STATE.IDLE);
-        }
-
-        private void StationSelectorManager_OnSelectionChange(StationIndex newSelectedStation, StationIndex? oldStation)
-        {
-            /*  Get the selected Unit's unit Index  */
-            //if(!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndex)) { return; }
-
-           // ContinueProcessIntention(unitIndex);
         }
 
         public void SwitchSubPhase(MAIN_TURN_STATE newState)

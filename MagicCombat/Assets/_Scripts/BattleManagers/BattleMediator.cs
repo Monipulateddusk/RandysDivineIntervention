@@ -118,12 +118,12 @@ namespace TurnBased
             this.UnitHealthManager.Awake();
 
 
-            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
+            Intention.IntentionResolver.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
         }
 
         private void OnDestroy()
         {
-            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
+            Intention.IntentionResolver.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
         }
 
         private void IntentionResolver_OnUnitIntentionResolutionStateChange(UnitIndex unitIndex, UnitIntentionResolutionState state)

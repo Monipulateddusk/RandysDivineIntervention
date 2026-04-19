@@ -19,7 +19,7 @@ namespace TurnBased.UI
             }
         }
 
-        private UnitIndex selectedUnit;
+        private UnitIndex? selectedUnit;
 
 
         public void Initalise()
@@ -33,15 +33,25 @@ namespace TurnBased.UI
             this.selectedUnit = unitIndex;
         }
 
+        public void StopSelection()
+        {
+            this.selectedUnit = null;
+        }
 
         public void OnMoveSelection()
         {
-            Intention.MoveSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
+            if (this.selectedUnit.HasValue)
+            {
+                Intention.MoveSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value);
+            }
         }
 
         public void OnTargetSelection()
         {
-            Intention.TargetSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
+            if (this.selectedUnit.HasValue)
+            {
+                Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value);
+            }
         }
     }
 }

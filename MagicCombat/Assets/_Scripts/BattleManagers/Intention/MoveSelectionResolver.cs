@@ -14,10 +14,6 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
-                /*  Select this Unit in our Station selector and tell the UI that we are awaiting calls.    */
-                if(!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return false; }
-                StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
-
                 /*  Alert the UI    */
                 TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
                 return true;
@@ -45,7 +41,7 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.Log("Invoking OnMoveSelectionComplete");
 
-            IntentionResolver.Instance.ContinueProcessIntention(unitIndex);
+            IntentionResolver.Instance.ProcessUnit(unitIndex);
 
         }
 

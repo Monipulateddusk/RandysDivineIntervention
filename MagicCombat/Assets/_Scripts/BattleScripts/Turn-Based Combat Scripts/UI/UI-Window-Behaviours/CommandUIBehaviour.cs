@@ -163,8 +163,6 @@ namespace TurnBased.UI
         {
             if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
 
-            Debug.LogWarning("Default Enable");
-
             /*  Enable the Inspection for the Health and Status as well as the Unit's Moves.    */
             this.InspectionGameObject.SetActive(true);
             this.UnitImageHealthWrapperGameObject.SetActive(true);
