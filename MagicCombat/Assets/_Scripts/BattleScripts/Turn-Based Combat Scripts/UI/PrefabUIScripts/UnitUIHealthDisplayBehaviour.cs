@@ -27,10 +27,8 @@ namespace TurnBased.UI
             if (this.mainHealthBarGameObject != null && this.healthBarValueStringGameObject != null)
             {
                 /*  Get the battle unit of this unit to get it's current Health and max health. */
-                if(!StationManager.Instance.TryGetBattleUnitOfIndex(this.associatedUnitIndex, out BaseBattleUnit battleUnit)) { return; }
-
-                int currentHealth = battleUnit.GetHealthComponent().GetHealth();
-                int maximumHealth = battleUnit.GetBaseUnit().maxHP;
+                if (!Health.UnitHealthManager.Instance.GetCurrentHealthOfUnitIndex(this.associatedUnitIndex, out int currentHealth)) { return; }
+                if (!Health.UnitHealthManager.Instance.GetMaximumHealthOfUnitIndex(this.associatedUnitIndex, out int maximumHealth)) { return; }
 
                 float value = UserInterfaceUtility.GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
 

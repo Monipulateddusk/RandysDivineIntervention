@@ -66,6 +66,7 @@ namespace TurnBased
         private readonly Intention.UnitIntentionManager         UnitIntentionManager        = new();
         private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager  = new();
         private readonly AttackResolution.AttackResolutionManager AttackResolutionManager   = new();
+        private readonly Health.UnitHealthManager               UnitHealthManager = new();
 
 
         [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
@@ -114,6 +115,7 @@ namespace TurnBased
             this.PhaseManager.Awake();
             this.IntentionVisualiserManager.Awake();
             this.AttackResolutionManager.Awake();
+            this.UnitHealthManager.Awake();
 
 
             Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
