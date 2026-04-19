@@ -3,10 +3,6 @@ using UnityEngine;
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
-
-    // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
-    public event Action<int, bool> OnAlterHealth;
-
     [Header("Debugging")]
     [SerializeField] UnitData unitData;
     [SerializeField] Animator unitAnimator;
@@ -39,31 +35,6 @@ public class BaseBattleUnit : MonoBehaviour
 
     }
 
-    private void OnDestroy()
-    {
-        OnAlterHealth = null;
-    }
-
-    public void Damage(int damageAmount)
-    {
-        OnAlterHealth?.Invoke(damageAmount, false);
-    }
-    public void Heal(int healAmount)
-    {
-        OnAlterHealth?.Invoke(healAmount, true);
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyUp(KeyCode.D))
-        {
-            Damage(1);
-        }
-        if (Input.GetKeyUp(KeyCode.H))
-        {
-            Heal(1);
-        }
-    }
 
     #region Animation Methods
 

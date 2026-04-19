@@ -18,8 +18,24 @@ namespace TurnBased.UI
             this.associatedUnitIndex = indexOfUnitHealthCorrelatesTo;
             InitaliseHealthTextTMP();
 
+            Health.UnitHealthManager.OnUnitHealthChange += UnitHealthManager_OnUnitHealthChange;
+
+
             /*  Once everything is initalised, update the health bar for the current health values. */
             UpdateHealthAmount();
+        }
+
+        private void UnitHealthManager_OnUnitHealthChange(UnitIndex unitIndexWhoseHealthChanged, int newHealthValueOfUnitIndex)
+        {
+            /*  If health changed on a Unit we aren't associated with, don't do anything.   */
+            if(unitIndexWhoseHealthChanged.Index != this.associatedUnitIndex.Index) { return; }
+
+            UpdateHealthAmount();
+        }
+
+        private void OnDestroy()
+        {
+            Health.UnitHealthManager.OnUnitHealthChange -= UnitHealthManager_OnUnitHealthChange;
         }
 
         private void UpdateHealthAmount()

@@ -35,16 +35,15 @@ namespace TurnBased.AttackResolution
         {
             foreach (StationIndex targetStation in intentInfo.TargetIndexList)
             {
-                if (!StationManagerUtilities.GetBattleUnitOnStation(targetStation, out BaseBattleUnit battleUnitOnStation)) { Debug.LogWarning("COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE BATTLE UNIT OF TARGET"); continue; }
+                if (!StationManager.Instance.TryGetUnitIndexOnStation(targetStation, out UnitIndex unitIndexOnStation)) { Debug.LogWarning("COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE UNIT INDEX OF TARGET"); continue; }
 
                 switch (attackAction.Type)
                 {
                     case AttackActionType.DAMAGE:
-                        battleUnitOnStation.Damage(attackAction.Value);
-
+                        Health.UnitHealthManager.Instance.DamageUnitByDamageAmount(unitIndexOnStation, attackAction.Value);
                         break;
                     case AttackActionType.HEALING:
-                        battleUnitOnStation.Heal(attackAction.Value);
+                        Health.UnitHealthManager.Instance.HealUnitByHealAmount(unitIndexOnStation, attackAction.Value);
                         break;
 
                     // Call the CombatEnvironmentHandler to keep track of the environment condition
