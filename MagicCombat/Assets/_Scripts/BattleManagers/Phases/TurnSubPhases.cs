@@ -87,8 +87,8 @@ namespace TurnBased.Phases
                     PhaseManager.Instance.ChangeToNextStateInOrder();
                 }
                 else
-                {
-                    Debug.Log("No one left to resolve. Switching to Resolve Attack");
+                { 
+                    MonoBehaviour.print("<color=black>No one left to resolve. Switching to Resolve Attack</color>");
                     Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
                 }
             }
