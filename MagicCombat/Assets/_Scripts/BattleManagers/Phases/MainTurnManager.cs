@@ -11,7 +11,6 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Clear();
 
             /*  Add all phases to the dictionary.   */
-            this.MainPhaseStates.Add(MAIN_TURN_STATE.IDLE,                      new UnitTurnPhase_Idle());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION,   new UnitTurnPhase_MoveSelection());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION, new UnitTurnPhase_TargetSelection());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE,     new UnitTurnPhase_ReadyToExecuteMove());

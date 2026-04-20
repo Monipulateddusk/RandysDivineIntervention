@@ -59,6 +59,32 @@ namespace TurnBased.Intention
             StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
         }
 
+        /// <summary>
+        /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
+        /// IMPORTANT: This should mean we auto-select move, but if the Unit has a PLAYER-DRIVEN MOVE-SELECTOR, then the PLAYER should be able to select the targets.
+        /// </summary>
+        public bool DetermineNonPlayerDrivenUnitIntentions()
+        {
+            this.ProcessingUnitIndexes = IntentionResolverUtility.GetAllAutonomousUnits();
+            if (this.ProcessingUnitIndexes.Count > 0)
+            {
+                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
+                return true;
+            }
+            return false;
+        }
+        public bool DeterminePlayerDrivenUnitIntentions()
+        {
+            this.ProcessingUnitIndexes = IntentionResolverUtility.GetAllPlayerDrivenUnits();
+            if (this.ProcessingUnitIndexes.Count > 0)
+            {
+                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
+                return true;
+            }
+            return false;
+        }
+
+
         private void StationSelectorManager_OnSelectionChange(StationIndex newSelectedStation, StationIndex? oldStation)
         {
             /*  Get the selected Unit's unit Index  */
@@ -79,6 +105,27 @@ namespace TurnBased.Intention
 
 
         public void SwitchSubPhase(MAIN_TURN_STATE newPhase) => this.MainTurnManager.SwitchSubPhase(newPhase);
+
+        public void ResetIntentionResolver()
+        {
+            this.IsAllUnitIntentionsComplete = false;
+        }
+
+        private void HandleIsDoneIntentions()
+        {
+            UnityEngine.Debug.LogError($"Are all units done intentions? {this.ProcessingUnitIndexes.Count} {this.IsAllUnitIntentionsComplete}");
+
+            if (this.ProcessingUnitIndexes.Count == 0  && !this.IsAllUnitIntentionsComplete)
+            {
+                UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
+
+                this.IsAllUnitIntentionsComplete = true;
+
+                OnAllIntentionsProcessed?.Invoke();
+
+                UnitIntentionManager.Instance.PrintOutAllIntents();
+            }
+        }
 
         private void GetNextUnitInList(UnitIndex previousUnit)
         {
@@ -107,33 +154,12 @@ namespace TurnBased.Intention
             HandleIsDoneIntentions();
         }
 
+
         /// <summary>
-        /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
-        /// IMPORTANT: This should mean we auto-select move, but if the Unit has a PLAYER-DRIVEN MOVE-SELECTOR, then the PLAYER should be able to select the targets.
+        /// Main entry point of the intention resolver for processing Unit Selection.
         /// </summary>
-        public bool DetermineNonPlayerDrivenUnitIntentions()
-        {
-            this.ProcessingUnitIndexes = GetAllAutonomousUnits();      
-            if (this.ProcessingUnitIndexes.Count > 0)
-            {
-                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
-                return true;
-            }
-            return false;
-        }
-        public bool DeterminePlayerDrivenUnitIntentions()
-        {
-            this.ProcessingUnitIndexes = GetAllPlayerDrivenUnits();
-            if (this.ProcessingUnitIndexes.Count > 0)
-            {
-                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
-                return true;
-            }
-            return false;
-        }
-
-
-        private void UnitSelectionForIntentionProcessing(UnitIndex unitIndex)
+        /// <param name="unitIndex"></param>
+        public void UnitSelectionForIntentionProcessing(UnitIndex unitIndex)
         {
             /*  Priority one. If this unit index doesn't exist in our Intention list, we don't want to process the intention and so we want to look into our list and get the first option from the list.   */
             if (!DoesListContainUnitIndex(unitIndex)){ GetNextUnitInList(unitIndex); }
@@ -163,12 +189,17 @@ namespace TurnBased.Intention
             ProcessSelectedUnitIntention(unitIndex);
         }
 
+
+        /// <summary>
+        /// Once we have a unit selected. We process the intention and notify any listeners.
+        /// </summary>
+        /// <param name="unitIndex"></param>
         private void ProcessSelectedUnitIntention(UnitIndex unitIndex)
         {
             /*  Check the intention of the Unit here. If the unit is done. We move to the next Unit.    */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)){ return; }
 
-            if (IsUnitIntentionDone(unitIndex, intention))
+            if (IsUnitIntentionDone(intention))
             {
                 GetNextUnitInList(unitIndex);
                 return;
@@ -176,19 +207,7 @@ namespace TurnBased.Intention
             OnUnitIntentionResolutionStateChange?.Invoke(this.currentActiveUnit.Value, intention.ResolutionState);
         }
 
-        private void HandleIsDoneIntentions()
-        {
-            if (this.ProcessingUnitIndexes.Count == 0)
-            {
-                UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
-
-                OnAllIntentionsProcessed?.Invoke();
-
-                UnitIntentionManager.Instance.PrintOutAllIntents();
-            }
-        }
-
-        private bool IsUnitIntentionDone(UnitIndex unitIndex, UnitIntention unitIntention)
+        private bool IsUnitIntentionDone(UnitIntention unitIntention)
         {
             if(unitIntention.ResolutionState == UnitIntentionResolutionState.COMPLETE) 
             { 
@@ -196,38 +215,7 @@ namespace TurnBased.Intention
             }
             return false;
         }
-
-
-        private System.Collections.Generic.List<UnitIndex> GetAllAutonomousUnits()
-        {
-            System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
-            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
-            {
-                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
-
-                if (moveSelector is not MoveSelection.PlayerDrivenMoveSelector)
-                {
-                    autonomousUnits.Add(unitIndex);
-                }
-            }
-            return autonomousUnits; 
-        }
-
-        private System.Collections.Generic.List<UnitIndex> GetAllPlayerDrivenUnits()
-        {
-            System.Collections.Generic.List<UnitIndex> playerDrivenUnits = new();
-            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
-            {
-                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
-
-                if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
-                {
-                    playerDrivenUnits.Add(unitIndex);
-                }
-            }
-            return playerDrivenUnits;
-        }       
-
+   
 
         private bool DoesListContainUnitIndex(UnitIndex unitIndex)
         {
@@ -241,6 +229,40 @@ namespace TurnBased.Intention
                 }
             }
             return false;
+        }
+    }
+
+
+    public static class IntentionResolverUtility
+    {
+        public static System.Collections.Generic.List<UnitIndex> GetAllAutonomousUnits()
+        {
+            System.Collections.Generic.List<UnitIndex> autonomousUnits = new();
+            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
+            {
+                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
+
+                if (moveSelector is not MoveSelection.PlayerDrivenMoveSelector)
+                {
+                    autonomousUnits.Add(unitIndex);
+                }
+            }
+            return autonomousUnits;
+        }
+
+        public static System.Collections.Generic.List<UnitIndex> GetAllPlayerDrivenUnits()
+        {
+            System.Collections.Generic.List<UnitIndex> playerDrivenUnits = new();
+            foreach (UnitIndex unitIndex in StationManager.Instance.GetAllActiveUnits())
+            {
+                if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { continue; }
+
+                if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
+                {
+                    playerDrivenUnits.Add(unitIndex);
+                }
+            }
+            return playerDrivenUnits;
         }
     }
 }

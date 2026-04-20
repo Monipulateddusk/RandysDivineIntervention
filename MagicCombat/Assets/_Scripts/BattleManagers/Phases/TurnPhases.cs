@@ -63,7 +63,7 @@ namespace TurnBased.Phases
                 PhaseManager.Instance.ChangeToNextStateInOrder();
                 return;
             }
-            //TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
+            TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
         }
 
         private void SubscribeEventsForStartOfRound()
@@ -72,6 +72,7 @@ namespace TurnBased.Phases
 
             this.completionManager.AddAction();
             Intention.IntentionResolver.OnAllIntentionsProcessed += this.completionManager.OnActionComplete;
+            Intention.IntentionResolver.Instance.ResetIntentionResolver();
 
             /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
             if (!Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions())
@@ -85,7 +86,7 @@ namespace TurnBased.Phases
 
     public class PreTurnPhase : Phase
     {
-        PhaseTaskCompletionManager playerDrivenIntentionsCompletionManager;
+
         public PreTurnPhase() : base()
         {
         }
@@ -93,25 +94,11 @@ namespace TurnBased.Phases
         public override void OnEnter()
         {
             MonoBehaviour.print("<color=green>Entering in PreTurnPhase</color>");
-
-            StartPlayerDrivenIntentions();
-
+            /*  When we enter this Phase, we want to process any Pre-Start-Of-Turn Status Effects.  */
 
 
-            /*  Check the intentions when we enter. If everyone has chosen their intentions, proceed to combat. */
-
-            /*  Pop out the next Unit in turn order, move on to the Unit Turn Phase after this. */
-            //UnitIndex? unit = TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
-            //if (unit != null)
-            //{
-
-            //    PhaseManager.Instance.ChangeToNextStateInOrder();
-            //}
-            ///*  If there is no Unit available in the Turn order, we are at the end of the Turn order and then we want to start the Round anew.  */
-            //else
-            //{
-            //    PhaseManager.Instance.ChangeState(PHASE_TYPES.END_ROUND);
-            //}
+            /*  Once done, proceed to the main phase.   */
+            PhaseManager.Instance.ChangeToNextStateInOrder();
         }
 
         public override void OnExit()
@@ -124,44 +111,14 @@ namespace TurnBased.Phases
 
         }
 
-        private void StartPlayerDrivenIntentions()
-        {
-            this.playerDrivenIntentionsCompletionManager = new(OnPlayerDrivenIntentionsComplete);
 
-            this.playerDrivenIntentionsCompletionManager.AddAction();
-            Intention.IntentionResolver.OnAllIntentionsProcessed += this.playerDrivenIntentionsCompletionManager.OnActionComplete;
-
-            /*  When we enter here, try and resolve all Player Driven Intentions. If it was unsucessful, then we just want to proceed to evaluating if all the unit intentions are done.    */
-            if (!Intention.IntentionResolver.Instance.DeterminePlayerDrivenUnitIntentions())
-            {
-                OnPlayerDrivenIntentionsComplete();
-            }
-        }
-
-        private void OnPlayerDrivenIntentionsComplete()
-        {
-            Intention.IntentionResolver.OnAllIntentionsProcessed -= this.playerDrivenIntentionsCompletionManager.OnActionComplete;
-
-            MonoBehaviour.print("<color=blue>DONE INTENTIONS</color>");
-
-            /*  When player driven intentions are done, we want to evaluate if we are entering resolving comabat.   */
-            ProcessCombat();
-        }
-
-        private void ProcessCombat()
-        {
-            if (Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-            {
-                Debug.Log("INTENTIONS ARE DONE!!!! POGGIES!!!");
-            }
-        }
 
 
     }
 
     public class UnitTurnPhase : Phase
     {
-        UnitIndex currentUnitIndex;
+        PhaseTaskCompletionManager playerDrivenIntentionsCompletionManager;
 
         public UnitTurnPhase() : base()
         {
@@ -169,12 +126,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            /*  When we enter this Phase, we want to process any Start-Of-Turn Status Effects.  */
-
-            /*  Get the current Unit.   */
-           // currentUnitIndex = TurnOrder.TurnOrderManager.Instance.GetCurrentUnit();
-
-            /*  INITIALISE THE MAIN TURN MANAGER!!!!!!  */
+            /*  Notify the Intention Resolver to begin processing Player Driven Intentions. */
+            StartPlayerDrivenIntentions();
 
         }
 
@@ -204,8 +157,44 @@ namespace TurnBased.Phases
         }
 
 
+        /// <summary>
+        /// Called upon entering this Phase. Processes the Player Driven Intentions of Units. 
+        /// 
+        /// Once done, Processes combat within the Subphase.
+        /// </summary>
+        private void StartPlayerDrivenIntentions()
+        {
+            this.playerDrivenIntentionsCompletionManager = new(OnPlayerDrivenIntentionsComplete);
 
+            this.playerDrivenIntentionsCompletionManager.AddAction();
+            Intention.IntentionResolver.OnAllIntentionsProcessed += this.playerDrivenIntentionsCompletionManager.OnActionComplete;
+            Intention.IntentionResolver.Instance.ResetIntentionResolver();
 
+            /*  When we enter here, try and resolve all Player Driven Intentions. If it was unsucessful, then we just want to proceed to evaluating if all the unit intentions are done.    */
+            if (!Intention.IntentionResolver.Instance.DeterminePlayerDrivenUnitIntentions())
+            {
+                OnPlayerDrivenIntentionsComplete();
+            }
+        }
+
+        private void OnPlayerDrivenIntentionsComplete()
+        {
+            Intention.IntentionResolver.OnAllIntentionsProcessed -= this.playerDrivenIntentionsCompletionManager.OnActionComplete;
+
+            MonoBehaviour.print("<color=blue>DONE INTENTIONS</color>");
+
+            /*  When player driven intentions are done, we want to evaluate if we are entering resolving comabat.   */
+            ProcessCombat();
+        }
+
+        private void ProcessCombat()
+        {
+            if (Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
+            {
+                Debug.Log("INTENTIONS ARE DONE!!!! POGGIES!!!");
+                /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
+            }
+        }
     }
 
     public class EndRoundPhase : Phase
