@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace TurnBased.AttackResolution
@@ -94,13 +95,14 @@ namespace TurnBased.AttackResolution
 
             if (resolutionInfo == null) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: RESOLUTION INFO OF MOVE IS NULL!"); }
 
-            UnityEngine.Debug.LogWarning($"Resolution info is not null. ");
+            await BattlePresentationManager.Instance.MoveUnitToTarget(sceneUnitData.SourceStationIndex, intention.TargetIndexList.FirstOrDefault());
 
             for (int i = 0; i < resolutionInfo.Steps.Count; i++){
                 CombatAttackHandler.ProcessAttackStep(resolutionInfo, intention);
                 UnityEngine.Debug.LogWarning($"Processed attack step for UnitIndex: {unitIndex.Index}");
-                await Task.Delay(3000);
-            }      
+            }
+
+            await BattlePresentationManager.Instance.MoveUnitToStation(sceneUnitData.SourceStationIndex);
         }
 
         private bool IsProcessingIntentContinuing() => TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0;

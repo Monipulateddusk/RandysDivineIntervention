@@ -89,7 +89,7 @@ namespace TurnBased.Phases
                 else
                 { 
                     MonoBehaviour.print("<color=black>No one left to resolve. Switching to Resolve Attack</color>");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
+                    PhaseManager.Instance.ChangeSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
                 }
             }
         }
@@ -139,8 +139,10 @@ namespace TurnBased.Phases
 
         private void OnAttackResolutionPhaseComplete()
         {
+            MonoBehaviour.print("<color=white>OnAttackResolutionPhaseComplete</color>");
+
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
-            Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.ATTACK_COMPLETE);
+            PhaseManager.Instance.ChangeSubPhase(MAIN_TURN_STATE.ATTACK_COMPLETE);
         }
 
     }
@@ -153,17 +155,17 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            throw new System.NotImplementedException();
+            /*  Check to see if the Turn order list is empty. If not, we don't want to move to the end of round Phase.  */
         }
 
         public override void OnExit()
         {
-            throw new System.NotImplementedException();
+
         }
 
         public override void Update()
         {
-            throw new System.NotImplementedException();
+
         }
     }
 }

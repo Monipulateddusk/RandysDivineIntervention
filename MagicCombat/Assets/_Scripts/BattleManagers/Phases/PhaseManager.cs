@@ -18,7 +18,8 @@ namespace TurnBased.Phases
             }
         }
 
-        System.Collections.Generic.Dictionary<PHASE_TYPES, Phase> PhaseDictionary = new();
+        private MainTurnManager SubPhaseManager = new();
+        private System.Collections.Generic.Dictionary<PHASE_TYPES, Phase> PhaseDictionary = new();
         private PHASE_TYPES CurrentPhaseType;
         private Phase CurrentPhase;
 
@@ -42,6 +43,7 @@ namespace TurnBased.Phases
         public void UpdatePhases()
         {
             this.CurrentPhase?.Update();
+            this.SubPhaseManager.UpdateSubPhase();
         }
 
         public void ChangeState(PHASE_TYPES newPhaseType)
@@ -52,6 +54,11 @@ namespace TurnBased.Phases
             this.CurrentPhase = PhaseDictionary[newPhaseType];
 
             this.CurrentPhase?.OnEnter();
+        }
+
+        public void ChangeSubPhase(MAIN_TURN_STATE newSubPhaseState)
+        {
+            this.SubPhaseManager.SwitchSubPhase(newSubPhaseState);
         }
 
         public void ChangeToNextStateInOrder()

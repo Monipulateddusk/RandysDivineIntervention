@@ -133,27 +133,12 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-
             /*  When we exit this Phase, we want to process any End-Of-Turn Status Effects.  */
 
         }
 
         public override void Update()
         {
-
-            /*  Check if the Unit has an intention already planned. If so, execute it.  */
-
-
-            /*  Otherwise, we want to create the intention by polling the Unit's Move Selection Component. */
-
-
-            /*  Once a move is selected, get the Targetting data from that move and proceed to targetting Units for that move. As we are doing this in Update, it makes it easy for us to use a State-Machine to go backwards a step of this Phase. */
-
-            /*  Once we have the move and Targetting data, proceed to processing the move. */
-
-            /*  Once the Move is finished playing, check if the move ends the turn or not. If so, we want to tell the Mediator. If not, we want to just start again from Move selection. */
-
-
         }
 
 
@@ -193,6 +178,7 @@ namespace TurnBased.Phases
             {
                 Debug.Log("INTENTIONS ARE DONE!!!! POGGIES!!!");
                 /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
+                PhaseManager.Instance.ChangeSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
             }
         }
     }

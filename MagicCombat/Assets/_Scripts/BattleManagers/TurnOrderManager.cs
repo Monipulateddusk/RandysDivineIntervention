@@ -87,8 +87,8 @@ namespace TurnBased.TurnOrder
         {
             if (!(this.UnitIndexTurnOrderList.Count > 0)) { return null; }
 
-            currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
-            UnitIndexTurnOrderList.RemoveAt(0);
+            this.currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
+            this.UnitIndexTurnOrderList.RemoveAt(0);
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
             return currentUnit;
 

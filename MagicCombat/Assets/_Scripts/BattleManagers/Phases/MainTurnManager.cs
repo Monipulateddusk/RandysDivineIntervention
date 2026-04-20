@@ -3,7 +3,7 @@ namespace TurnBased.Phases
     public class MainTurnManager
     {
         private readonly System.Collections.Generic.Dictionary<MAIN_TURN_STATE, UnitTurnSubPhase> MainPhaseStates = new();
-        private MAIN_TURN_STATE currentState = new();
+        private MAIN_TURN_STATE currentState = MAIN_TURN_STATE.NONE;
 
         public MainTurnManager() 
         {
@@ -16,6 +16,7 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Add(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE,     new UnitTurnPhase_ReadyToExecuteMove());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.RESOLVE_ATTACK,            new UnitTurnPhase_ResolveAttack());
             this.MainPhaseStates.Add(MAIN_TURN_STATE.ATTACK_COMPLETE,           new UnitTurnPhase_AttackComplete());
+            this.MainPhaseStates.Add(MAIN_TURN_STATE.NONE,                      null);
         }
 
         ~MainTurnManager()
@@ -33,6 +34,11 @@ namespace TurnBased.Phases
             UnityEngine.Debug.LogWarning($"Switching to Phase: {newState} ");
 
             this.MainPhaseStates[this.currentState]?.OnEnter();
+        }
+
+        public void UpdateSubPhase()
+        {
+            this.MainPhaseStates[this.currentState]?.Update();
         }
 
         private void SetSelectedCurrentUnitForSubPhase()

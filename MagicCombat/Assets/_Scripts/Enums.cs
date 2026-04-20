@@ -148,6 +148,7 @@ public enum MAIN_TURN_STATE
     READY_TO_EXECUTE_MOVE = 2,
     RESOLVE_ATTACK = 3,
     ATTACK_COMPLETE = 4,
+    NONE = 5
 }
 
 public enum PHASE_TYPES
@@ -164,7 +165,15 @@ public enum UnitIntentionResolutionState
     AWAITING_MOVE_SELECTION = 1,
     AWAITING_TARGET_SELECTION = 2,
     COMPLETE = 3,   
+    RESOLVED_MOVE = 4,
 }
+
+public enum MoveResolutionTiming
+{
+    Instant,
+    TurnOrderSequence
+}
+
 
 public enum TurnOrderCreationState
 {

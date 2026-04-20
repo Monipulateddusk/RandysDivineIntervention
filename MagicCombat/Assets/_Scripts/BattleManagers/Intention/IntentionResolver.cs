@@ -26,8 +26,6 @@ namespace TurnBased.Intention
 
         public static event System.Action<UnitIndex, UnitIntentionResolutionState> OnUnitIntentionResolutionStateChange;
 
-        private readonly Phases.MainTurnManager MainTurnManager = new();
-
         private System.Collections.Generic.List<UnitIndex> ProcessingUnitIndexes;
         public static event System.Action OnAllIntentionsProcessed;
         private UnitIndex? currentActiveUnit;
@@ -102,9 +100,6 @@ namespace TurnBased.Intention
                 UnitSelectionForIntentionProcessing(unitIndex);
             }
         }
-
-
-        public void SwitchSubPhase(MAIN_TURN_STATE newPhase) => this.MainTurnManager.SwitchSubPhase(newPhase);
 
         public void ResetIntentionResolver()
         {
