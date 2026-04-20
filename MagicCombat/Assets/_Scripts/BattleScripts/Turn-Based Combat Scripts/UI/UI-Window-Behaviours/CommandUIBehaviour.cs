@@ -265,7 +265,7 @@ namespace TurnBased.UI
 
                 moveButtonData.IsButtonClicked = false;
 
-                UserInterfaceUserInput.Instance.OnMoveSelection();
+                UserInterfaceUserInput.Instance.OnMoveSelection(moveButtonData.GetCorrelatingMove());
                 return;
             }
         }

@@ -1,3 +1,5 @@
+using TurnBased.MoveSelection;
+
 namespace TurnBased.Intention
 {
     public static class TargetSelectionResolver
@@ -44,12 +46,17 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.Log("Invoking OnTargetSelectionComplete");
 
-            IntentionResolver.Instance.ProcessUnit(unitIndex);
+            IntentionResolver.Instance.ContinueProcessingSelectedUnitIntention(unitIndex);
             return true;
         }
         public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
         {
             if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return; }
+
+            if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
+            {
+                (targetSelector as TargetSelection.PlayerDrivenTargetSelector).SelectedTargetIndex = 1;
+            }
 
             ProcessTargetSelector(unitIndex, targetSelector);
         }

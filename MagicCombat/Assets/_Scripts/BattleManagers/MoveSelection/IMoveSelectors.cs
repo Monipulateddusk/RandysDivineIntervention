@@ -58,7 +58,7 @@ namespace TurnBased.MoveSelection
     /// </summary>
     public class PlayerDrivenMoveSelector : IMoveSelector
     {
-        public int SelectedMoveIndex { private get; set; }
+        public IBattleMove SelectedMove { private get; set; }
         public IBattleMove SelectMove(SceneData_UnitTurn data)
         {
             /*  Try get the Unit from the source Index. */
@@ -68,9 +68,14 @@ namespace TurnBased.MoveSelection
             if (!SelectorUtility.IsMoveListPopulated(unit)) { return null; }
 
             /*  Check to see if the selected index is not exceeding the length of the move List. If so, get a dud move. */
-            if (SelectedMoveIndex > unit.GetBaseUnit().moves.Count - 1){  return null; }
+            if (!DoesSelectedMoveExistInUnitMoves(unit.GetBaseUnit())) {  return null; }
 
-            return unit.GetBaseUnit().moves[SelectedMoveIndex];
+            return this.SelectedMove;
+        }
+
+        private bool DoesSelectedMoveExistInUnitMoves(UnitData unitData)
+        {
+            return unitData.moves.Contains(this.SelectedMove);
         }
     }
 }

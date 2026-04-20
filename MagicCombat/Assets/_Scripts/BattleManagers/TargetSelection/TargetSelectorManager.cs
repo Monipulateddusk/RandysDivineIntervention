@@ -36,7 +36,7 @@ namespace TurnBased.TargetSelection
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 
-        ~TargetSelectorManager()
+        public void OnDestroy()
         {
             StationManager.OnAddUnit -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;

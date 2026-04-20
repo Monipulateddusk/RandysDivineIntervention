@@ -41,13 +41,18 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.Log("Invoking OnMoveSelectionComplete");
 
-            IntentionResolver.Instance.ProcessUnit(unitIndex);
+            IntentionResolver.Instance.ContinueProcessingSelectedUnitIntention(unitIndex);
 
         }
 
-        public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
+        public static void OnPlayerDrivenSelection(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { return; }
+
+            if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
+            {
+                (moveSelector as MoveSelection.PlayerDrivenMoveSelector).SelectedMove = selectedMove; 
+            }
 
             ProcessMoveSelector(unitIndex, moveSelector);
         }

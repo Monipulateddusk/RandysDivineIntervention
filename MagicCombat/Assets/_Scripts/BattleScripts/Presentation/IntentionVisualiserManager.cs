@@ -10,10 +10,11 @@ namespace TurnBased.Intention {
             UnitIntentionManager.OnUnitIntentionChanged += UnitIntentionManager_OnUnitIntentionChanged;
         }
 
-        ~IntentionVisualiserManager()
+        public void OnDestroy()
         {
             UnitIntentionManager.OnUnitIntentionChanged -= UnitIntentionManager_OnUnitIntentionChanged;
         }
+
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, UnitIntention intentionOfUnit)
         {
             /*  Get the base battle unit for us to add a game object on to. */

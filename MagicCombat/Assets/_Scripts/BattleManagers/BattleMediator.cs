@@ -123,6 +123,13 @@ namespace TurnBased
 
         private void OnDestroy()
         {
+            this.IntentionResolver.OnDestroy();
+            this.UnitIntentionManager.OnDestroy();
+            this.MoveSelectorManager.OnDestroy();
+            this.TargetSelectorManager.OnDestroy();
+            this.IntentionVisualiserManager.OnDestroy();
+            this.UnitHealthManager.OnDestroy();
+
             Intention.IntentionResolver.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
         }
 

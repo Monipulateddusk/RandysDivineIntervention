@@ -120,27 +120,27 @@ namespace TurnBased.Phases
         {
             Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
 
-            if(Intention.IntentionResolver.Instance.GetQueueCount() > 0)
-            {
-                Intention.IntentionResolver.Instance.ProcessUnit(this.currentUnitIndex);
+            //if(Intention.IntentionResolver.Instance.GetQueueCount() > 0)
+            //{
+            //    Intention.IntentionResolver.Instance.SelectUnit(this.currentUnitIndex);
 
-            }
-            else
-            {
-                /*  
-                 *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
-                 *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
-                 */
-                if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-                {
-                    PhaseManager.Instance.ChangeToNextStateInOrder();
-                }
-                else
-                {
-                    Debug.Log("No one left to resolve. Switching to Resolve Attack");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
-                }
-            }         
+            //}
+            //else
+            //{
+            //    /*  
+            //     *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
+            //     *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
+            //     */
+            //    if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
+            //    {
+            //        PhaseManager.Instance.ChangeToNextStateInOrder();
+            //    }
+            //    else
+            //    {
+            //        Debug.Log("No one left to resolve. Switching to Resolve Attack");
+            //        Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
+            //    }
+            //}         
         }
 
         public override void OnExit()

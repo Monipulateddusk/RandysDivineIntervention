@@ -34,7 +34,7 @@ namespace TurnBased.MoveSelection {
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 
-        ~MoveSelectorManager()
+        public void OnDestroy()
         {
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;

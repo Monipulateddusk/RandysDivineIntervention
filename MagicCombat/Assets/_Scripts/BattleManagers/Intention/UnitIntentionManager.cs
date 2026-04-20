@@ -78,7 +78,7 @@ namespace TurnBased.Intention
             StationManager.OnAddUnit += AddUnitIndexToDictionary;
         }
 
-        ~UnitIntentionManager()
+        public void OnDestroy()
         {
             StationManager.OnAddUnit -= AddUnitIndexToDictionary;
         }

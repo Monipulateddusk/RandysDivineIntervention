@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased.Intention
@@ -31,6 +32,18 @@ namespace TurnBased.Intention
         public static event System.Action OnAllIntentionsProcessed;
         private UnitIndex? currentActiveUnit;
 
+        private bool intentionsComplete;
+        public bool IsAllUnitIntentionsComplete
+        {
+            get
+            {
+                return intentionsComplete;
+            }
+            set
+            {
+                intentionsComplete = value;
+            }
+        }
 
 
         public void Awake()
@@ -51,11 +64,48 @@ namespace TurnBased.Intention
             /*  Get the selected Unit's unit Index  */
             if (!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndex)) { return; }
 
-            ProcessUnit(unitIndex);
+            /*  If this selection change event is the currently selected unit, proceed to processing.   */
+            if (this.currentActiveUnit.HasValue && this.currentActiveUnit.Value.Index == unitIndex.Index) 
+            {
+                ProcessSelectedUnitIntention(this.currentActiveUnit.Value);
+            }
+            /*  If it isn't, check to see if it is in our list. If it is, select that new unit. If not, don't override the selection.   */
+            else
+            {
+                if (!DoesListContainUnitIndex(unitIndex)) {  return; }
+                UnitSelectionForIntentionProcessing(unitIndex);
+            }
         }
 
 
         public void SwitchSubPhase(MAIN_TURN_STATE newPhase) => this.MainTurnManager.SwitchSubPhase(newPhase);
+
+        private void GetNextUnitInList(UnitIndex previousUnit)
+        {
+            if(DoesListContainUnitIndex(previousUnit) && this.currentActiveUnit.HasValue && this.currentActiveUnit.Value.Index == previousUnit.Index) 
+            {
+                if (!this.ProcessingUnitIndexes.Remove(previousUnit)){ UnityEngine.Debug.LogWarning($"ERROR — INTENTION MANAGER: UNABLE TO REMOVE THE PREVIOUS UNIT WHEN SELECTING NEW UNIT! UNIT DOES NOT EXIST IN COLLECTION"); }
+            }
+
+            /*  Deselect the UI.    */
+            UI.UserInterfaceUserInput.Instance.StopSelection();
+
+            /*  Retrieve the next new active unit if the container exists. If not, we are done. */
+            if (this.ProcessingUnitIndexes.Count > 0)
+            {
+                MonoBehaviour.print("<color=orange>Selecting new Unit in list</color>");
+
+                /*  Select the UI, here and the station selector.   */
+                this.currentActiveUnit = this.ProcessingUnitIndexes.FirstOrDefault();
+                StationSelectorManager.Instance.SetSelectedStationIndex(this.currentActiveUnit.Value);
+                UI.UserInterfaceUserInput.Instance.StartSelection(this.currentActiveUnit.Value);
+
+                return;
+            }
+
+            /*  The list is empty, therefore we are done with our intentions.   */
+            HandleIsDoneIntentions();
+        }
 
         /// <summary>
         /// Gets all Units on stations and if they implement a NON-PLAYER-DRIVEN MOVE-SELECTOR, then we process their intentions at the start of round.
@@ -66,7 +116,7 @@ namespace TurnBased.Intention
             this.ProcessingUnitIndexes = GetAllAutonomousUnits();      
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                ProcessUnit(this.ProcessingUnitIndexes.FirstOrDefault());
+                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
                 return true;
             }
             return false;
@@ -76,72 +126,57 @@ namespace TurnBased.Intention
             this.ProcessingUnitIndexes = GetAllPlayerDrivenUnits();
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                ProcessUnit(this.ProcessingUnitIndexes.FirstOrDefault());
+                UnitSelectionForIntentionProcessing(this.ProcessingUnitIndexes.FirstOrDefault());
                 return true;
             }
             return false;
         }
 
-        public bool ProcessUnit(UnitIndex unitToProcess)
-        {
-            /*  If the new Unit to process exists in our processing list. We want to proceed to selection.  */
-            if (this.ProcessingUnitIndexes.Contains(unitToProcess))
-            {
-                if (this.currentActiveUnit.HasValue && this.currentActiveUnit.Value.Index == unitToProcess.Index)
-                {
-                    return false;
-                }
-                MonoBehaviour.print($"WHOOGA WOGOOS");
 
-                SelectUnit(unitToProcess);
-                return true;
+        private void UnitSelectionForIntentionProcessing(UnitIndex unitIndex)
+        {
+            /*  Priority one. If this unit index doesn't exist in our Intention list, we don't want to process the intention and so we want to look into our list and get the first option from the list.   */
+            if (!DoesListContainUnitIndex(unitIndex)){ GetNextUnitInList(unitIndex); }
+
+
+            /*  If the currently selected unit is null. Set the selected unit to this new index.    */
+            if (this.currentActiveUnit == null)
+            {
+                this.currentActiveUnit = unitIndex;
+                StationSelectorManager.Instance.SetSelectedStationIndex(this.currentActiveUnit.Value);
+                UI.UserInterfaceUserInput.Instance.StartSelection(this.currentActiveUnit.Value);
+                return;
             }
-            return false;
+
+            /*  If it isn't null, we want to peek at it. If it is NOT an identical UnitIndex, select this new unit to be this unit. */
+            if (this.currentActiveUnit.Value.Index != unitIndex.Index)
+            {
+                this.currentActiveUnit = unitIndex;
+                StationSelectorManager.Instance.SetSelectedStationIndex(this.currentActiveUnit.Value);
+                UI.UserInterfaceUserInput.Instance.StartSelection(this.currentActiveUnit.Value);
+                return;
+            }
         }
 
-        /// <summary>
-        /// Our Main entry point for our resolver
-        /// </summary>
-        /// <param name="selectedUnitIndex"></param>
-        private void SelectUnit(UnitIndex selectedUnitIndex)
+        public void ContinueProcessingSelectedUnitIntention(UnitIndex unitIndex)
         {
-            /*  When we select a new unit, deselect and stop processes for the previously selected unit.    */
-            if (this.currentActiveUnit.HasValue)
-            {
-                UnityEngine.Debug.LogWarning($"Cancelling previous Unit's processes with UnitIndex: {this.currentActiveUnit.Value.Index} for new selected Unit of: {selectedUnitIndex.Index}");
-            }
-            UI.UserInterfaceUserInput.Instance.StopSelection();
-
-
-            /*  Check the intention of this Unit. If the intention is done, don't select this Unit. */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
-            if (IsUnitIntentionDone(selectedUnitIndex, intention)) { return;   }
-
-            this.currentActiveUnit = selectedUnitIndex;
-            StationSelectorManager.Instance.SetSelectedStationIndex(this.currentActiveUnit.Value);
-
-            /*  Once we have selected a Unit, process it.   */
-            ProcessSelectedIndex(intention);
+            ProcessSelectedUnitIntention(unitIndex);
         }
 
-
-        private void ProcessSelectedIndex(Intention.UnitIntention intention)
+        private void ProcessSelectedUnitIntention(UnitIndex unitIndex)
         {
-            UnityEngine.Debug.LogWarning($"Current Process Queue length is: {this.ProcessingUnitIndexes.Count} ");
+            /*  Check the intention of the Unit here. If the unit is done. We move to the next Unit.    */
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)){ return; }
 
-            /*  If the list is complete, invoke the event.  */
-            if (HandleIsDoneIntentions()) { return; }
-
+            if (IsUnitIntentionDone(unitIndex, intention))
+            {
+                GetNextUnitInList(unitIndex);
+                return;
+            }
             OnUnitIntentionResolutionStateChange?.Invoke(this.currentActiveUnit.Value, intention.ResolutionState);
-
-            /*  
-             *  When the intention changes (I.e. when a move OR target is done selecting), jump to the Idle Phase.  
-             */
-            SwitchSubPhase(MAIN_TURN_STATE.IDLE);
-
         }
 
-        private bool HandleIsDoneIntentions()
+        private void HandleIsDoneIntentions()
         {
             if (this.ProcessingUnitIndexes.Count == 0)
             {
@@ -150,14 +185,15 @@ namespace TurnBased.Intention
                 OnAllIntentionsProcessed?.Invoke();
 
                 UnitIntentionManager.Instance.PrintOutAllIntents();
-                return true;
             }
-            return false;
         }
 
-        private bool IsUnitIntentionDone(UnitIndex unitIndex, Intention.UnitIntention intention)
+        private bool IsUnitIntentionDone(UnitIndex unitIndex, UnitIntention unitIntention)
         {
-            if(intention.ResolutionState == UnitIntentionResolutionState.COMPLETE) { return true; }
+            if(unitIntention.ResolutionState == UnitIntentionResolutionState.COMPLETE) 
+            { 
+                return true; 
+            }
             return false;
         }
 
@@ -190,9 +226,21 @@ namespace TurnBased.Intention
                 }
             }
             return playerDrivenUnits;
+        }       
+
+
+        private bool DoesListContainUnitIndex(UnitIndex unitIndex)
+        {
+            int index = unitIndex.Index;
+
+            foreach (UnitIndex uIndex in this.ProcessingUnitIndexes) 
+            {
+                if(uIndex.Index == index)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
-
-
-        public int GetQueueCount() => this.ProcessingUnitIndexes.Count;
     }
 }
