@@ -100,7 +100,11 @@ namespace TurnBased.Intention
 
         public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
         {
+            UnityEngine.Debug.LogWarning($"Does it exist? UnitIndex: {unitIndex.Index} Intention phase: {intention.ResolutionState}");
+
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            UnityEngine.Debug.LogWarning($"It does");
 
             intentionDictionary[unitIndex.Index] = intention;
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
@@ -130,16 +134,22 @@ namespace TurnBased.Intention
 
         public void ClearIntention(UnitIndex unitIndex)
         {
+            UnityEngine.Debug.LogWarning($"Does intent exist with unit index: {unitIndex.Index}   ");
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            UnityEngine.Debug.LogWarning($"IT DOES!");
 
             SetIntention(unitIndex, new UnitIntention());
         }
 
         public void ClearAllUnitIntentions()
         {
-            foreach (int unitIndex in intentionDictionary.Keys)
+            UnityEngine.Debug.LogWarning($"Trying to clear intentions.   ");
+            for(int i = 0; i < this.intentionDictionary.Keys.Count; i++)
             {
-                ClearIntention(new(unitIndex));
+          
+
+                ClearIntention(new());
             }
         }
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
@@ -153,9 +163,11 @@ namespace TurnBased.Intention
 
         private void DetermineIntentionCompletionStatus(UnitIntention nextSettingIntention)
         {
-            if(nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION) { return; }
-
             AreAllIntentionsDone();
+
+            if (nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION) { return; }
+
+           
         }
         private void AreAllIntentionsDone()
         {

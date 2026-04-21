@@ -52,5 +52,10 @@ namespace TurnBased.Phases
         {
             this.MainPhaseStates[this.CurrentSubPhaseState]?.Update();
         }
+
+        public void ResetCurrentPhase()
+        {
+            this.CurrentSubPhaseState = SubPhaseState.NONE;
+        }
     }
 }

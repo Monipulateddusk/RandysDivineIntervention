@@ -34,7 +34,7 @@ namespace TurnBased.Phases {
 
         public void Awake()
         {
-            this.phaseManager.Awake(OnPhaseComplete);
+            this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
         }
 
@@ -78,12 +78,16 @@ namespace TurnBased.Phases {
 
                 case CombatTurnOrchestrationPhase.StartOfRound:
 
+                    UnityEngine.Debug.LogWarning($"Start of round phase is complete. Moving to pre-player turn.   ");
+
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PrePlayerTurn;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
 
                 case CombatTurnOrchestrationPhase.PrePlayerTurn:
+
+                    UnityEngine.Debug.LogWarning($"Pre player turn done. Moving to the player's main turn.   ");
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PlayerTurn;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
@@ -92,19 +96,22 @@ namespace TurnBased.Phases {
 
                 case CombatTurnOrchestrationPhase.PlayerTurn:
 
-                    /*  
-                     *  IMPORTANT: THIS CONNECTION NEEDS TO BE REVISED. WE SHOULD NOT BE GOING INTO A SUBPHASE FROM WITHIN A PHASE.
-                     *  WE SHOULD BE TOLD TO BY THIS CLASS!!!
-                     */
-                    this.subPhaseManager.SwitchSubPhase(SubPhaseState.RESOLVE_ATTACK, unitIndexOnStation);
-
-
-                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.EndOfRound;
+                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.TurnOrderRes;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
+                case CombatTurnOrchestrationPhase.TurnOrderRes:
+
+                    UnityEngine.Debug.LogWarning($"Turn order resolved. Moving to end of round.   ");
+
+                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.EndOfRound;
+                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
+
+                    break;
 
                 case CombatTurnOrchestrationPhase.EndOfRound:
+
+                    UnityEngine.Debug.LogWarning($"End of round over. Going to the start of round.   ");
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
@@ -126,42 +133,45 @@ namespace TurnBased.Phases {
             /*  Try and get the Unit index on that station to pass to the subphase we are entering. */
             if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStation, out UnitIndex unitIndexOnStation)) { return; }
 
+            /*  If User Input was awaited for purposes of Move or Target selection, complete it when the SubPhase is complete.  */
+            this.combatRoundIntentionManager.CompleteAwaitingUserInput(unitIndexOnStation);
+
+
             switch (phaseThatCompleted)
             {
                 case SubPhaseState.AWAITING_MOVE_SELECTION:
+                    UnityEngine.Debug.LogWarning($"Move Selection Subphase is complete, processing the intention once more to aim to go to target resolution.   ");
 
-                    this.combatRoundIntentionManager.CompleteAwaitingUserInput(unitIndexOnStation);
-
-                    this.subPhaseManager.SwitchSubPhase(SubPhaseState.AWAITING_TARGET_SELECTION, unitIndexOnStation);
+                    /*  Get the intention of the Unit. If the Move Intent is done, we will be moved to Target Selection.    */
+                    this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
                     break;
+
                 case SubPhaseState.AWAITING_TARGET_SELECTION:
-                    this.subPhaseManager.SwitchSubPhase(SubPhaseState.READY_TO_EXECUTE_MOVE, unitIndexOnStation);
+                    UnityEngine.Debug.LogWarning($"Target selection Subphase is complete, processing the intention once more to aim to go to ready to execute phase.   ");
+                    /*  Get the intention of the Unit. If the Target Intent is done, we will be moved to Ready-To-Execute Move.    */
+                    this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
                     break;
 
                 case SubPhaseState.READY_TO_EXECUTE_MOVE:
 
-                    /*  
-                     *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
-                     *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
-                     */
+                    UnityEngine.Debug.LogWarning($"Ready to execute was done.  ");
 
-                    if (!this.combatRoundIntentionManager.IsAllUnitIntentionsComplete)
+                    /*  First check to see if all the intents are done. If so, move to the next Main Phase in sequence. */
+                    if (this.combatRoundIntentionManager.IsAllUnitIntentionsComplete)
                     {
-                        this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
+                        UnityEngine.Debug.LogWarning($"ALL INTENTIONS DONE!!  ");
+
+                        this.subPhaseManager.ResetCurrentPhase();
+                        this.phaseManager.ChangeToNextStateInOrder();
                     }
+
+                    /*  If the intentions are not yet done, Process the next unit in resolution order.  */
                     else
                     {
-                        if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-                        {
-                            this.phaseManager.ChangeToNextStateInOrder();
-                        }
-                        else
-                        {
-                            MonoBehaviour.print("<color=black>No one left to resolve. Switching to Resolve Attack</color>");
-                            this.subPhaseManager.SwitchSubPhase(SubPhaseState.RESOLVE_ATTACK, unitIndexOnStation);
-                        }
-                    }
+                        UnityEngine.Debug.LogWarning($"Processing the next intention in sequence!!  ");
 
+                        this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
+                    }
                     break;
 
                 case SubPhaseState.RESOLVE_ATTACK:
@@ -197,9 +207,6 @@ namespace TurnBased.Phases {
                 default:
                     break;
             }
-
         }
-
-
     }
 }

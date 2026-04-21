@@ -21,17 +21,18 @@ namespace TurnBased.Phases
         private System.Collections.Generic.Dictionary<CombatTurnOrchestrationPhase, Phase> PhaseDictionary = new();
         private Phase CurrentPhase;
 
-        public void Awake(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
+        public void Awake(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
         {
             instance = this;
 
             this.PhaseDictionary = new()
             {
-                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase(onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase (onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase    (onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase   (onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase   (onMainPhaseComplete) }
+                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase                (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase                 (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase                    (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase                   (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.TurnOrderRes,     new TurnOrderCombatResolutionPhase  (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, onMainPhaseComplete) }
             };
         }
 

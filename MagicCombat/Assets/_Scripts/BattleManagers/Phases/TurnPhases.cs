@@ -1,3 +1,4 @@
+using System;
 using TurnBased.Intention;
 using UnityEngine;
 
@@ -15,16 +16,19 @@ namespace TurnBased.Phases
 
     public abstract class MainPhase : Phase
     {
+        protected Intention.CombatRoundUnitIntentionManager RoundUnitIntentionManager;
+
         protected System.Action<CombatTurnOrchestrationPhase> OnMainPhaseComplete;
-        public MainPhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base()
+        public MainPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base()
         {
             this.OnMainPhaseComplete = onMainPhaseComplete;
+            this.RoundUnitIntentionManager = cRUIM;
         }
     }
 
     public class BeginBattlePhase : MainPhase
     {
-        public BeginBattlePhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(onMainPhaseComplete)
+        public BeginBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
@@ -49,7 +53,7 @@ namespace TurnBased.Phases
     {
         PhaseTaskCompletionManager completionManager;
 
-        public BeginRoundPhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(onMainPhaseComplete)
+        public BeginRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
@@ -78,14 +82,6 @@ namespace TurnBased.Phases
 
         }
 
-        private void OnBeginRoundComplete()
-        {
-          //  Intention.IntentionResolver.OnAllIntentionsProcessed -= this.completionManager.OnActionComplete;
-
-            /*  Once everything is done, we want to move onto the next Phase.   */
-            PhaseManager.Instance.ChangeToNextStateInOrder();
-        }
-
         private void InitaliseTurnOrderForTheRound()
         {
             TurnOrderCreationState turnOrderCreationState = TurnOrder.TurnOrderManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
@@ -104,15 +100,17 @@ namespace TurnBased.Phases
             this.completionManager = new(OnBeginRoundComplete);
 
             this.completionManager.AddAction();
-            //Intention.IntentionResolver.OnAllIntentionsProcessed += this.completionManager.OnActionComplete;
-            //Intention.IntentionResolver.Instance.ResetIntentionResolver();
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += this.completionManager.OnActionComplete;
+            this.RoundUnitIntentionManager.ObtainNonPlayerDrivenUnitIntentions();
+        }
 
-            /*  After that, get the Intention of all Enemy Units to reveal that information to the Player.  */
-            //if (!Intention.IntentionResolver.Instance.DetermineNonPlayerDrivenUnitIntentions())
-            //{
-            //    OnBeginRoundComplete();
-            //}
 
+        private void OnBeginRoundComplete()
+        {
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= this.completionManager.OnActionComplete;
+
+            /*  Once everything is done, we want to move onto the next Phase.   */
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfRound); 
         }
 
     }
@@ -120,7 +118,7 @@ namespace TurnBased.Phases
     public class PreTurnPhase : MainPhase
     {
 
-        public PreTurnPhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(onMainPhaseComplete)
+        public PreTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
@@ -129,6 +127,7 @@ namespace TurnBased.Phases
             MonoBehaviour.print("<color=green>Entering in PreTurnPhase</color>");
             /*  When we enter this Phase, we want to process any Pre-Start-Of-Turn Status Effects.  */
 
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PrePlayerTurn);
 
 
         }
@@ -152,7 +151,7 @@ namespace TurnBased.Phases
     {
         PhaseTaskCompletionManager playerDrivenIntentionsCompletionManager;
 
-        public UnitTurnPhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(onMainPhaseComplete)
+        public UnitTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
@@ -183,22 +182,16 @@ namespace TurnBased.Phases
         {
             this.playerDrivenIntentionsCompletionManager = new(OnPlayerDrivenIntentionsComplete);
 
-            //this.playerDrivenIntentionsCompletionManager.AddAction();
-            //Intention.IntentionResolver.OnAllIntentionsProcessed += this.playerDrivenIntentionsCompletionManager.OnActionComplete;
-            //Intention.IntentionResolver.Instance.ResetIntentionResolver();
-
-            ///*  When we enter here, try and resolve all Player Driven Intentions. If it was unsucessful, then we just want to proceed to evaluating if all the unit intentions are done.    */
-            //if (!Intention.IntentionResolver.Instance.DeterminePlayerDrivenUnitIntentions())
-            //{
-            //    OnPlayerDrivenIntentionsComplete();
-            //}
+            this.playerDrivenIntentionsCompletionManager.AddAction();
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += this.playerDrivenIntentionsCompletionManager.OnActionComplete;
+            this.RoundUnitIntentionManager.ObtainPlayerDrivenUnitIntentions();
         }
 
         private void OnPlayerDrivenIntentionsComplete()
         {
-          //  Intention.IntentionResolver.OnAllIntentionsProcessed -= this.playerDrivenIntentionsCompletionManager.OnActionComplete;
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= this.playerDrivenIntentionsCompletionManager.OnActionComplete;
 
-            MonoBehaviour.print("<color=blue>DONE INTENTIONS</color>");
+            Debug.LogWarning("DONE PLAYER INTENTIONS");
 
             /*  When player driven intentions are done, we want to evaluate if we are entering resolving comabat.   */
             ProcessCombat();
@@ -208,29 +201,67 @@ namespace TurnBased.Phases
         {
             if (Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
             {
-                Debug.Log("INTENTIONS ARE DONE!!!! POGGIES!!!");
+                Debug.LogWarning("INTENTIONS ARE DONE!!!! POGGIES!!!");
+
                 /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
-
                 this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PlayerTurn);
-
                 return;
-                //PhaseManager.Instance.ChangeSubPhase(SubPhaseState.RESOLVE_ATTACK);
             }
         }
     }
 
-    public class EndRoundPhase : MainPhase
+    public class TurnOrderCombatResolutionPhase : MainPhase
     {
-        public EndRoundPhase(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(onMainPhaseComplete)
+        PhaseTaskCompletionManager turnOrderCombatCompletionManager;
+
+        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
         public override void OnEnter()
         {
-            /*  Clear intents   */
-            UnitIntentionManager.Instance.ClearAllUnitIntentions();
-         //   Intention.IntentionResolver.Instance.ResetIntentionResolver();
+            /*  The Combat Round Intention Manager should be the one to put us into the resolve attack sub phase.   */
+            this.turnOrderCombatCompletionManager = new(OnTurnOrderCombatFullyResolving);
+            this.turnOrderCombatCompletionManager.AddAction();
 
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += this.turnOrderCombatCompletionManager.OnActionComplete;
+
+            this.RoundUnitIntentionManager.StartTurnOrderCombat();
+        }
+
+        public override void OnExit()
+        {
+            
+        }
+
+        public override void Update()
+        {
+         
+        }
+
+        private void OnTurnOrderCombatFullyResolving()
+        {
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
+        }
+
+    }
+
+
+
+    public class EndRoundPhase : MainPhase
+    {
+        public EndRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        {
+        }
+
+        public override void OnEnter()
+        {
+            UnityEngine.Debug.LogWarning($"Entering end of round phase. Clearing intents.   ");
+
+            /*  Clear intents   */
+            Intention.UnitIntentionManager.Instance.ClearAllUnitIntentions();
+
+            UnityEngine.Debug.LogWarning($"Ending end of round.   ");
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.EndOfRound);     
 
         }

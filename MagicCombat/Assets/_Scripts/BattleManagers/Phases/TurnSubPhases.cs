@@ -47,7 +47,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : MoveSelection for UnitIndex: {this.currentUnitIndex.Index}");
+            Debug.LogWarning($"Entering : MoveSelection for UnitIndex: {this.currentUnitIndex.Index}");
 
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
             Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
@@ -65,10 +65,12 @@ namespace TurnBased.Phases
 
         private void OnMoveSelected(UnitIndex selectedUnitIndex, IBattleMove selectedMove)
         {
-
+            UnityEngine.Debug.LogWarning($"Move was selected: {selectedMove.GetMoveName()}. Setting move intention for  selectedUnitIndex: {selectedUnitIndex.Index}");
 
             /*  Add this selected move to intentionManager. */
             Intention.UnitIntentionManager.Instance.SetMoveIntention(selectedUnitIndex, selectedMove);
+
+
 
             OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
         }
@@ -82,20 +84,33 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : TargetSelection for UnitIndex: {currentUnitIndex.Index}");
+            Debug.Log($"Entering : TargetSelection for UnitIndex: {this.currentUnitIndex.Index}");
+            Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
             Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
         {
-
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
         }
 
         public override void Update()
         {
-            //MonoBehaviour.print("<color=pink>TargetSelection</color>");
-         //   this.mainTurnManager.SwitchToNextSubPhase();
+
         }
+
+        private void OnTargetSelected(UnitIndex selectedUnitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
+        {
+            UnityEngine.Debug.LogWarning($"Target was selected. Amount of targets: {selectedTarget.Count}. Setting target intention for  selectedUnitIndex: {selectedUnitIndex.Index}");
+
+            /*  Add this selected move to intentionManager. */
+            Intention.UnitIntentionManager.Instance.SetTargetIntention(selectedUnitIndex, selectedTarget);
+
+
+
+            OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
+        }
+
     }
 
 
@@ -107,7 +122,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
+            Debug.LogWarning($"Entering : READY_TO_EXECUTE_MOVE");
 
             this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
         }
@@ -119,7 +134,6 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-           // throw new NotImplementedException();
         }
     }
 

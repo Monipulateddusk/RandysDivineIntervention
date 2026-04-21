@@ -74,7 +74,8 @@ public enum CombatTurnOrchestrationPhase
     StartOfRound    = 1,
     PrePlayerTurn   = 2,
     PlayerTurn      = 3,
-    EndOfRound      = 4,
+    TurnOrderRes    = 4,
+    EndOfRound      = 5,
 }
 
 
