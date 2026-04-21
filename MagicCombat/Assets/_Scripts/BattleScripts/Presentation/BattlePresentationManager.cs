@@ -19,7 +19,7 @@ public class BattlePresentationManager : MonoBehaviour
     }
 
     [SerializeField] GameObject tempVisual;
-    const float MOVEMENT_DURATION = 3.0f;
+    const float MOVEMENT_DURATION = 1.0f;
 
     private void Awake()
     {

@@ -91,7 +91,11 @@ namespace TurnBased.TurnOrder
             this.UnitIndexTurnOrderList.RemoveAt(0);
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
             return currentUnit;
-
+        }
+        public void ResetCurrentUnit()
+        {
+            this.currentUnit = null;
+            OnUpdateTurnOrder?.Invoke(this.UnitIndexTurnOrderList);
         }
 
         public System.Collections.Generic.List<UnitIndex> GetTurnOrderList() => this.UnitIndexTurnOrderList;

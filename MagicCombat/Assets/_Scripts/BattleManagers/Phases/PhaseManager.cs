@@ -18,62 +18,58 @@ namespace TurnBased.Phases
             }
         }
 
-        private MainTurnManager SubPhaseManager = new();
-        private System.Collections.Generic.Dictionary<PHASE_TYPES, Phase> PhaseDictionary = new();
-        private PHASE_TYPES CurrentPhaseType;
+        private System.Collections.Generic.Dictionary<CombatTurnOrchestrationPhase, Phase> PhaseDictionary = new();
         private Phase CurrentPhase;
 
-        public void Awake()
+        public void Awake(System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
         {
             instance = this;
-        }
 
-        public void Initialise()
-        {
             this.PhaseDictionary = new()
             {
-                {PHASE_TYPES.START_ROUND,   new BeginRoundPhase () },
-                {PHASE_TYPES.PRE_UNIT_TURN, new PreTurnPhase    () },
-                {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   () },
-                {PHASE_TYPES.END_ROUND,     new EndRoundPhase   () }
+                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase(onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase (onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase    (onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase   (onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase   (onMainPhaseComplete) }
             };
-            ChangeState(PHASE_TYPES.START_ROUND);
         }
 
-        public void UpdatePhases()
+        public void Update()
         {
             this.CurrentPhase?.Update();
-            this.SubPhaseManager.UpdateSubPhase();
         }
 
-        public void ChangeState(PHASE_TYPES newPhaseType)
+        public void ChangeState(CombatTurnOrchestrationPhase newPhaseType)
         {
             this.CurrentPhase?.OnExit();
 
-            this.CurrentPhaseType = newPhaseType;
-            this.CurrentPhase = PhaseDictionary[newPhaseType];
+            CombatTurnOrchestrator.CurrentOrchestrationPhase = newPhaseType;
+            this.CurrentPhase = PhaseDictionary[CombatTurnOrchestrator.CurrentOrchestrationPhase];
 
             this.CurrentPhase?.OnEnter();
         }
 
-        public void ChangeSubPhase(MAIN_TURN_STATE newSubPhaseState)
-        {
-            this.SubPhaseManager.SwitchSubPhase(newSubPhaseState);
-        }
-
         public void ChangeToNextStateInOrder()
         {
-            // Get which state we are in, decide which state is next
-            int index = (int)this.CurrentPhaseType;
-
-            index++;
-
-            if (index > this.PhaseDictionary.Count - 1)
+            switch (CombatTurnOrchestrator.CurrentOrchestrationPhase)
             {
-                index = 0;
+                case CombatTurnOrchestrationPhase.StartOfBattle:
+                    ChangeState(CombatTurnOrchestrationPhase.StartOfRound);
+                    break;
+                case CombatTurnOrchestrationPhase.StartOfRound:
+                    ChangeState(CombatTurnOrchestrationPhase.PrePlayerTurn);
+                    break;
+                case CombatTurnOrchestrationPhase.PrePlayerTurn:
+                    ChangeState(CombatTurnOrchestrationPhase.PlayerTurn);
+                    break;
+                case CombatTurnOrchestrationPhase.PlayerTurn:
+                    ChangeState(CombatTurnOrchestrationPhase.EndOfRound);
+                    break;
+                case CombatTurnOrchestrationPhase.EndOfRound:
+                    ChangeState(CombatTurnOrchestrationPhase.StartOfRound);
+                    break;
             }
-
-            ChangeState((PHASE_TYPES)index);
         }
 
 

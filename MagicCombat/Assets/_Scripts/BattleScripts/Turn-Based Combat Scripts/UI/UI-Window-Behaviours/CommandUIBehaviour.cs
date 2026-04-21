@@ -1,4 +1,5 @@
 using System.Linq;
+using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -27,29 +28,29 @@ namespace TurnBased.UI
 
         private void Awake()
         {
-            StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
-            Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
+          //  StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
+          //  Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
         }
 
         private void OnDestroy()
         {
-            StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
-            Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
+           // StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
+           // Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
         }
 
         private void Start()
         {
-            OnUnitIntentionChanged();
+          //  OnUnitIntentionChanged(StationSelectorManager.Instance.GetSelectedStationIndex());
         }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
         {
-            OnUnitIntentionChanged();
+            OnUnitIntentionChanged(selectedStationIndex);
         }
 
-        private void OnUnitIntentionChanged()
+        private void OnUnitIntentionChanged(StationIndex selectedStationIndex)
         {
-            if (!StationManager.Instance.TryGetUnitIndexOnStation(StationSelectorManager.Instance.GetSelectedStationIndex(), out UnitIndex unitIndex)) { return; }
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
 
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
 
@@ -83,7 +84,7 @@ namespace TurnBased.UI
 
                 default:
                 case UnitIntentionResolutionState.NONE:
-                case UnitIntentionResolutionState.COMPLETE:
+                case UnitIntentionResolutionState.COMPLETED_INTENTION:
                     SetState(CommandUIBehaviourStates.UnitIntention);
                     break;
             }
@@ -297,7 +298,7 @@ namespace TurnBased.UI
 
             if (!targettingSelectorInfo.DoesRequireTargettingSelectorSelection)
             {
-                CreateTargetUIElement(targettingSelectorInfo.TargettingDisplayText);
+                CreateTargetUIElement(targettingSelectorInfo.PossibleTargets, targettingSelectorInfo.TargettingDisplayText);
                 return;
             }
 
@@ -320,13 +321,13 @@ namespace TurnBased.UI
             }
         }
 
-        private void CreateTargetUIElement(string targetText)
+        private void CreateTargetUIElement(System.Collections.Generic.List<StationIndex> targetStations, string targetText)
         {
             if (this.InstanciatedTargetUIElements == null || this.PopupBufferGameObject == null || this.UnitImageHealthWrapperGameObject == null) { return; }
             GameObject instanciatedObject = GameObject.Instantiate(this.TargetSelectionGameObject, this.CommandWrapperGameObject.transform);
             if (instanciatedObject != null && instanciatedObject.TryGetComponent(out TargetUIPrefabData instanciatedTargetUIData))
             {
-                instanciatedTargetUIData.Initalise(targetText);
+                instanciatedTargetUIData.Initalise(targetStations, targetText);
                 instanciatedTargetUIData.OnButtonClicked += OnTargetButtonClick;
                 this.InstanciatedTargetUIElements.Add(instanciatedTargetUIData);
             }
@@ -340,7 +341,7 @@ namespace TurnBased.UI
 
                 targetButtonData.IsButtonClicked = false;
 
-                UserInterfaceUserInput.Instance.OnTargetSelection();
+                UserInterfaceUserInput.Instance.OnTargetSelection(targetButtonData.GetCorrelatingTarget());
                 return;
             }
         }

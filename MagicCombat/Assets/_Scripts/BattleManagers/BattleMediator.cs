@@ -58,18 +58,18 @@ namespace TurnBased
         private readonly StationManager                         StationHandler              = new();
         private readonly StationSelectorManager                 StationSelectorManager      = new();
 
+        private readonly Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
+
+
         private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager         = new();
         private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager       = new();
         private readonly TurnOrder.TurnOrderManager             TurnOrderManager            = new();
-        private readonly Phases.PhaseManager                    PhaseManager                = new();
-        private readonly Intention.IntentionResolver            IntentionResolver           = new();
         private readonly Intention.UnitIntentionManager         UnitIntentionManager        = new();
         private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager  = new();
         private readonly AttackResolution.AttackResolutionManager AttackResolutionManager   = new();
         private readonly Health.UnitHealthManager               UnitHealthManager = new();
 
 
-        [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
         [SerializeField] GameObject textPrefab;
 
         void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
@@ -105,42 +105,27 @@ namespace TurnBased
         private void Awake()
         {
             instance = this;
+
             this.TurnOrderManager.Awake();
-            this.IntentionResolver.Awake();
             this.UnitIntentionManager.Awake();
             this.StationHandler.Awake();
             this.StationSelectorManager.Awake();
             this.MoveSelectorManager.Awake();
             this.TargetSelectorManager.Awake();
-            this.PhaseManager.Awake();
             this.IntentionVisualiserManager.Awake();
             this.AttackResolutionManager.Awake();
             this.UnitHealthManager.Awake();
 
-
-            Intention.IntentionResolver.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
+            this.CombatTurnOrchestrator.Awake();
         }
 
         private void OnDestroy()
         {
-            this.IntentionResolver.OnDestroy();
             this.UnitIntentionManager.OnDestroy();
             this.MoveSelectorManager.OnDestroy();
             this.TargetSelectorManager.OnDestroy();
             this.IntentionVisualiserManager.OnDestroy();
             this.UnitHealthManager.OnDestroy();
-
-            Intention.IntentionResolver.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
-        }
-
-        private void IntentionResolver_OnUnitIntentionResolutionStateChange(UnitIndex unitIndex, UnitIntentionResolutionState state)
-        {
-            if (tempUnitResolutionChangeVisualiser != null)
-            {
-                if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return; }
-
-                this.tempUnitResolutionChangeVisualiser.text = $"UnitIndex: {unitIndex.Index} named: {unitData.name} is in this Resolution State: {state}";
-            }
         }
 
         private void Start()
@@ -151,12 +136,13 @@ namespace TurnBased
             this.StationHandler.DeployUnitsForStartOfBattle();
             this.StationSelectorManager.Start();
 
-            this.PhaseManager.Initialise();
+            this.CombatTurnOrchestrator.Start();
+
         }
 
         private void Update()
         {
-            this.PhaseManager.UpdatePhases();
+            this.CombatTurnOrchestrator.Update();
         }
 
 

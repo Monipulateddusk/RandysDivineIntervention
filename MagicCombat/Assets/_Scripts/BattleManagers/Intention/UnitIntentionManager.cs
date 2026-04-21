@@ -13,7 +13,7 @@ namespace TurnBased.Intention
         {
             this.MoveSelection = moveData;
             this.TargetIndexList = targetIndex;
-            this.ResolutionState = UnitIntentionResolutionState.COMPLETE;
+            this.ResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
         }
 
         public UnitIntention(IBattleMove moveData)
@@ -132,7 +132,15 @@ namespace TurnBased.Intention
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, new());
+            SetIntention(unitIndex, new UnitIntention());
+        }
+
+        public void ClearAllUnitIntentions()
+        {
+            foreach (int unitIndex in intentionDictionary.Keys)
+            {
+                ClearIntention(new(unitIndex));
+            }
         }
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
         {
@@ -145,7 +153,7 @@ namespace TurnBased.Intention
 
         private void DetermineIntentionCompletionStatus(UnitIntention nextSettingIntention)
         {
-            if(nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETE) { return; }
+            if(nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION) { return; }
 
             AreAllIntentionsDone();
         }
@@ -155,7 +163,7 @@ namespace TurnBased.Intention
             {
                 UnitIntention intention = intentionKeyValuePair.Value;
 
-                if(intention != null && intention.ResolutionState != UnitIntentionResolutionState.COMPLETE)
+                if(intention != null && intention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
                 {
                     this.AreUnitIntentionsDone = false;
                     return;

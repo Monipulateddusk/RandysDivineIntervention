@@ -1,9 +1,11 @@
-using TurnBased.MoveSelection;
-
 namespace TurnBased.Intention
 {
     public static class TargetSelectionResolver
     {
+        public static System.Action<UnitIndex> OnRequireUserInput;
+        public static System.Action<UnitIndex> OnCompleteUserInput;
+        public static System.Action<UnitIndex, System.Collections.Generic.List<StationIndex>> OnTargetSelected;
+
         public static bool ProcessIntentionTargetSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.Log("Try get Target selector!");
@@ -16,17 +18,38 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
             {
-                /*  Alert the UI    */
-                TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
+                OnRequireUserInput?.Invoke(unitIndex);
                 return true;
             }
             else
             {
-                UnityEngine.Debug.Log("Move Selector! " + targetSelector.ToString());
+                UnityEngine.Debug.Log("Processing Autonomous Target Selector! " + targetSelector.ToString());
                 ProcessTargetSelector(unitIndex, targetSelector);
                 return true;
             }
         }
+
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        /// 
+        /// When A Player Selects a Move Via UI
+        /// 
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+        public static void OnPlayerDrivenSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
+        {
+            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { return; }
+
+            if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
+            {
+                (targetSelector as TargetSelection.PlayerDrivenTargetSelector).SelectedTarget = selectedTarget;
+            }
+
+            OnCompleteUserInput?.Invoke(unitIndex);
+
+            ProcessTargetSelector(unitIndex, targetSelector);
+        }
+
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
         public static bool ProcessTargetSelector(UnitIndex unitIndex, TargetSelection.ITargetSelector targetSelector)
         {
@@ -40,26 +63,9 @@ namespace TurnBased.Intention
 
             System.Collections.Generic.List<StationIndex> selectedTargets = targetSelector.SelectTargets(sceneData, intention.MoveSelection);
 
-
-            /*  Add this selected move to intentionManager. */
-            UnitIntentionManager.Instance.SetTargetIntention(unitIndex, selectedTargets);
-
-            UnityEngine.Debug.Log("Invoking OnTargetSelectionComplete");
-
-            IntentionResolver.Instance.ContinueProcessingSelectedUnitIntention(unitIndex);
+            /*  Notify CombatRoundIntentionManager that a Target has been selected by this UnitIndex. */
+            OnTargetSelected?.Invoke(unitIndex, selectedTargets);
             return true;
         }
-        public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
-        {
-            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return; }
-
-            if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
-            {
-                (targetSelector as TargetSelection.PlayerDrivenTargetSelector).SelectedTargetIndex = 1;
-            }
-
-            ProcessTargetSelector(unitIndex, targetSelector);
-        }
-
     }
 }

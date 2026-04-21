@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace TurnBased.UI
 {
     public class UserInterfaceUserInput
@@ -48,13 +46,13 @@ namespace TurnBased.UI
             }
         }
 
-        public void OnTargetSelection()
+        public void OnTargetSelection(System.Collections.Generic.List<StationIndex> selectedTarget)
         {
             UnityEngine.Debug.LogWarning("Called OnTargetSelection");
             if (this.selectedUnit.HasValue)
             {
                 UnityEngine.Debug.LogWarning("Done target selection in UI");
-                Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value);
+                Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
             }
         }
     }

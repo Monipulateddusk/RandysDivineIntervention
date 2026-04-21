@@ -58,6 +58,8 @@ namespace TurnBased.AttackResolution
             UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
             await ProcessUnitIndexIntent(this.unitIndexToProcess);
 
+            TurnOrder.TurnOrderManager.Instance.ResetCurrentUnit();
+
             UnityEngine.Debug.LogWarning($"Done processing next unit in turn order");
 
             if (IsProcessingIntentContinuing())

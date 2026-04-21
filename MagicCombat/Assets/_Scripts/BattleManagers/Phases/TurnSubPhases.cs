@@ -2,28 +2,27 @@ using UnityEngine;
 
 namespace TurnBased.Phases
 {
-    public abstract class UnitTurnSubPhase : Phase
+    public abstract class SubPhase : Phase
     {
+        protected System.Action<SubPhaseState> OnSubPhaseComplete; 
         protected UnitIndex currentUnitIndex;
-        public UnitTurnSubPhase() : base()
+        public SubPhase(System.Action<SubPhaseState> onSubPhaseComplete) : base()
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
         }
 
         public void SetCurrentUnitIndex(UnitIndex unitIndex) { this.currentUnitIndex = unitIndex; }
     }
 
-    public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
+    public class UnitTurnPhase_None : SubPhase
     {
-        public UnitTurnPhase_MoveSelection() : base()
+        public UnitTurnPhase_None(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
-
         public override void OnEnter()
         {
-            Debug.Log($"Entering : MoveSelection for UnitIndex: {currentUnitIndex.Index}");
-
-            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
+ 
         }
 
         public override void OnExit()
@@ -37,9 +36,47 @@ namespace TurnBased.Phases
         }
     }
 
-    public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
+
+    public class UnitTurnPhase_MoveSelection : SubPhase
     {
-        public UnitTurnPhase_TargetSelection() : base()
+
+        public UnitTurnPhase_MoveSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        {
+        }
+
+
+        public override void OnEnter()
+        {
+            Debug.Log($"Entering : MoveSelection for UnitIndex: {this.currentUnitIndex.Index}");
+
+            Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
+            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
+        }
+
+        public override void OnExit()
+        {
+            Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
+        }
+
+        public override void Update()
+        {
+
+        }
+
+        private void OnMoveSelected(UnitIndex selectedUnitIndex, IBattleMove selectedMove)
+        {
+
+
+            /*  Add this selected move to intentionManager. */
+            Intention.UnitIntentionManager.Instance.SetMoveIntention(selectedUnitIndex, selectedMove);
+
+            OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
+        }
+    }
+
+    public class UnitTurnPhase_TargetSelection : SubPhase
+    {
+        public UnitTurnPhase_TargetSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
@@ -62,9 +99,9 @@ namespace TurnBased.Phases
     }
 
 
-    public class UnitTurnPhase_ReadyToExecuteMove : UnitTurnSubPhase
+    public class UnitTurnPhase_ReadyToExecuteMove : SubPhase
     {
-        public UnitTurnPhase_ReadyToExecuteMove() : base()
+        public UnitTurnPhase_ReadyToExecuteMove(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
@@ -72,26 +109,7 @@ namespace TurnBased.Phases
         {
             Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
 
-            if (!Intention.IntentionResolver.Instance.IsAllUnitIntentionsComplete)
-            {
-                Intention.IntentionResolver.Instance.UnitSelectionForIntentionProcessing(this.currentUnitIndex);
-            }
-            else
-            {
-                /*  
-                 *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
-                 *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
-                 */
-                if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-                {
-                    PhaseManager.Instance.ChangeToNextStateInOrder();
-                }
-                else
-                { 
-                    MonoBehaviour.print("<color=black>No one left to resolve. Switching to Resolve Attack</color>");
-                    PhaseManager.Instance.ChangeSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
-                }
-            }
+            this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
         }
 
         public override void OnExit()
@@ -105,11 +123,11 @@ namespace TurnBased.Phases
         }
     }
 
-    public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
+    public class UnitTurnPhase_ResolveAttack : SubPhase
     {
         PhaseTaskCompletionManager resolveAttackResolutionCompletionManager;
 
-        public UnitTurnPhase_ResolveAttack() : base()
+        public UnitTurnPhase_ResolveAttack(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
 
         }
@@ -142,20 +160,20 @@ namespace TurnBased.Phases
             MonoBehaviour.print("<color=white>OnAttackResolutionPhaseComplete</color>");
 
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
-            PhaseManager.Instance.ChangeSubPhase(MAIN_TURN_STATE.ATTACK_COMPLETE);
+            this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
         }
 
     }
 
-    public class UnitTurnPhase_AttackComplete : UnitTurnSubPhase
+    public class UnitTurnPhase_AttackComplete : SubPhase
     {
-        public UnitTurnPhase_AttackComplete() : base()
+        public UnitTurnPhase_AttackComplete(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
         public override void OnEnter()
         {
-            /*  Check to see if the Turn order list is empty. If not, we don't want to move to the end of round Phase.  */
+            this.OnSubPhaseComplete(SubPhaseState.ATTACK_COMPLETE);
         }
 
         public override void OnExit()

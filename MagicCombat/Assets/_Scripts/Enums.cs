@@ -67,6 +67,17 @@ public enum UnitTargetSelectorType
     PlayerDriven
 }
 
+
+public enum CombatTurnOrchestrationPhase
+{
+    StartOfBattle   = 0,
+    StartOfRound    = 1,
+    PrePlayerTurn   = 2,
+    PlayerTurn      = 3,
+    EndOfRound      = 4,
+}
+
+
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
 /// UI ENUMERATIONS
@@ -141,18 +152,19 @@ public enum UIWindowFactoryWindowType
 /// 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public enum MAIN_TURN_STATE 
-{ 
-    AWAITING_MOVE_SELECTION = 0, 
-    AWAITING_TARGET_SELECTION = 1, 
-    READY_TO_EXECUTE_MOVE = 2,
-    RESOLVE_ATTACK = 3,
-    ATTACK_COMPLETE = 4,
-    NONE = 5
+public enum SubPhaseState 
+{
+    NONE                        = 0,
+    AWAITING_MOVE_SELECTION     = 1, 
+    AWAITING_TARGET_SELECTION   = 2, 
+    READY_TO_EXECUTE_MOVE       = 3,
+    RESOLVE_ATTACK              = 4,
+    ATTACK_COMPLETE             = 5,
 }
 
 public enum PHASE_TYPES
 {
+    START_BATTLE,
     START_ROUND,
     PRE_UNIT_TURN,
     UNIT_TURN,
@@ -164,7 +176,7 @@ public enum UnitIntentionResolutionState
     NONE = 0,
     AWAITING_MOVE_SELECTION = 1,
     AWAITING_TARGET_SELECTION = 2,
-    COMPLETE = 3,   
+    COMPLETED_INTENTION = 3,   
     RESOLVED_MOVE = 4,
 }
 

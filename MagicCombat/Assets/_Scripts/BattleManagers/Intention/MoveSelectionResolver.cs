@@ -2,6 +2,11 @@ namespace TurnBased.Intention
 {
     public static class MoveSelectionResolver 
     {
+        public static System.Action<UnitIndex> OnRequireUserInput;
+        public static System.Action<UnitIndex> OnCompleteUserInput;
+        public static System.Action<UnitIndex, IBattleMove> OnMoveSelected;
+
+
         public static bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.Log("Try get move selector!");
@@ -14,36 +19,22 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
-                /*  Alert the UI    */
-                TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
+                OnRequireUserInput?.Invoke(unitIndex);
                 return true;
             }
             else
             {
-                UnityEngine.Debug.Log("Move Selector! " + moveSelector.ToString());
+                UnityEngine.Debug.Log("Processing Autonomous Move Selector! " + moveSelector.ToString());
                 ProcessMoveSelector(unitIndex, moveSelector);
                 return true;
             }
         }
 
-        public static void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
-        {
-            if (moveSelector == null) { UnityEngine.Debug.Log("Move selector is null?"); return; }
-
-            /*  Create the scene data for this unit.    */
-            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
-            IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
-
-
-
-            /*  Add this selected move to intentionManager. */
-            UnitIntentionManager.Instance.SetMoveIntention(unitIndex, selectedMove);
-
-            UnityEngine.Debug.Log("Invoking OnMoveSelectionComplete");
-
-            IntentionResolver.Instance.ContinueProcessingSelectedUnitIntention(unitIndex);
-
-        }
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        /// 
+        /// When A Player Selects a Move Via UI
+        /// 
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
         public static void OnPlayerDrivenSelection(UnitIndex unitIndex, IBattleMove selectedMove)
         {
@@ -54,8 +45,25 @@ namespace TurnBased.Intention
                 (moveSelector as MoveSelection.PlayerDrivenMoveSelector).SelectedMove = selectedMove; 
             }
 
+            OnCompleteUserInput?.Invoke(unitIndex);
+
             ProcessMoveSelector(unitIndex, moveSelector);
         }
 
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
+        public static void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
+        {
+            if (moveSelector == null) { UnityEngine.Debug.Log("Move selector is null?"); return; }
+
+            /*  Create the scene data for this unit.    */
+            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
+            IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
+
+            /*  Notify CombatRoundIntentionManager that a move has been selected by this UnitIndex. */
+            OnMoveSelected?.Invoke(unitIndex, selectedMove);
+        }
     }
 }
