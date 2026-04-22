@@ -103,6 +103,8 @@ namespace TurnBased.AttackResolution
             }
 
             await BattlePresentationManager.Instance.MoveUnitToStation(sceneUnitData.SourceStationIndex);
+
+            Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
         }
 
         private bool IsProcessingIntentContinuing() => TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0;

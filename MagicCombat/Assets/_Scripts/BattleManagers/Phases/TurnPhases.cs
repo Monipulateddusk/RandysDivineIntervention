@@ -92,7 +92,6 @@ namespace TurnBased.Phases
                 PhaseManager.Instance.ChangeToNextStateInOrder();
                 return;
             }
-            TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
         }
 
         private void SubscribeEventsForStartOfRound()
@@ -256,10 +255,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            UnityEngine.Debug.LogWarning($"Entering end of round phase. Clearing intents.   ");
+            UnityEngine.Debug.LogWarning($"Entering end of round phase. ");
 
-            /*  Clear intents   */
-            Intention.UnitIntentionManager.Instance.ClearAllUnitIntentions();
 
             UnityEngine.Debug.LogWarning($"Ending end of round.   ");
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.EndOfRound);     

@@ -107,7 +107,10 @@ namespace TurnBased.Intention
             UnityEngine.Debug.LogWarning($"It does");
 
             intentionDictionary[unitIndex.Index] = intention;
+           
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
+
+            UnityEngine.Debug.LogWarning($"After event");
 
             DetermineIntentionCompletionStatus(intention);
         }
@@ -142,16 +145,6 @@ namespace TurnBased.Intention
             SetIntention(unitIndex, new UnitIntention());
         }
 
-        public void ClearAllUnitIntentions()
-        {
-            UnityEngine.Debug.LogWarning($"Trying to clear intentions.   ");
-            for(int i = 0; i < this.intentionDictionary.Keys.Count; i++)
-            {
-          
-
-                ClearIntention(new());
-            }
-        }
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
         {
             intention = default;
