@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using TurnBased.Intention;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -28,24 +30,68 @@ namespace TurnBased.UI
 
         private void Awake()
         {
-          //  StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
-          //  Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
+            StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
+    
+            UserInterfaceUserInput.OnAwaitingUserInput              += UserInterfaceUserInput_OnAwaitingUserInput;
+            UserInterfaceUserInput.OnStopAwaitingUserInput          += UserInterfaceUserInput_OnStopAwaitingUserInput;
         }
+
 
         private void OnDestroy()
         {
-           // StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
-           // Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
+            StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
+
+            UserInterfaceUserInput.OnAwaitingUserInput              -= UserInterfaceUserInput_OnAwaitingUserInput;
+            UserInterfaceUserInput.OnStopAwaitingUserInput          -= UserInterfaceUserInput_OnStopAwaitingUserInput;
         }
 
         private void Start()
         {
-          //  OnUnitIntentionChanged(StationSelectorManager.Instance.GetSelectedStationIndex());
+            OnUnitIntentionChanged(StationSelectorManager.Instance.GetSelectedStationIndex());
+            VisualiseSelectedUnitOnStart();
+        }
+
+        private void VisualiseSelectedUnitOnStart()
+        {
+            StationIndex currentlySelectedStation = StationSelectorManager.Instance.GetSelectedStationIndex();
+
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(currentlySelectedStation, out UnitIndex unitIndex)) { return; }
+
+            SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
         {
-            OnUnitIntentionChanged(selectedStationIndex);
+
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
+
+            SetStateIfAwaitingUserInput(unitIndex);
+        }
+
+        private void UserInterfaceUserInput_OnAwaitingUserInput(UnitIndex unitIndexAwaitingInput)
+        {
+            SetStateIfAwaitingUserInput(unitIndexAwaitingInput);
+        }
+
+        private void UserInterfaceUserInput_OnStopAwaitingUserInput(UnitIndex unitIndexStoppingAwaitingInput)
+        {
+            SetStateIfAwaitingUserInput(unitIndexStoppingAwaitingInput);
+        }
+
+        private void SetStateIfAwaitingUserInput(UnitIndex unitIndex)
+        {
+            Debug.LogWarning("Setting state based on user input!!!!!");
+            if (Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput)
+            {
+                Debug.LogWarning("IS AWAITING USER  INPUT!!!!!");
+
+                if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention intention)) { return; }
+                SetStateBasedOnUnitIntention(intention);
+            }
+            else
+            {
+                SetState(CommandUIBehaviourStates.UnitIntention);
+            }
         }
 
         private void OnUnitIntentionChanged(StationIndex selectedStationIndex)
@@ -199,7 +245,14 @@ namespace TurnBased.UI
         private string GetIntentionText(BaseBattleUnit battleUnit, Intention.UnitIntention unitIntention)
         {
             if (!StationManager.Instance.TryGetUnitDataOnStation(unitIntention.TargetIndexList.FirstOrDefault(), out UnitData targetUnitData)) { return string.Empty; }
-            return $"{battleUnit.GetBaseUnit().name} is intending to attack {targetUnitData.name} with a {unitIntention.MoveSelection.GetMoveName()}";
+            if (unitIntention.ResolutionState == UnitIntentionResolutionState.COMPLETED_INTENTION)
+            {
+                return $"{battleUnit.GetBaseUnit().name} is intending to attack {targetUnitData.name} with a {unitIntention.MoveSelection.GetMoveName()}";
+            }
+            else
+            {
+                return string.Empty;
+            }       
         }
 
         private void SetImage(BaseBattleUnit battleUnit)

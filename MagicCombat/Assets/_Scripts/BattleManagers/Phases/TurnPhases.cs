@@ -75,6 +75,8 @@ namespace TurnBased.Phases
         {
             /*  Reenable selection when we are done processing all Start-of-Round effects and events.   */
             StationSelectorManager.Instance.SetSelectorStateUnlocked();
+
+            Debug.LogError($"Leaving Begin Round Phase!");
         }
 
         public override void Update()
@@ -230,7 +232,7 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-            
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= this.turnOrderCombatCompletionManager.OnActionComplete;
         }
 
         public override void Update()

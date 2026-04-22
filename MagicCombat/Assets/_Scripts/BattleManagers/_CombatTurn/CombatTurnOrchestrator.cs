@@ -36,6 +36,7 @@ namespace TurnBased.Phases {
         {
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
+            this.combatRoundIntentionManager.Awake();
         }
 
         public void Update()
@@ -80,6 +81,9 @@ namespace TurnBased.Phases {
 
                     UnityEngine.Debug.LogWarning($"Start of round phase is complete. Moving to pre-player turn.   ");
 
+                    /*  Reset the subphase*/
+                    this.subPhaseManager.SwitchSubPhase(SubPhaseState.NONE, new UnitIndex(0));
+
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PrePlayerTurn;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
@@ -115,6 +119,7 @@ namespace TurnBased.Phases {
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);
+
                     break;
 
 

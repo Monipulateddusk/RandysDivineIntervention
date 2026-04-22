@@ -19,6 +19,12 @@ namespace TurnBased.UI
             }
         }
 
+        /// <summary>
+        /// Invoked when we are awaiting user input, allows all subscribed classes to investigate the current intention for the Unit requesting user input.
+        /// </summary>
+        public static event System.Action<UnitIndex>    OnAwaitingUserInput;
+        public static event System.Action<UnitIndex>    OnStopAwaitingUserInput;
+
         private UnitIndex? selectedUnit;
 
 
@@ -31,11 +37,13 @@ namespace TurnBased.UI
         public void StartSelection(UnitIndex unitIndex)
         {
             this.selectedUnit = unitIndex;
+            OnAwaitingUserInput?.Invoke(unitIndex);
         }
 
-        public void StopSelection()
+        public void StopSelection(UnitIndex unitIndex)
         {
             this.selectedUnit = null;
+            OnStopAwaitingUserInput?.Invoke(unitIndex);
         }
 
         public void OnMoveSelection(IBattleMove selectedMove)
@@ -55,5 +63,8 @@ namespace TurnBased.UI
                 Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
             }
         }
+
+        public bool IsAwaitingUserInput() => this.selectedUnit != null;
+
     }
 }

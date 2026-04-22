@@ -50,7 +50,11 @@ namespace TurnBased.Phases
             Debug.LogWarning($"Entering : MoveSelection for UnitIndex: {this.currentUnitIndex.Index}");
 
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
+
+            Debug.LogWarning($"Processing move selection!");
             Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
+
+            Debug.LogWarning($"After Processing move selection!");
         }
 
         public override void OnExit()
@@ -160,7 +164,7 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= this.resolveAttackResolutionCompletionManager.OnActionComplete;
         }
 
         public override void Update()

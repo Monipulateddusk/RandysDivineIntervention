@@ -9,7 +9,7 @@ namespace TurnBased.Intention
 
         public static bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
         {
-            UnityEngine.Debug.Log("Try get move selector!");
+            UnityEngine.Debug.LogWarning("Try get move selector!");
 
             /*  Determine if we need to invoke the Player's Input systems to resolve this. If so, halt processing until it is done! */
             if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { UnityEngine.Debug.Log("Move selector invalid?!"); return false; }
@@ -19,12 +19,14 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
+                UnityEngine.Debug.LogWarning($"Move Selector {moveSelector.ToString()} requires user input!");
+
                 OnRequireUserInput?.Invoke(unitIndex);
                 return true;
             }
             else
             {
-                UnityEngine.Debug.Log("Processing Autonomous Move Selector! " + moveSelector.ToString());
+                UnityEngine.Debug.LogWarning("Processing Autonomous Move Selector! " + moveSelector.ToString());
                 ProcessMoveSelector(unitIndex, moveSelector);
                 return true;
             }

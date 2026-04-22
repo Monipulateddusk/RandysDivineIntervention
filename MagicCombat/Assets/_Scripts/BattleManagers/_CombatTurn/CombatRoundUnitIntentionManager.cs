@@ -215,9 +215,9 @@ namespace TurnBased.Intention {
             {
                 UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
 
-                OnAllIntentionsResolved?.Invoke();
-
                 UnitIntentionManager.Instance.PrintOutAllIntents();
+
+                OnAllIntentionsResolved?.Invoke();          
             }
         }
 
@@ -225,6 +225,8 @@ namespace TurnBased.Intention {
 
         public void SetIsAwaitingUserInput(UnitIndex unitIndex)
         {
+            Debug.LogWarning("COMBAT ROUND MANAGER IS AWAITING USER INPUT!");
+
             IsAwaitingUserInput = true; 
             /*  Alert the UI    */
             TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
@@ -232,7 +234,11 @@ namespace TurnBased.Intention {
 
         public void CompleteAwaitingUserInput(UnitIndex unitIndex)
         {
+            Debug.LogWarning("COMBAT ROUND MANAGER IS NO LONGER AWAITING USER INPUT!");
+
             IsAwaitingUserInput = false;
+            /*  Alert the UI    */
+            TurnBased.UI.UserInterfaceUserInput.Instance.StopSelection(unitIndex);
         }
     }
 }
