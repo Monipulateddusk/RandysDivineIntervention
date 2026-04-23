@@ -1,7 +1,4 @@
-using System;
 using System.Linq;
-using TurnBased.Intention;
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -31,23 +28,23 @@ namespace TurnBased.UI
         private void Awake()
         {
             StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
-    
+
+            Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
             UserInterfaceUserInput.OnAwaitingUserInput              += UserInterfaceUserInput_OnAwaitingUserInput;
             UserInterfaceUserInput.OnStopAwaitingUserInput          += UserInterfaceUserInput_OnStopAwaitingUserInput;
         }
-
 
         private void OnDestroy()
         {
             StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
 
+            Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
             UserInterfaceUserInput.OnAwaitingUserInput              -= UserInterfaceUserInput_OnAwaitingUserInput;
             UserInterfaceUserInput.OnStopAwaitingUserInput          -= UserInterfaceUserInput_OnStopAwaitingUserInput;
         }
 
         private void Start()
         {
-            OnUnitIntentionChanged(StationSelectorManager.Instance.GetSelectedStationIndex());
             VisualiseSelectedUnitOnStart();
         }
 
@@ -78,31 +75,6 @@ namespace TurnBased.UI
             SetStateIfAwaitingUserInput(unitIndexStoppingAwaitingInput);
         }
 
-        private void SetStateIfAwaitingUserInput(UnitIndex unitIndex)
-        {
-            Debug.LogWarning("Setting state based on user input!!!!!");
-            if (Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput)
-            {
-                Debug.LogWarning("IS AWAITING USER  INPUT!!!!!");
-
-                if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention intention)) { return; }
-                SetStateBasedOnUnitIntention(intention);
-            }
-            else
-            {
-                SetState(CommandUIBehaviourStates.UnitIntention);
-            }
-        }
-
-        private void OnUnitIntentionChanged(StationIndex selectedStationIndex)
-        {
-            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
-
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-
-            UnitIntentionManager_OnUnitIntentionChanged(unitIndex, intention);
-        }
-
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, Intention.UnitIntention intentionOfTheUnitIndex)
         {
             if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return; }
@@ -113,7 +85,32 @@ namespace TurnBased.UI
              */
             if (stationIndexOfUnitIndex.Index != StationSelectorManager.Instance.GetSelectedStationIndex().Index) { return; }
 
-            SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
+            Debug.LogError("On Unit Selection Changed UI fired");
+
+            SetStateIfAwaitingUserInput(unitIndex);
+        }
+
+
+        private void SetStateIfAwaitingUserInput(UnitIndex unitIndex)
+        {
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
+
+            Debug.LogWarning("Setting state based on user input!!!!!");
+
+            if (intention.ResolutionState == UnitIntentionResolutionState.COMPLETED_INTENTION || 
+                intention.ResolutionState == UnitIntentionResolutionState.NONE)
+            {
+                SetState(CommandUIBehaviourStates.UnitIntention);
+                return;
+            }
+
+
+            else if (Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput)
+            {
+                Debug.LogError("IS AWAITING USER  INPUT!!!!!");
+
+                SetStateBasedOnUnitIntention(intention);
+            }
         }
 
         private void SetStateBasedOnUnitIntention(Intention.UnitIntention intentionOfTheUnitIndex)
