@@ -1,6 +1,3 @@
-using System.Linq;
-using UnityEngine;
-
 namespace TurnBased.Intention
 {
     public static class IntentionResolverUtility

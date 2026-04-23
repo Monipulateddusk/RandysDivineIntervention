@@ -70,11 +70,14 @@ namespace TurnBased.Intention {
 
         public void Awake()
         {
+            StationSelectorManager.OnSelectionChange        += OnStationSelectionChange;
+
             MoveSelectionResolver.OnRequireUserInput        += SetIsAwaitingUserInput;
             TargetSelectionResolver.OnRequireUserInput      += SetIsAwaitingUserInput;
             MoveSelectionResolver.OnCompleteUserInput       += CompleteAwaitingUserInput;
             TargetSelectionResolver.OnCompleteUserInput     += CompleteAwaitingUserInput;
         }
+
 
         public void OnDestroy()
         {
@@ -82,6 +85,26 @@ namespace TurnBased.Intention {
             TargetSelectionResolver.OnRequireUserInput      -= SetIsAwaitingUserInput;
             MoveSelectionResolver.OnCompleteUserInput       -= CompleteAwaitingUserInput;
             TargetSelectionResolver.OnCompleteUserInput     -= CompleteAwaitingUserInput;
+        }
+
+        private void OnStationSelectionChange(StationIndex newSelectedIndex, StationIndex? oldSelectedIndex)
+        {
+            /*  Get the selectedUnitIndex on the new selected station. If the new selected unit index exists in our resolution list, select that new Unit.  */
+            if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) { return; }
+
+            if (!DoesUnitIndexExistInResolvingList(selectedUnitIndex)) { return; }
+
+            SelectNewUnit(selectedUnitIndex);
+        }
+
+        private void SelectNewUnit(UnitIndex unitIndex)
+        {
+            if (this.ProcessingUnitIndexes.Count > 0)
+            {
+                CurrentResolvingUnit = unitIndex;
+
+                ProcessIntentionOfResolvingUnit();
+            }
         }
 
         public void ObtainNonPlayerDrivenUnitIntentions()
@@ -110,10 +133,8 @@ namespace TurnBased.Intention {
 
         public void ProcessNextIntentionInSequence()
         {
-            UnityEngine.Debug.LogWarning($"Size of the processing list is: {this.ProcessingUnitIndexes.Count}");
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                UnityEngine.Debug.LogWarning($"Getting the next unit.   ");
                 bool res = GetNextUnitInList(CurrentResolvingUnit.Value);
 
                 if (res)
@@ -201,26 +222,17 @@ namespace TurnBased.Intention {
             UnityEngine.Debug.LogWarning($"List of the intention list is empty!!!");
 
             /*  The list is empty, therefore we are done with our intentions.   */
-            HandleIsDoneIntentions();
+            OnAllIntentionsResolved?.Invoke();
             return false;
         }
 
-        public void StartTurnOrderCombat()
+        private bool DoesUnitIndexExistInResolvingList(UnitIndex unitIndex)
         {
-            this.orchestrator.ChangeSubPhase(SubPhaseState.RESOLVE_ATTACK, CurrentResolvingUnit.Value);
-        }
-
-
-        private void HandleIsDoneIntentions()
-        {
-            if (this.ProcessingUnitIndexes.Count == 0)
+            foreach(UnitIndex index in this.ProcessingUnitIndexes)
             {
-               // UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
-
-               // UnitIntentionManager.Instance.PrintOutAllIntents();
-
-                OnAllIntentionsResolved?.Invoke();          
+                if (index.Index == unitIndex.Index) {  return true; }
             }
+            return false;
         }
 
 
