@@ -19,7 +19,7 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (moveSelector is MoveSelection.PlayerDrivenMoveSelector)
             {
-                UnityEngine.Debug.LogWarning($"Move Selector {moveSelector.ToString()} requires user input!");
+                UnityEngine.Debug.LogWarning($"Move Selector {moveSelector.ToString()} requires user input for UnitIndex: {unitIndex.Index}!");
 
                 OnRequireUserInput?.Invoke(unitIndex);
                 return true;

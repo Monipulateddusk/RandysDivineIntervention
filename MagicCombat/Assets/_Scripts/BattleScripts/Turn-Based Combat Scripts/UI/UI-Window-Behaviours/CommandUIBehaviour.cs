@@ -1,4 +1,5 @@
 using System.Linq;
+using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -30,8 +31,6 @@ namespace TurnBased.UI
             StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
 
             Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
-            UserInterfaceUserInput.OnAwaitingUserInput              += UserInterfaceUserInput_OnAwaitingUserInput;
-            UserInterfaceUserInput.OnStopAwaitingUserInput          += UserInterfaceUserInput_OnStopAwaitingUserInput;
         }
 
         private void OnDestroy()
@@ -39,8 +38,7 @@ namespace TurnBased.UI
             StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
 
             Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
-            UserInterfaceUserInput.OnAwaitingUserInput              -= UserInterfaceUserInput_OnAwaitingUserInput;
-            UserInterfaceUserInput.OnStopAwaitingUserInput          -= UserInterfaceUserInput_OnStopAwaitingUserInput;
+
         }
 
         private void Start()
@@ -54,7 +52,11 @@ namespace TurnBased.UI
 
             if (!StationManager.Instance.TryGetUnitIndexOnStation(currentlySelectedStation, out UnitIndex unitIndex)) { return; }
 
-            SetStateIfAwaitingUserInput(unitIndex);
+            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out var intention)) { return; }
+
+            SetStateBasedOnUnitIntention(intention);
+
+            // SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
@@ -62,21 +64,11 @@ namespace TurnBased.UI
 
             if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
 
-            SetStateIfAwaitingUserInput(unitIndex);
-        }
+            if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out var intention)) {  return; }
 
-        private void UserInterfaceUserInput_OnAwaitingUserInput(UnitIndex unitIndexAwaitingInput)
-        {
-            Debug.LogError($"OnAwaitingUserInput UI fired.");
+            SetStateBasedOnUnitIntention(intention);
 
-            SetStateIfAwaitingUserInput(unitIndexAwaitingInput);
-        }
-
-        private void UserInterfaceUserInput_OnStopAwaitingUserInput(UnitIndex unitIndexStoppingAwaitingInput)
-        {
-            Debug.LogError($"OnStopAwaitingUserInput UI fired.");
-
-            SetStateIfAwaitingUserInput(unitIndexStoppingAwaitingInput);
+            //SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, Intention.UnitIntention intentionOfTheUnitIndex)
@@ -94,11 +86,11 @@ namespace TurnBased.UI
             if (stationIndexOfUnitIndex.Index != StationSelectorManager.Instance.GetSelectedStationIndex().Index) { return; }
 
             Debug.LogError($"On Unit Selection Changed UI fired. ResolutionState: {intentionOfTheUnitIndex.ResolutionState.ToString()}");
-            
 
 
+            SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
 
-            SetStateIfAwaitingUserInput(unitIndex);
+            //SetStateIfAwaitingUserInput(unitIndex);
         }
 
 
@@ -333,8 +325,7 @@ namespace TurnBased.UI
 
         private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
         {
-            UnityEngine.Debug.LogWarning($"Called OnMoveButtonClick for move button with correlating move: {buttonObject.GetCorrelatingMove()}");
-
+            /*  Unclick all buttons when this is clicked.   */
             foreach (MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
             {
                 if (moveButtonData == buttonObject) { continue; }
@@ -342,14 +333,20 @@ namespace TurnBased.UI
                 moveButtonData.IsButtonClicked = false;
             }
 
+            /*  If the selectedUnitIndex is the one we are processing, then continue   */
+            if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) { return; }
 
-            UnityEngine.Debug.LogWarning($"Calling OnMoveSelection for move button with correlating move: {buttonObject.GetCorrelatingMove()}");
+            Debug.LogError($"Move button clicked where selected unit is: {selectedUnitIndex.Index} " +
+                $"and the current UI UserInput selected Unit is: {UserInterfaceUserInput.Instance.GetSelectedUnit()?.Index}");
+            
+            if (UserInterfaceUserInput.Instance.GetSelectedUnit()?.Index != selectedUnitIndex.Index) { return; }
+
             UserInterfaceUserInput.Instance.OnMoveSelection(buttonObject.GetCorrelatingMove());
         }
 
         #endregion
 
-        #region Target UI Methods
+            #region Target UI Methods
 
         private void SetTargets(TargettingSelectorInfo targettingSelectorInfo)
         {
@@ -399,15 +396,20 @@ namespace TurnBased.UI
 
         private void OnTargetButtonClick(TargetUIPrefabData buttonObject, bool isPressed)
         {
+            /*  Unclick all buttons when this is clicked.   */
             foreach (TargetUIPrefabData targetButtonData in this.InstanciatedTargetUIElements)
             {
-                if (targetButtonData == buttonObject) 
+                if (targetButtonData == buttonObject)
                 {
-                    continue; 
+                    continue;
                 }
 
                 targetButtonData.IsButtonClicked = false;
             }
+
+            /*  If the selectedUnitIndex is the one we are processing, then continue   */
+            if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) { return; }
+            if (UserInterfaceUserInput.Instance.GetSelectedUnit()?.Index != selectedUnitIndex.Index) { return; }
 
             UserInterfaceUserInput.Instance.OnTargetSelection(buttonObject.GetCorrelatingTarget());
         }

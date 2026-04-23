@@ -183,6 +183,16 @@ public class StationSelectorManager
         return this.selectedStationIndex;
     }
 
+    public bool TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)
+    {
+        selectedUnitIndex = default;
+        
+        if (!StationManager.Instance.TryGetUnitIndexOnStation(this.selectedStationIndex, out UnitIndex unitIndex)) {  return false; }
+        selectedUnitIndex = unitIndex;
+        
+        return true;
+    }
+
     private void SetSelectedStationIndex(int newListIndex)
     {
         /*  Wrap the index between 0 and the length of the Populated Station List.  */
