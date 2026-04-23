@@ -4,9 +4,11 @@ namespace TurnBased.Phases {
 
     public class CombatTurnOrchestrator
     {
-        private readonly PhaseManager phaseManager = new();
-        private readonly SubPhaseManager subPhaseManager = new();
+        private readonly PhaseManager phaseManager                                              = new();
+        private readonly SubPhaseManager subPhaseManager                                        = new();
         private readonly Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager;
+        private readonly Combat.TurnOrderCombatHandler turnOrderCombatHandler                   = new();
+
 
         private System.Collections.Generic.List<UnitIndex> currentUnitsToProcessIntentions = new();
 
@@ -37,6 +39,7 @@ namespace TurnBased.Phases {
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
             this.combatRoundIntentionManager.Awake();
+            this.turnOrderCombatHandler.Awake();
         }
 
         public void Update()

@@ -225,14 +225,14 @@ namespace TurnBased.Phases
             this.turnOrderCombatCompletionManager = new(OnTurnOrderCombatFullyResolving);
             this.turnOrderCombatCompletionManager.AddAction();
 
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += this.turnOrderCombatCompletionManager.OnActionComplete;
+            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved += this.turnOrderCombatCompletionManager.OnActionComplete;
 
-            this.RoundUnitIntentionManager.StartTurnOrderCombat();
+            Combat.TurnOrderCombatHandler.Instance.StartTurnOrderCombat();
         }
 
         public override void OnExit()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= this.turnOrderCombatCompletionManager.OnActionComplete;
+            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved -= this.turnOrderCombatCompletionManager.OnActionComplete;
         }
 
         public override void Update()
