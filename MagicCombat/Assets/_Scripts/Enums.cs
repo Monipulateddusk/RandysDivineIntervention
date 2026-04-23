@@ -78,6 +78,13 @@ public enum CombatTurnOrchestrationPhase
     EndOfRound      = 5,
 }
 
+public enum GameState
+{
+    Running,
+    PlayerWin,
+    PlayerLoss
+}
+
 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 

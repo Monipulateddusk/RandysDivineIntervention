@@ -59,18 +59,6 @@ namespace TurnBased.Intention
         public static event System.Action<UnitIndex, UnitIntention> OnUnitIntentionChanged;
         public static event System.Action<UnitIndex> OnUnitIntentionRemoved;
 
-        private bool areUnitIntentsDone = false;
-        public bool AreUnitIntentionsDone
-        {
-            get
-            {
-                return areUnitIntentsDone;
-            }
-            set
-            {
-                areUnitIntentsDone = value;
-            }
-        }
 
         public void Awake()
         {
@@ -107,8 +95,6 @@ namespace TurnBased.Intention
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
 
             UnityEngine.Debug.LogError($"OnUnitIntentionChanged invoked! Current IsAwaitingUserInputState: {Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput}");
-
-            DetermineIntentionCompletionStatus(intention);
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
@@ -148,30 +134,6 @@ namespace TurnBased.Intention
 
             intention = intentionDictionary[unitIndex.Index];
             return true;
-        }
-
-        private void DetermineIntentionCompletionStatus(UnitIntention nextSettingIntention)
-        {
-            AreAllIntentionsDone();
-
-            if (nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION) { return; }
-
-           
-        }
-        private void AreAllIntentionsDone()
-        {
-            foreach(System.Collections.Generic.KeyValuePair<int, UnitIntention> intentionKeyValuePair in this.intentionDictionary)
-            {
-                UnitIntention intention = intentionKeyValuePair.Value;
-
-                if(intention != null && intention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
-                {
-                    this.AreUnitIntentionsDone = false;
-                    return;
-                }
-            }
-            this.AreUnitIntentionsDone = true;
-            return;
         }
 
         public void PrintOutAllIntents()

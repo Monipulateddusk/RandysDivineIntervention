@@ -200,14 +200,11 @@ namespace TurnBased.Phases
 
         private void ProcessCombat()
         {
-            if (Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-            {
-                Debug.LogWarning("INTENTIONS ARE DONE!!!! POGGIES!!!");
+            Debug.LogWarning("INTENTIONS ARE DONE!!!! POGGIES!!!");
 
-                /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
-                this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PlayerTurn);
-                return;
-            }
+            /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PlayerTurn);
+            return;
         }
     }
 

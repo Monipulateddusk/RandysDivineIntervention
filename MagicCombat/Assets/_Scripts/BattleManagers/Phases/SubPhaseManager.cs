@@ -4,6 +4,7 @@ namespace TurnBased.Phases
     {
         private readonly System.Collections.Generic.Dictionary<SubPhaseState, SubPhase> MainPhaseStates = new();
         private SubPhaseState currentState = SubPhaseState.NONE;
+        private UnitIndex? selectedIndex;
         public SubPhaseState CurrentSubPhaseState
         {
             get
@@ -42,6 +43,7 @@ namespace TurnBased.Phases
             this.MainPhaseStates[this.CurrentSubPhaseState]?.OnExit();
 
             this.CurrentSubPhaseState = newState;
+            this.selectedIndex = selectedUnitIndex;
             this.MainPhaseStates[this.CurrentSubPhaseState]?.SetCurrentUnitIndex(selectedUnitIndex);
  
 
@@ -56,6 +58,9 @@ namespace TurnBased.Phases
         public void ResetCurrentPhase()
         {
             this.CurrentSubPhaseState = SubPhaseState.NONE;
+            this.selectedIndex = null;
         }
+
+        public UnitIndex? GetSelectedIndex() => this.selectedIndex;
     }
 }

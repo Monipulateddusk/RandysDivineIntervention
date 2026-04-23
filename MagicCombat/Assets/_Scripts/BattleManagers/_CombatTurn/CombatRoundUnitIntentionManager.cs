@@ -124,6 +124,8 @@ namespace TurnBased.Intention {
         {
             this.ProcessingUnitIndexes = IntentionResolverUtility.GetAllPlayerDrivenUnits();
 
+            UnityEngine.Debug.LogError($"Processing Player driven intentions count is: {this.ProcessingUnitIndexes.Count}");
+
             if (this.ProcessingUnitIndexes.Count > 0)
             {
                 CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
@@ -141,7 +143,12 @@ namespace TurnBased.Intention {
                 {
                     ProcessIntentionOfResolvingUnit();
                 }
-            }   
+                else
+                {
+                    UnityEngine.Debug.LogWarning($"Result was false. OUGH");
+
+                }             
+            }
         }
 
         public void ProcessIntentionOfResolvingUnit()
@@ -228,6 +235,8 @@ namespace TurnBased.Intention {
 
         private bool DoesUnitIndexExistInResolvingList(UnitIndex unitIndex)
         {
+            if (this.ProcessingUnitIndexes == null) { return false; }
+
             foreach(UnitIndex index in this.ProcessingUnitIndexes)
             {
                 if (index.Index == unitIndex.Index) {  return true; }

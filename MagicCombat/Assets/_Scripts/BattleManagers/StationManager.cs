@@ -158,8 +158,15 @@ public class SceneUnitData
         /*  Find if this UnitIndex is related to a Unit we have information on. If not, exit out.   */
         if (!this.Units.ContainsKey(unitIndex.Index)) { return false;   }
 
-        /*  Remove that Unit. Notify any Listeners. How do we want to handle notifying the station? Do we simply loop through every station, find the one we are on (if at all) and pass that along to the event?   */
+        /*  If the removed unit was on a station, remove it from the station.   */
+        if(GetStationOfUnitIndex(unitIndex, out Station stationRemovedUnitWasOn)){
+            stationRemovedUnitWasOn.UnitOnStation = null;   
+        }
+
+        /*  Remove that Unit. Notify any Listeners. */
         this.Units.Remove(unitIndex.Index);
+
+
 
         return true;
     }
@@ -299,6 +306,15 @@ public class SceneUnitData
             }
         }
         return activeUnits;
+    }
+
+    public List<UnitIndex> GetAllUnits()
+    {
+        List<UnitIndex> units = new();
+        if(this.Units.Count < 0) { return new(); }
+
+        return null;
+
     }
 
     /// <summary>

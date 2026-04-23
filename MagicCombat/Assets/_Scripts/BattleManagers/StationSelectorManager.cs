@@ -1,6 +1,4 @@
 using System.Linq;
-using UnityEngine;
-
 
 public class StationSelectorManager
 {
@@ -36,6 +34,23 @@ public class StationSelectorManager
     public void Awake()
     {
         InitaliseSingleton();
+
+        StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
+    }
+
+    public void Start()
+    {
+        UpdateStationIndexes();
+    }
+
+    public void OnDestroy()
+    {
+        StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
+    }
+
+    private void StationManager_OnRemoveUnit(UnitIndex arg1, StationIndex? arg2, BaseBattleUnit arg3)
+    {
+        UpdateStationIndexes();
     }
 
     private void InitaliseSingleton()
@@ -47,15 +62,6 @@ public class StationSelectorManager
         }
     }
 
-
-
-
-    public void Start()
-    {
-        UpdateStationIndexes();
-    }
-
-
     #region Creation Of Station Indexes
     /// <summary>
     /// Pulls the StationIndexes from the StationHandler, then sorts the Indexes into Team and Numerical Order.
@@ -64,6 +70,7 @@ public class StationSelectorManager
     {
         GetStationIndexesFromStationHandler();
         SortStationIndexesForTeams();
+        SelectFirstIndexOnListCreation();
     }
 
     private void GetStationIndexesFromStationHandler()
@@ -174,6 +181,15 @@ public class StationSelectorManager
 
         /*  Invoke the event because we have switched. Pass the old index and the new one!  */
         SetSelectedStationIndex(currentIndex);
+    }
+
+    private void SelectFirstIndexOnListCreation()
+    {
+        if (this.stationIndexes.Count > 0)
+        {
+            StationIndex firstStationIndex = this.stationIndexes[0];
+            SetSelectedStationIndex(firstStationIndex);
+        }
     }
 
     #endregion

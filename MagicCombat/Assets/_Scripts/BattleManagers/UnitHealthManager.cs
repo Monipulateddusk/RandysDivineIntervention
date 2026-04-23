@@ -165,7 +165,7 @@ namespace TurnBased.Health {
             return true;
         }
 
-        public bool GetCurrentHealthOfUnitIndex(UnitIndex unitIndex, out int currentHealth)
+        public bool TryGetCurrentHealthOfUnitIndex(UnitIndex unitIndex, out int currentHealth)
         {
             currentHealth = default;
             if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }

@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased.Phases {
@@ -47,9 +48,12 @@ namespace TurnBased.Phases {
             this.phaseManager.Update();
             this.subPhaseManager.Update();
 
+            string unitIndexDebuggingString = this.subPhaseManager.GetSelectedIndex() != null ? 
+                $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty; 
 
             MonoBehaviour.print($"<color=black>Current main phase state is: {currentOrchestrationPhase.ToString()}.</color> " +
-                $"<color=white> Current sub phase: {this.subPhaseManager.CurrentSubPhaseState.ToString()} </color>");
+                $"<color=white> Current sub phase: {this.subPhaseManager.CurrentSubPhaseState.ToString()} </color>" +
+                unitIndexDebuggingString);
 
         }
 

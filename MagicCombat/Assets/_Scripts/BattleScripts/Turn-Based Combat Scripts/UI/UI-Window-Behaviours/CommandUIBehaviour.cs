@@ -55,8 +55,6 @@ namespace TurnBased.UI
             if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out var intention)) { return; }
 
             SetStateBasedOnUnitIntention(intention);
-
-            // SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
@@ -67,8 +65,6 @@ namespace TurnBased.UI
             if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out var intention)) {  return; }
 
             SetStateBasedOnUnitIntention(intention);
-
-            //SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, Intention.UnitIntention intentionOfTheUnitIndex)
@@ -91,29 +87,6 @@ namespace TurnBased.UI
             SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
 
             //SetStateIfAwaitingUserInput(unitIndex);
-        }
-
-
-        private void SetStateIfAwaitingUserInput(UnitIndex unitIndex)
-        {
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-
-            Debug.LogWarning("Setting state based on user input!!!!!");
-
-            if (intention.ResolutionState == UnitIntentionResolutionState.COMPLETED_INTENTION || 
-                intention.ResolutionState == UnitIntentionResolutionState.NONE)
-            {
-                SetState(CommandUIBehaviourStates.UnitIntention);
-                return;
-            }
-
-
-            else if (Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput)
-            {
-                Debug.LogError("IS AWAITING USER  INPUT!!!!!");
-
-                SetStateBasedOnUnitIntention(intention);
-            }
         }
 
         private void SetStateBasedOnUnitIntention(Intention.UnitIntention intentionOfTheUnitIndex)
