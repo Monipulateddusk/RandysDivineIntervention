@@ -47,7 +47,10 @@ namespace TurnBased.Intention
                 (moveSelector as MoveSelection.PlayerDrivenMoveSelector).SelectedMove = selectedMove; 
             }
 
+            UnityEngine.Debug.LogError("Before OnCompleteUserInput event");
+
             OnCompleteUserInput?.Invoke(unitIndex);
+            UnityEngine.Debug.LogError("After OnCompleteUserInput event");
 
             ProcessMoveSelector(unitIndex, moveSelector);
         }
@@ -64,8 +67,12 @@ namespace TurnBased.Intention
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
 
+            UnityEngine.Debug.LogError("Before OnMoveSelected event");
+
             /*  Notify CombatRoundIntentionManager that a move has been selected by this UnitIndex. */
             OnMoveSelected?.Invoke(unitIndex, selectedMove);
+
+            UnityEngine.Debug.LogError("After OnMoveSelected event");
         }
     }
 }

@@ -48,8 +48,10 @@ namespace TurnBased.UI
 
         public void OnMoveSelection(IBattleMove selectedMove)
         {
+            UnityEngine.Debug.LogWarning("Called OnMoveSelection");
             if (this.selectedUnit.HasValue)
             {
+                UnityEngine.Debug.LogWarning("selected unit has value");
                 Intention.MoveSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedMove);
             }
         }
@@ -59,12 +61,11 @@ namespace TurnBased.UI
             UnityEngine.Debug.LogWarning("Called OnTargetSelection");
             if (this.selectedUnit.HasValue)
             {
-                UnityEngine.Debug.LogWarning("Done target selection in UI");
+                UnityEngine.Debug.LogWarning("selected unit has value");
                 Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
+
+                this.selectedUnit = null;
             }
         }
-
-        public bool IsAwaitingUserInput() => this.selectedUnit != null;
-
     }
 }

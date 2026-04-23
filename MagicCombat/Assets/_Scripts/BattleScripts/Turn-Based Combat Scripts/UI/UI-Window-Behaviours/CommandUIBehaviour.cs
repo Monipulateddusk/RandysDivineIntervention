@@ -67,25 +67,36 @@ namespace TurnBased.UI
 
         private void UserInterfaceUserInput_OnAwaitingUserInput(UnitIndex unitIndexAwaitingInput)
         {
+            Debug.LogError($"OnAwaitingUserInput UI fired.");
+
             SetStateIfAwaitingUserInput(unitIndexAwaitingInput);
         }
 
         private void UserInterfaceUserInput_OnStopAwaitingUserInput(UnitIndex unitIndexStoppingAwaitingInput)
         {
+            Debug.LogError($"OnStopAwaitingUserInput UI fired.");
+
             SetStateIfAwaitingUserInput(unitIndexStoppingAwaitingInput);
         }
 
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, Intention.UnitIntention intentionOfTheUnitIndex)
         {
-            if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return; }
+            Debug.LogError($"UnitIntentionChanged. Getting station index of the unit index");
 
+            if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return; }
+            
+            Debug.LogError($"Got station index of the unit index who's intent changed. Is it the same as the stationIndex?  ");
+            Debug.LogError($"This intention changed unit index station index is: StationIndex: {stationIndexOfUnitIndex.Index} Selected station index is: {StationSelectorManager.Instance.GetSelectedStationIndex().Index}  ");
             /*  
              *  Only update this UI element if the intention belonged to the selected Unit. 
              *  Basically, if an enemy aren't selected changes it's intention, we don't want to do anything as we aren't displaying that unit.  
              */
             if (stationIndexOfUnitIndex.Index != StationSelectorManager.Instance.GetSelectedStationIndex().Index) { return; }
 
-            Debug.LogError("On Unit Selection Changed UI fired");
+            Debug.LogError($"On Unit Selection Changed UI fired. ResolutionState: {intentionOfTheUnitIndex.ResolutionState.ToString()}");
+            
+
+
 
             SetStateIfAwaitingUserInput(unitIndex);
         }
@@ -308,18 +319,6 @@ namespace TurnBased.UI
             }
         }
 
-        private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
-        {
-            foreach (MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
-            {
-                if (moveButtonData == buttonObject) { continue; }
-
-                moveButtonData.IsButtonClicked = false;
-
-                UserInterfaceUserInput.Instance.OnMoveSelection(moveButtonData.GetCorrelatingMove());
-                return;
-            }
-        }
         private void DestroyMoveUIElements()
         {
             if (this.InstanciatedMoveUIElements == null) { return; }
@@ -332,6 +331,21 @@ namespace TurnBased.UI
             this.InstanciatedMoveUIElements.Clear();
         }
 
+        private void OnMoveButtonClick(MoveUIPrefabData buttonObject, bool isPressed)
+        {
+            UnityEngine.Debug.LogWarning($"Called OnMoveButtonClick for move button with correlating move: {buttonObject.GetCorrelatingMove()}");
+
+            foreach (MoveUIPrefabData moveButtonData in this.InstanciatedMoveUIElements)
+            {
+                if (moveButtonData == buttonObject) { continue; }
+
+                moveButtonData.IsButtonClicked = false;
+            }
+
+
+            UnityEngine.Debug.LogWarning($"Calling OnMoveSelection for move button with correlating move: {buttonObject.GetCorrelatingMove()}");
+            UserInterfaceUserInput.Instance.OnMoveSelection(buttonObject.GetCorrelatingMove());
+        }
 
         #endregion
 
@@ -387,13 +401,15 @@ namespace TurnBased.UI
         {
             foreach (TargetUIPrefabData targetButtonData in this.InstanciatedTargetUIElements)
             {
-                if (targetButtonData == buttonObject) { continue; }
+                if (targetButtonData == buttonObject) 
+                {
+                    continue; 
+                }
 
                 targetButtonData.IsButtonClicked = false;
-
-                UserInterfaceUserInput.Instance.OnTargetSelection(targetButtonData.GetCorrelatingTarget());
-                return;
             }
+
+            UserInterfaceUserInput.Instance.OnTargetSelection(buttonObject.GetCorrelatingTarget());
         }
         private void DestroyTargetUIElements()
         {

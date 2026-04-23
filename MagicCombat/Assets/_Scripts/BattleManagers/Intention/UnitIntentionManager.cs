@@ -100,17 +100,13 @@ namespace TurnBased.Intention
 
         public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
         {
-            UnityEngine.Debug.LogWarning($"Does it exist? UnitIndex: {unitIndex.Index} Intention phase: {intention.ResolutionState}");
-
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
-
-            UnityEngine.Debug.LogWarning($"It does");
 
             intentionDictionary[unitIndex.Index] = intention;
            
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
 
-            UnityEngine.Debug.LogWarning($"After event");
+            UnityEngine.Debug.LogError($"OnUnitIntentionChanged invoked! Current IsAwaitingUserInputState: {Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput}");
 
             DetermineIntentionCompletionStatus(intention);
         }

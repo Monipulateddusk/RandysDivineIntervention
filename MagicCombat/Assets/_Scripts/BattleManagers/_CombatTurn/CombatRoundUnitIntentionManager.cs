@@ -70,16 +70,18 @@ namespace TurnBased.Intention {
 
         public void Awake()
         {
-            MoveSelectionResolver.OnRequireUserInput      += SetIsAwaitingUserInput;
-            TargetSelectionResolver.OnRequireUserInput    += SetIsAwaitingUserInput;
-            MoveSelectionResolver.OnCompleteUserInput     += CompleteAwaitingUserInput;
+            MoveSelectionResolver.OnRequireUserInput        += SetIsAwaitingUserInput;
+            TargetSelectionResolver.OnRequireUserInput      += SetIsAwaitingUserInput;
+            MoveSelectionResolver.OnCompleteUserInput       += CompleteAwaitingUserInput;
+            TargetSelectionResolver.OnCompleteUserInput     += CompleteAwaitingUserInput;
         }
 
         public void OnDestroy()
         {
-            MoveSelectionResolver.OnRequireUserInput      -= SetIsAwaitingUserInput;
-            TargetSelectionResolver.OnRequireUserInput    -= SetIsAwaitingUserInput;
-            MoveSelectionResolver.OnCompleteUserInput     -= CompleteAwaitingUserInput;
+            MoveSelectionResolver.OnRequireUserInput        -= SetIsAwaitingUserInput;
+            TargetSelectionResolver.OnRequireUserInput      -= SetIsAwaitingUserInput;
+            MoveSelectionResolver.OnCompleteUserInput       -= CompleteAwaitingUserInput;
+            TargetSelectionResolver.OnCompleteUserInput     -= CompleteAwaitingUserInput;
         }
 
         public void ObtainNonPlayerDrivenUnitIntentions()
@@ -213,9 +215,9 @@ namespace TurnBased.Intention {
         {
             if (this.ProcessingUnitIndexes.Count == 0)
             {
-                UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
+               // UnityEngine.Debug.LogWarning("ALL UNITS PROCESSED!");
 
-                UnitIntentionManager.Instance.PrintOutAllIntents();
+               // UnitIntentionManager.Instance.PrintOutAllIntents();
 
                 OnAllIntentionsResolved?.Invoke();          
             }
