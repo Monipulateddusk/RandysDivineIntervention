@@ -1,13 +1,9 @@
-using System.Collections.Generic;
-using TurnBased;
-using UnityEditor.Animations;
-using UnityEngine;
 
 /// <summary>
 /// This class acts as a container for information about a unit, it is a scriptable object so we can store those as files and read that info when creating a battlescene
 /// </summary>
-[CreateAssetMenu(fileName = "UnitData", menuName = "UnitData", order = 1)]
-public class UnitData : ScriptableObject
+[UnityEngine.CreateAssetMenu(fileName = "UnitData", menuName = "UnitData", order = 1)]
+public class UnitData : UnityEngine.ScriptableObject
 {
     public new string name;
 
@@ -15,16 +11,16 @@ public class UnitData : ScriptableObject
     public int attack;
     public int speed;
 
-    public Color color;
-    public Sprite sprite;
+    public UnityEngine.Color color;
+    public UnityEngine.Sprite sprite;
 
     public Element element;
     
-    [SerializeReference, SubclassSelector]
-    public List<IBattleMove> moves = new();
+    [UnityEngine.SerializeReference, SubclassSelector]
+    public System.Collections.Generic.List<TurnBased.IBattleMove> moves = new();
 
     public UnitMoveSelectorType moveSelectorType;
     public UnitTargetSelectorType targetSelectorType;
 
-    public AnimatorController unitAnimator;
+    public UnityEditor.Animations.AnimatorController unitAnimator;
 }
