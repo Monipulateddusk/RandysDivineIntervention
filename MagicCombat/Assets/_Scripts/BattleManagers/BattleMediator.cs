@@ -69,38 +69,7 @@ namespace TurnBased
         private readonly AttackResolution.AttackResolutionManager AttackResolutionManager   = new();
         private readonly Health.UnitHealthManager               UnitHealthManager = new();
 
-
         [SerializeField] GameObject textPrefab;
-
-        void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
-        {
-            BaseBattleUnit spawnedUnit = Instantiate(objectWithUnitComponent).GetComponent<BaseBattleUnit>();
-            spawnedUnit.SetTeam(unitTeam);
-
-            /*  Initalise the Unit Slot.    */
-            this.StationHandler.CreateUnit(spawnedUnit);
-        }
-        public void CreateCombatEncounter()
-        {
-            /*  
-                Instanciate Enemies from Resources for now, we will do it differently later. 
-                After that, compare the enemy Index with the slots. If the Index exceeds the amount of slots, the Unit spawned is in resurve.
-            */
-            int i = 0;
-            foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies").Cast<GameObject>())
-            {
-                CreateUnit(obj, i, UnitTeam.ENEMY);
-                i++;
-            }
-
-
-            // Instanciate active allies
-            foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players").Cast<GameObject>())
-            {
-                CreateUnit(obj, i, UnitTeam.ALLY);
-                i++;
-            }
-        }
 
         private void Awake()
         {
@@ -117,6 +86,13 @@ namespace TurnBased
             this.UnitHealthManager.Awake();
 
             this.CombatTurnOrchestrator.Awake();
+
+            LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
+        }
+
+        private void LevelLoaderManager_OnCreateUnit(BaseBattleUnit instanciatedUnit)
+        {
+            this.StationHandler.CreateUnit(instanciatedUnit);
         }
 
         private void OnDestroy()
@@ -130,9 +106,14 @@ namespace TurnBased
 
         private void Start()
         {
+            LevelLoaderManager.Instance.CreateCombatEncounter();
+
+
+
             this.IntentionVisualiserManager.SetTextPrefab(textPrefab);
 
-            CreateCombatEncounter();
+
+
             this.StationHandler.DeployUnitsForStartOfBattle();
             this.StationSelectorManager.Start();
 

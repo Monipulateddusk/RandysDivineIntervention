@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
@@ -13,8 +12,12 @@ public class BaseBattleUnit : MonoBehaviour
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
 
-    private void Awake()
+    public void Initialise(UnitData unitData)
     {
+        if (this.unitData != null) { return; }
+
+        this.unitData = unitData;
+
         /*  Get Unity Components and Attach them    */
         if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
         {
@@ -72,7 +75,6 @@ public class BaseBattleUnit : MonoBehaviour
     #endregion
 
     #region Getter/Setter Methods
-
     public UnitData GetBaseUnit() { return unitData; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
