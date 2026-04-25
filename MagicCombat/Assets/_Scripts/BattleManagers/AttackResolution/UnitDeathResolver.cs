@@ -2,6 +2,8 @@ namespace TurnBased.AttackResolution
 {
     public static class UnitDeathResolver
     {
+        public static event System.Action<GameState> OnGameStateUpdated;
+
         /// <summary>
         ///  When called after an attack is fully resolved, we need to know if any Units died as a result of the attack. 
         /// </summary>
@@ -21,9 +23,7 @@ namespace TurnBased.AttackResolution
 
 
             /*  Finally, determine the Game State. */
-            GameState currentGameState = DetermineGameState();
-
-            UnityEngine.Debug.LogError($"Current Game State is: {currentGameState}");
+            OnGameStateUpdated?.Invoke(DetermineGameState());
         }
 
         public static System.Collections.Generic.List<UnitIndex> GetAllDeadUnits()

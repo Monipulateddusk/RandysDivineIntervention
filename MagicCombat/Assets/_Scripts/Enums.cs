@@ -76,13 +76,14 @@ public enum CombatTurnOrchestrationPhase
     PlayerTurn      = 3,
     TurnOrderRes    = 4,
     EndOfRound      = 5,
+    EndOfBattle     = 6,
 }
 
 public enum GameState
 {
-    Running,
-    PlayerWin,
-    PlayerLoss
+    Running     = 0,
+    PlayerWin   = 1,
+    PlayerLoss  = 2,
 }
 
 

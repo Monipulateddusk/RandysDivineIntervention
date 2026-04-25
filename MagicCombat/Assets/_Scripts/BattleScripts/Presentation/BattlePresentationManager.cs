@@ -72,7 +72,7 @@ public class BattlePresentationManager : MonoBehaviour
 
         float startTime = Time.time;
 
-        Quaternion sourceLookRotation =  Quaternion.LookRotation((targetUnit.transform.position - sourceUnit.transform.position).normalized);
+        Quaternion sourceRotation =  sourceUnit.transform.rotation;
 
         while (Time.time < startTime + MOVEMENT_DURATION)
         {
@@ -87,7 +87,7 @@ public class BattlePresentationManager : MonoBehaviour
                 Mathf.Lerp(currentSourcePosition.z, currentTargetPosition.z, t)
                             );
 
-            sourceUnit.transform.SetPositionAndRotation(pos, sourceLookRotation);
+            sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
 
             await System.Threading.Tasks.Task.Yield();
         }
@@ -101,7 +101,7 @@ public class BattlePresentationManager : MonoBehaviour
 
         float startTime = Time.time;
 
-        Quaternion sourceLookRotation = Quaternion.identity;
+        Quaternion sourceRotation = sourceUnit.transform.rotation;
 
         while (Time.time < startTime + MOVEMENT_DURATION)
         {
@@ -115,7 +115,7 @@ public class BattlePresentationManager : MonoBehaviour
                 Mathf.Lerp(currentSourcePosition.z, sourceStation.Position.z, t)
                             );
 
-            sourceUnit.transform.SetPositionAndRotation(pos, sourceLookRotation);
+            sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
 
             await System.Threading.Tasks.Task.Yield();
         }

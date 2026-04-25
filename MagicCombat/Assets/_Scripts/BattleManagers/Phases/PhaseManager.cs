@@ -32,7 +32,8 @@ namespace TurnBased.Phases
                 {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase                    (cRUIM, onMainPhaseComplete) },
                 {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase                   (cRUIM, onMainPhaseComplete) },
                 {CombatTurnOrchestrationPhase.TurnOrderRes,     new TurnOrderCombatResolutionPhase  (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, onMainPhaseComplete) }
+                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfBattle,      new EndOfBattlePhase                (cRUIM, onMainPhaseComplete) },
             };
         }
 

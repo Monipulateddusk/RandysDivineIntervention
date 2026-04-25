@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 namespace TurnBased.Phases {
@@ -10,8 +9,6 @@ namespace TurnBased.Phases {
         private readonly Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager;
         private readonly Combat.TurnOrderCombatHandler turnOrderCombatHandler                   = new();
 
-
-        private System.Collections.Generic.List<UnitIndex> currentUnitsToProcessIntentions = new();
 
         private static CombatTurnOrchestrationPhase currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
         public static CombatTurnOrchestrationPhase CurrentOrchestrationPhase
@@ -37,10 +34,17 @@ namespace TurnBased.Phases {
 
         public void Awake()
         {
+            TurnBased.AttackResolution.UnitDeathResolver.OnGameStateUpdated += UnitDeathResolver_OnGameStateUpdated;
+
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
             this.combatRoundIntentionManager.Awake();
             this.turnOrderCombatHandler.Awake();
+        }
+
+        public void OnDestroy()
+        {
+            TurnBased.AttackResolution.UnitDeathResolver.OnGameStateUpdated -= UnitDeathResolver_OnGameStateUpdated;
         }
 
         public void Update()
@@ -60,6 +64,16 @@ namespace TurnBased.Phases {
         public void Start()
         {
             this.phaseManager.ChangeState(CombatTurnOrchestrationPhase.StartOfBattle);
+        }
+
+        private void UnitDeathResolver_OnGameStateUpdated(GameState currentGameState)
+        {
+            if (currentGameState == GameState.Running) { return; }
+            else
+            {
+                this.subPhaseManager.SwitchSubPhase(SubPhaseState.NONE, new());
+                this.phaseManager.ChangeState(CombatTurnOrchestrationPhase.EndOfBattle);
+            }
         }
 
         public void ChangeSubPhase(SubPhaseState subPhaseToGoInto, UnitIndex unitResolvingSubPhase)

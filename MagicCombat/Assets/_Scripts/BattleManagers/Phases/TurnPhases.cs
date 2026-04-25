@@ -273,4 +273,26 @@ namespace TurnBased.Phases
         }
     }
 
+    public class EndOfBattlePhase : MainPhase
+    {
+        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        {
+        }
+
+        public override void OnEnter()
+        {
+            
+        }
+
+        public override void OnExit()
+        {
+  
+        }
+
+        public override void Update()
+        {
+
+        }
+    }
+
 }

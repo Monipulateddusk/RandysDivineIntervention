@@ -18,22 +18,6 @@ namespace TurnBased.UI
             }
         }
 
-        [System.Serializable]
-        class SelectedUserInterfaceElementProperties
-        {
-            [SerializeField] public IUISelectable hoveredUIObject;
-            [SerializeField] public bool isSelected;
-
-            [SerializeField] private CursorIcons cursorState;
-            public event System.Action<CursorIcons> OnChangeCursorState;
-
-            public void SetCursorState(CursorIcons newCursorState)
-            {
-                this.cursorState = newCursorState;
-                OnChangeCursorState?.Invoke(this.cursorState);
-            }
-        }
-
         /*  Manager Components and Children.    */
         [Header("Components")]
         private RectTransform rectTransform;
@@ -41,22 +25,20 @@ namespace TurnBased.UI
         private UnityEngine.UI.CanvasScaler scaler;
         private UnityEngine.UI.GraphicRaycaster raycaster;
 
-        [Header("Selected User Interface Properties")]
-        [SerializeField] SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
-
 
         [Header("Task bar Properties")]
         [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;
-        [SerializeField] TaskbarPrefabData taskBarPrefabData;
+        [SerializeField] private TaskbarPrefabData taskBarPrefabData;
         [SerializeField] GameObject ScreenElementsTransform;
-        UITaskBarManager TaskBarManager;
+        private UITaskBarManager TaskBarManager;
 
 
         [Header("Cursor Properties")]
         [SerializeField, Tooltip("Required Field. Populate with a referance to the Cursor Image Spritesheet.")] Texture2D CursorImages;
-        CursorManager CursorManager;
+        private CursorManager CursorManager;
 
         private readonly UserInterfaceUserInput UserInterfaceUserInput = new();
+        private readonly UserInterfaceElementSelectorManager UserInterfaceElementSelectorManager = new();
 
         private void InitialiseComponents()
         {
@@ -80,14 +62,13 @@ namespace TurnBased.UI
 
         private void InitaliseCursorManager()
         {
-            this.selectedUserInterfaceElement = new();
             this.CursorManager = new CursorManager(this.transform, this.UI_PrefabData.CursorPrefab, this.CursorImages);
-            this.selectedUserInterfaceElement.OnChangeCursorState += this.CursorManager.SetCursorImageState;
+            this.UserInterfaceElementSelectorManager.Awake(this.CursorManager.SetCursorImageState);
         }
 
         private void InitaliseTaskBarManager()
         {
-            if (taskBarPrefabData != null)
+            if (this.taskBarPrefabData != null)
             {
                 this.TaskBarManager = new(
                     this.taskBarPrefabData.GetTaskbarHomeBoxPivotTransform(),
@@ -125,56 +106,59 @@ namespace TurnBased.UI
             InitaliseTaskBarManager();
         }
 
-        void ClearSelectedUIElement()
+        // Update is called once per frame
+        void Update()
         {
-            this.selectedUserInterfaceElement.hoveredUIObject?.OnDeselect(this.CursorManager.GetPreviousMousePosition());
-            this.selectedUserInterfaceElement.hoveredUIObject = null;
-            this.selectedUserInterfaceElement.isSelected = false;
-            this.selectedUserInterfaceElement.SetCursorState(CursorIcons.Cursor);
+            this.UserInterfaceElementSelectorManager.ProcessCursorUISelection(this.CursorManager, this.raycaster);
+
+            this.CursorManager.Update();
+            this.TaskBarManager?.Update();
         }
 
-        private void PerformGraphicRaycastForSelectedObjects()
+        public UITaskBarManager GetTaskBarManager() { return TaskBarManager; }
+    }
+
+    public class UserInterfaceElementSelectorManager
+    {
+        private class SelectedUserInterfaceElementProperties
         {
-            /*  If something is already selected in the UI, we don't want to perform any checks. I.e. if we are resizing something, we don't want to try selecting something else.  */
-            if (this.selectedUserInterfaceElement.isSelected) { return; }
+            [SerializeField] public IUISelectable hoveredUIObject;
+            [SerializeField] public bool isSelected;
 
-            /*  Find the mouse position regardless of resolution and find what we are pointing at. Get the last result. */
-            System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult> rayRes = new();
-            UnityEngine.EventSystems.PointerEventData pointerData = new(UnityEngine.EventSystems.EventSystem.current)
-            {
-                position = Input.mousePosition
-            };
+            [SerializeField] private CursorIcons cursorState;
+            public event System.Action<CursorIcons> OnChangeCursorState;
 
-            /*  Raycast out.    */
-            this.raycaster.Raycast(pointerData, rayRes);
-
-            /*  Loop through all results, if it inherits from IUISelectable, add it to the list. We only want to take the first result. */
-            System.Collections.Generic.List<IUISelectable> selectableUIElements = new();
-            foreach (var r in rayRes)
+            public void SetCursorState(CursorIcons newCursorState)
             {
-                if (r.gameObject.TryGetComponent(out IUISelectable selectedUI))
-                {
-                    selectableUIElements.Add(selectedUI);
-                }
-            }
-            if (selectableUIElements != null && selectableUIElements.FirstOrDefault() != null)
-            {
-                this.selectedUserInterfaceElement.hoveredUIObject = selectableUIElements.FirstOrDefault();
+                this.cursorState = newCursorState;
+                OnChangeCursorState?.Invoke(this.cursorState);
             }
         }
+        private SelectedUserInterfaceElementProperties selectedUserInterfaceElement;
 
-        void ProcessCursorUISelection()
+        public void Awake(System.Action<CursorIcons> OnCursorIconChange)
+        {
+            this.selectedUserInterfaceElement = new();
+            this.selectedUserInterfaceElement.OnChangeCursorState += OnCursorIconChange;
+        }
+
+        public void Update(CursorManager cursorManager, UnityEngine.UI.GraphicRaycaster raycaster)
+        {
+            ProcessCursorUISelection(cursorManager, raycaster);
+        }
+
+        public void ProcessCursorUISelection(CursorManager cursorManager, UnityEngine.UI.GraphicRaycaster raycaster)
         {
             /*  Do not do any unnessessary checks if the cursor hasn't moved.   */
-            if (this.CursorManager.HasCursorMoved(Input.mousePosition))
+            if (cursorManager.HasCursorMoved(Input.mousePosition))
             {
-                PerformGraphicRaycastForSelectedObjects();
+                PerformGraphicRaycastForSelectedObjects(cursorManager, raycaster);
             }
 
             if (this.selectedUserInterfaceElement.hoveredUIObject != null)
             {
                 /*  If we are selecting a DialogueBox, we want to pull it to the front. */
-                if (selectedUserInterfaceElement.hoveredUIObject is DialogueBoxBehaviour && selectedUserInterfaceElement.hoveredUIObject as DialogueBoxBehaviour != null)
+                if (this.selectedUserInterfaceElement.hoveredUIObject is DialogueBoxBehaviour && this.selectedUserInterfaceElement.hoveredUIObject as DialogueBoxBehaviour != null)
                 {
                     ((DialogueBoxBehaviour)this.selectedUserInterfaceElement.hoveredUIObject).transform.SetAsLastSibling();
                 }
@@ -196,33 +180,56 @@ namespace TurnBased.UI
                 /*  Irregardless of if we are hovering or dragging, we want to handle the input buttons independantly. */
                 if (Input.GetMouseButtonUp(0) && this.selectedUserInterfaceElement.isSelected)
                 {
-                    ClearSelectedUIElement();
-                    PerformGraphicRaycastForSelectedObjects();
+                    ClearSelectedUIElement(cursorManager);
+                    PerformGraphicRaycastForSelectedObjects(cursorManager, raycaster);
                 }
 
                 if (Input.GetMouseButtonDown(0) && !this.selectedUserInterfaceElement.isSelected)
                 {
-
-
                     this.selectedUserInterfaceElement.isSelected = true;
                     this.selectedUserInterfaceElement.hoveredUIObject?.OnSelect(Input.mousePosition);
                 }
             }
         }
 
-        // Update is called once per frame
-        void Update()
+        private void PerformGraphicRaycastForSelectedObjects(CursorManager cursorManager, UnityEngine.UI.GraphicRaycaster raycaster)
         {
-            ProcessCursorUISelection();
+            /*  If something is already selected in the UI, we don't want to perform any checks. I.e. if we are resizing something, we don't want to try selecting something else.  */
+            if (this.selectedUserInterfaceElement.isSelected) { return; }
 
-            this.CursorManager.Update();
-            this.TaskBarManager?.Update();
+            /*  Find the mouse position regardless of resolution and find what we are pointing at. Get the last result. */
+            System.Collections.Generic.List<UnityEngine.EventSystems.RaycastResult> rayRes = new();
+            UnityEngine.EventSystems.PointerEventData pointerData = new(UnityEngine.EventSystems.EventSystem.current)
+            {
+                position = Input.mousePosition
+            };
+
+            /*  Raycast out.    */
+            raycaster.Raycast(pointerData, rayRes);
+
+            /*  Loop through all results, if it inherits from IUISelectable, add it to the list. We only want to take the first result. */
+            System.Collections.Generic.List<IUISelectable> selectableUIElements = new();
+            foreach (var r in rayRes)
+            {
+                if (r.gameObject.TryGetComponent(out IUISelectable selectedUI))
+                {
+                    selectableUIElements.Add(selectedUI);
+                }
+            }
+            if (selectableUIElements != null && selectableUIElements.FirstOrDefault() != null)
+            {
+                this.selectedUserInterfaceElement.hoveredUIObject = selectableUIElements.FirstOrDefault();
+            }
         }
 
-        public UITaskBarManager GetTaskBarManager() { return TaskBarManager; }
+        private void ClearSelectedUIElement(CursorManager cursorManager)
+        {
+            this.selectedUserInterfaceElement.hoveredUIObject?.OnDeselect(cursorManager.GetPreviousMousePosition());
+            this.selectedUserInterfaceElement.hoveredUIObject = null;
+            this.selectedUserInterfaceElement.isSelected = false;
+            this.selectedUserInterfaceElement.SetCursorState(CursorIcons.Cursor);
+        }
     }
-
-
 
     public static class UserInterfaceUtility
     {
