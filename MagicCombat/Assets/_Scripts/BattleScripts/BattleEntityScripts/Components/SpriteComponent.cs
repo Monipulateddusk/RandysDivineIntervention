@@ -22,4 +22,14 @@ public class SpriteComponent : BaseComponent
         spriteRenderer.sprite = unitData.sprite;
         spriteRenderer.color = unitData.color;
     }
+
+    public void SetSpriteRenderTransparency(float transparencyValue)
+    {
+        this.spriteRenderer.color = 
+            new Color(
+            this.spriteRenderer.color.r, 
+            this.spriteRenderer.color.g, 
+            this.spriteRenderer.color.b, 
+            transparencyValue);
+    }
 }

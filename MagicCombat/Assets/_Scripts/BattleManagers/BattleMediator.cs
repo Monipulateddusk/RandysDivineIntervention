@@ -59,7 +59,7 @@ namespace TurnBased
         private readonly StationSelectorManager                 StationSelectorManager      = new();
 
         private readonly Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
-
+        private readonly LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
 
         private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager         = new();
         private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager       = new();
@@ -75,6 +75,7 @@ namespace TurnBased
         {
             instance = this;
 
+            this.UnitDeathHandler.Awake();
             this.TurnOrderManager.Awake();
             this.UnitIntentionManager.Awake();
             this.StationHandler.Awake();
@@ -87,7 +88,7 @@ namespace TurnBased
 
             this.CombatTurnOrchestrator.Awake();
 
-            LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
+            LoaderUnloader.LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
         }
 
         private void LevelLoaderManager_OnCreateUnit(BaseBattleUnit instanciatedUnit)
@@ -106,7 +107,7 @@ namespace TurnBased
 
         private void Start()
         {
-            LevelLoaderManager.Instance.CreateCombatEncounter();
+            LoaderUnloader.LevelLoaderManager.Instance.CreateCombatEncounter();  
 
 
 
@@ -124,6 +125,7 @@ namespace TurnBased
         private void Update()
         {
             this.CombatTurnOrchestrator.Update();
+            this.UnitDeathHandler.Update();
         }
 
 
