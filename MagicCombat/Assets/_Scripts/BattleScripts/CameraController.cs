@@ -67,7 +67,7 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
+    [SerializeField] CameraAnimType cameraAnimationType = CameraAnimType.Fade;
     private bool isAnimating;
 
     #region Shader
@@ -425,7 +425,7 @@ public class CameraController : MonoBehaviour
         int index = this.CurrentCameraIndex + 1;
         if (index > this.CameraPositions.Length - 1) { index = 0; }
 
-        if (isFadingInAndOut == CameraAnimType.Fade)
+        if (cameraAnimationType == CameraAnimType.Fade)
         {
             await AnimateCameraFadeInOut(true);
 
@@ -433,7 +433,7 @@ public class CameraController : MonoBehaviour
 
             await AnimateCameraFadeInOut(false);
         }
-        else if(isFadingInAndOut == CameraAnimType.Shift)
+        else if(cameraAnimationType == CameraAnimType.Shift)
         {
             Vector3 curPos  = this.CameraPositions[this.CurrentCameraIndex];
             Vector3 nextPos = this.CameraPositions[index];
@@ -443,12 +443,12 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else if (isFadingInAndOut == CameraAnimType.Static)
+        else if (cameraAnimationType == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();
         }
-        else if (isFadingInAndOut == CameraAnimType.Shader)
+        else if (cameraAnimationType == CameraAnimType.Shader)
         {
             await AnimateCameraShader(index, false);
         }
@@ -460,7 +460,7 @@ public class CameraController : MonoBehaviour
         int index = this.CurrentCameraIndex - 1;
         if (index < 0) { index = this.CameraPositions.Length - 1; }
 
-        if (isFadingInAndOut == CameraAnimType.Fade)
+        if (cameraAnimationType == CameraAnimType.Fade)
         {
             await AnimateCameraFadeInOut(true);
 
@@ -468,7 +468,7 @@ public class CameraController : MonoBehaviour
 
             await AnimateCameraFadeInOut(false);
         }
-        else if (isFadingInAndOut == CameraAnimType.Shift)
+        else if (cameraAnimationType == CameraAnimType.Shift)
         {
             Vector3 curPos = this.CameraPositions[this.CurrentCameraIndex];
             Vector3 nextPos = this.CameraPositions[index];
@@ -478,12 +478,12 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else if (isFadingInAndOut == CameraAnimType.Static)
+        else if (cameraAnimationType == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();            
         }
-        else if(isFadingInAndOut == CameraAnimType.Shader)
+        else if(cameraAnimationType == CameraAnimType.Shader)
         {
             await AnimateCameraShader(index, true);
         }
