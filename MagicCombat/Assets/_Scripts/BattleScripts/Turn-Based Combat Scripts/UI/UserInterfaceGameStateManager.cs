@@ -29,7 +29,10 @@ namespace TurnBased.UI
         {
             instance = this;
             this.GameSceneRawImageScreen = GameSceneScreen;
+            GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
         }
+
+
         public void Update()
         {
             if (UnityEngine.Input.GetKeyDown(KeyCode.H))
@@ -38,7 +41,21 @@ namespace TurnBased.UI
             }
         }
 
-        public async System.Threading.Tasks.Task DarkenScreenOverTime()
+        private void GameStateManager_OnGameStateUpdated(MetaGameState currentGameState)
+        {
+            if (currentGameState == MetaGameState.Running) { return; }
+
+            _ = OnGameOver();
+        }
+
+        private async System.Threading.Tasks.Task OnGameOver()
+        {
+            await DarkenScreenOverTime();
+
+
+        }
+
+        private async System.Threading.Tasks.Task DarkenScreenOverTime()
         {
             Color originalScreenColour = this.GameSceneRawImageScreen.color;
             float startTime = Time.time;

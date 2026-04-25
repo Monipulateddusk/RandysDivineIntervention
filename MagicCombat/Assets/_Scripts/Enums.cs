@@ -79,7 +79,7 @@ public enum CombatTurnOrchestrationPhase
     EndOfBattle     = 6,
 }
 
-public enum GameState
+public enum MetaGameState
 {
     Running     = 0,
     PlayerWin   = 1,

@@ -2,8 +2,6 @@ namespace TurnBased.AttackResolution
 {
     public static class UnitDeathResolver
     {
-        public static event System.Action<GameState> OnGameStateUpdated;
-
         /// <summary>
         ///  When called after an attack is fully resolved, we need to know if any Units died as a result of the attack. 
         /// </summary>
@@ -23,7 +21,7 @@ namespace TurnBased.AttackResolution
 
 
             /*  Finally, determine the Game State. */
-            OnGameStateUpdated?.Invoke(DetermineGameState());
+            TurnBased.GameState.GameStateManager.Instance.DetermineGameState();
         }
 
         public static System.Collections.Generic.List<UnitIndex> GetAllDeadUnits()
@@ -55,21 +53,5 @@ namespace TurnBased.AttackResolution
 
             return deadUnits;
         }
-
-        public static GameState DetermineGameState()
-        {
-            /*  If there are less than 0 Units on the Player's team, the player lost. Check this before checking enemy count.   */
-            if (StationManager.Instance.GetUnitsOnTeam(UnitTeam.ALLY).Count <= 0)
-            {
-                return GameState.PlayerLoss;
-            }
-            else if (StationManager.Instance.GetUnitsOnTeam(UnitTeam.ENEMY).Count <= 0)
-            {
-                return GameState.PlayerWin;
-            }
-
-            return GameState.Running;
-        }
-
     }
 }

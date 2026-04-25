@@ -34,7 +34,7 @@ namespace TurnBased.Phases {
 
         public void Awake()
         {
-            TurnBased.AttackResolution.UnitDeathResolver.OnGameStateUpdated += UnitDeathResolver_OnGameStateUpdated;
+            TurnBased.GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
 
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
@@ -44,7 +44,7 @@ namespace TurnBased.Phases {
 
         public void OnDestroy()
         {
-            TurnBased.AttackResolution.UnitDeathResolver.OnGameStateUpdated -= UnitDeathResolver_OnGameStateUpdated;
+            TurnBased.GameState.GameStateManager.OnGameStateUpdated -= GameStateManager_OnGameStateUpdated;
         }
 
         public void Update()
@@ -66,9 +66,9 @@ namespace TurnBased.Phases {
             this.phaseManager.ChangeState(CombatTurnOrchestrationPhase.StartOfBattle);
         }
 
-        private void UnitDeathResolver_OnGameStateUpdated(GameState currentGameState)
+        private void GameStateManager_OnGameStateUpdated(MetaGameState currentGameState)
         {
-            if (currentGameState == GameState.Running) { return; }
+            if (currentGameState == MetaGameState.Running) { return; }
             else
             {
                 this.subPhaseManager.SwitchSubPhase(SubPhaseState.NONE, new());
