@@ -32,4 +32,8 @@ public class SpriteComponent : BaseComponent
             this.spriteRenderer.color.b, 
             transparencyValue);
     }
+    public void FlipSpriteRendererX(bool flipValue)
+    {
+        this.spriteRenderer.flipX = flipValue;
+    }
 }
