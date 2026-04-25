@@ -64,11 +64,15 @@ namespace TurnBased.Intention
         {
             instance = this;
             StationManager.OnAddUnit += AddUnitIndexToDictionary;
+            StationManager.OnRemoveUnit += RemoveUnitIndexFromDictionary;
         }
+
+
 
         public void OnDestroy()
         {
             StationManager.OnAddUnit -= AddUnitIndexToDictionary;
+            StationManager.OnRemoveUnit -= RemoveUnitIndexFromDictionary;
         }
 
         public void AddUnitIndexToDictionary(UnitIndex unitIndex)
@@ -78,9 +82,15 @@ namespace TurnBased.Intention
             intentionDictionary.Add(unitIndex.Index, new());
             OnUnitIntentionAdded?.Invoke(unitIndex);
         }
+
+        private void RemoveUnitIndexFromDictionary(UnitIndex unitIndex, StationIndex? arg2, BaseBattleUnit arg3)
+        {
+            RemoveIntention(unitIndex);
+        }
+
         public void RemoveIntention(UnitIndex unitIndex)
         {
-            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             intentionDictionary.Remove(unitIndex.Index);
             OnUnitIntentionRemoved?.Invoke(unitIndex);
