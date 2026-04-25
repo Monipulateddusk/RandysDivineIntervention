@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TurnBased.UI
 {
@@ -26,6 +27,8 @@ namespace TurnBased.UI
         private UnityEngine.UI.GraphicRaycaster raycaster;
 
 
+        [SerializeField] RawImage GameScreen;
+
         [Header("Task bar Properties")]
         [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;
         [SerializeField] private TaskbarPrefabData taskBarPrefabData;
@@ -39,6 +42,7 @@ namespace TurnBased.UI
 
         private readonly UserInterfaceUserInput UserInterfaceUserInput = new();
         private readonly UserInterfaceElementSelectorManager UserInterfaceElementSelectorManager = new();
+        private readonly UserInterfaceGameStateManager UserInterfaceGameStateVisualisationManager = new();
 
         private void InitialiseComponents()
         {
@@ -104,12 +108,14 @@ namespace TurnBased.UI
             InitialiseComponents();
             InitaliseCursorManager();
             InitaliseTaskBarManager();
+            this.UserInterfaceGameStateVisualisationManager.Awake(this.GameScreen);
         }
 
         // Update is called once per frame
         void Update()
         {
             this.UserInterfaceElementSelectorManager.ProcessCursorUISelection(this.CursorManager, this.raycaster);
+            this.UserInterfaceGameStateVisualisationManager.Update();
 
             this.CursorManager.Update();
             this.TaskBarManager?.Update();

@@ -125,7 +125,6 @@ namespace TurnBased
         private void Update()
         {
             this.CombatTurnOrchestrator.Update();
-            this.UnitDeathHandler.Update();
         }
 
 

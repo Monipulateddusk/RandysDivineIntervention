@@ -22,7 +22,7 @@ public class CameraController : MonoBehaviour
     UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
-    [SerializeField]GameObject cameraGameObject, blendCameraGameObject;
+    [SerializeField] GameObject cameraGameObject, blendCameraGameObject;
     SpriteRenderer cameraCoverSprite;
     private readonly Vector3[] CameraPositions =
     {
@@ -67,7 +67,7 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    [SerializeField] CameraAnimType cameraAnimationType = CameraAnimType.Fade;
+    [SerializeField] CameraAnimType cameraAnimationType = CameraAnimType.Static;
     private bool isAnimating;
 
     #region Shader

@@ -8,9 +8,6 @@ namespace TurnBased.LoaderUnloader
         private const float PHASE_OUT_SHAKE_SPEED = 50.0f;
         private const float PHASE_OUT_DISTANCE = 0.1f;
 
-
-        BaseBattleUnit lastCreatedUnit;
-
         public void Awake()
         {
 
@@ -20,15 +17,6 @@ namespace TurnBased.LoaderUnloader
         public void OnDestroy()
         {
              StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
-        }
-
-        public void Update()
-        {
-            if (UnityEngine.Input.GetKeyDown(KeyCode.Y))
-            {
-                UnityEngine.Debug.LogError($"Pressed Y");
-                _ = UnitDeathPhaseOut(this.lastCreatedUnit);
-            }
         }
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationRemovedUnitWasOn, BaseBattleUnit battleUnitOfDestroyedUnit)
