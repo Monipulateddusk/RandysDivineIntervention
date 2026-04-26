@@ -138,6 +138,8 @@ namespace TurnBased.Intention {
             if (this.ProcessingUnitIndexes.Count > 0)
             {
                 bool res = GetNextUnitInList(CurrentResolvingUnit.Value);
+                UnityEngine.Debug.LogWarning($"Result was {res}. ");
+
 
                 if (res)
                 {
@@ -145,7 +147,7 @@ namespace TurnBased.Intention {
                 }
                 else
                 {
-                    UnityEngine.Debug.LogWarning($"Result was false. OUGH");
+
 
                 }             
             }
@@ -217,7 +219,6 @@ namespace TurnBased.Intention {
             /*  Retrieve the next new active unit if the container exists. If not, we are done. */
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-         
                 CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
 
                 UnityEngine.Debug.LogWarning($"New Unit selected with index: {currentResolvingUnit.Value.Index}. Old Index was: {previousUnit.Index}");

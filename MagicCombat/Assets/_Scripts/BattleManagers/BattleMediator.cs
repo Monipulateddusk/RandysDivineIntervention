@@ -60,6 +60,7 @@ namespace TurnBased
 
         private readonly Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
         private readonly LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
+        private readonly GameState.GameStateManager             GameStateManager            = new();
 
         private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager         = new();
         private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager       = new();
@@ -87,6 +88,7 @@ namespace TurnBased
             this.UnitHealthManager.Awake();
 
             this.CombatTurnOrchestrator.Awake();
+            this.GameStateManager.Awake();
 
             LoaderUnloader.LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
         }
@@ -103,6 +105,8 @@ namespace TurnBased
             this.TargetSelectorManager.OnDestroy();
             this.IntentionVisualiserManager.OnDestroy();
             this.UnitHealthManager.OnDestroy();
+
+            this.GameStateManager.OnDestroy();
         }
 
         private void Start()
