@@ -6,8 +6,8 @@ namespace TurnBased.UI
     {
         public event System.Action<TargetUIPrefabData, bool> OnButtonClicked;
 
-        [SerializeField, Tooltip("Assign with the Button Component on 'MoveUIElement'")]        private UnityEngine.UI.Button TargetUIElementClickableButton;
-        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on 'MoveText'")]    private TMPro.TextMeshProUGUI TargetUIElementText;
+        [SerializeField, Tooltip("Assign with the Button Component on TargetUIElement")]        private UnityEngine.UI.Button TargetUIElementClickableButton;
+        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on TargetText")]    private TMPro.TextMeshProUGUI TargetUIElementText;
 
         [SerializeField, Tooltip("Assign with each Shadow on this GameObject, Drag the component itself into the fields.")]
         private UnityEngine.UI.Shadow whiteShadow, blackShadow;

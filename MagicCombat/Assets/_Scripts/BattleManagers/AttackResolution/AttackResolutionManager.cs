@@ -85,4 +85,50 @@ namespace TurnBased.AttackResolution
 
 
     }
+
+
+    public static class CombatDamageUtility
+    {
+        public class MoveValueAmounts
+        {
+            public float HealingAmount { get; }
+            public float DamageAmount { get; }
+
+            public MoveValueAmounts(float damage, float healing)
+            {
+                this.DamageAmount = damage;
+                this.HealingAmount = healing;
+            }
+        }
+
+        public static bool TryGetTotalValuesOfMoveFromSourceIndexToTarget(UnitIndex sourceUnitIndex, IBattleMove sourceBattleMove, out MoveValueAmounts valueAmounts)
+        {
+            float damageTotal = 0;
+            float healingTotal = 0;
+
+            valueAmounts = default;
+            if (!IntentionCombatResolver.TryGetUnitDataForCombatResolution(sourceUnitIndex, out IntentionCombatResolver.UnitDataForCombatResolution combatResData)) { return false; }
+
+            AttackResolutionInfo resolutionInfo = sourceBattleMove.ExecuteMove(combatResData.SourceUnitData, combatResData.AllyUnitData, combatResData.TargetUnitData);
+
+            foreach (AttackStep step in resolutionInfo.Steps)
+            {
+                foreach (AttackAction action in step.Actions)
+                {
+                    if (action.Type == AttackActionType.DAMAGE)
+                    {
+                        damageTotal += action.Value;
+                    }
+                    else if (action.Type == AttackActionType.HEALING)
+                    {
+                        healingTotal += action.Value;
+                    }                  
+                }
+            }
+
+            valueAmounts = new(damageTotal, healingTotal);
+
+            return true;
+        }
+    }
 }

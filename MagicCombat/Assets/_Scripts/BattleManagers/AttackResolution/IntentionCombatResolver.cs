@@ -53,7 +53,7 @@ namespace TurnBased.Combat
 
             AttackResolution.UnitDeathResolver.DetermineDeadUnits();
         }
-
+        
         public static bool TryGetUnitDataForCombatResolution(UnitIndex sourceUnitIndex, out UnitDataForCombatResolution outUnitDataForCombatResolution)
         {
             outUnitDataForCombatResolution = default;
