@@ -24,7 +24,7 @@ namespace TurnBased.UI
         private System.Collections.Generic.List<TargetUIPrefabData> InstanciatedTargetUIElements = new();
         private System.Collections.Generic.List<GameObject>         InstanciatedIntentionTextElements = new();
 
-        private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.MoveSelection;
+        private CommandUIBehaviourStates currentState = CommandUIBehaviourStates.UnitIntention;
 
         private void Awake()
         {

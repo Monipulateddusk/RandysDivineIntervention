@@ -95,10 +95,10 @@ public enum MetaGameState
 
 public enum CommandUIBehaviourStates 
 {
-    UnitIntention = 0,
-    MoveSelection = 1, 
-    TargetSelection = 2, 
-    UnitEndTurn = 3,
+    UnitSummary = 0,
+    MoveSelection = 1,
+    TargetSelection = 2,
+    UnitIntention = 3,
 };
 
 
