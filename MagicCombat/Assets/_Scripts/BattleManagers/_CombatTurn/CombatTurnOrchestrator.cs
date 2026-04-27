@@ -6,8 +6,19 @@ namespace TurnBased.Phases {
     {
         private readonly PhaseManager phaseManager                                              = new();
         private readonly SubPhaseManager subPhaseManager                                        = new();
-        private readonly Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager;
+        private readonly TurnOrder.TurnOrderManager TurnOrderManager                            = new();
+
+        private readonly Health.UnitHealthManager UnitHealthManager                             = new();
+        private readonly Intention.UnitIntentionManager UnitIntentionManager                    = new();
+
         private readonly Combat.TurnOrderCombatHandler turnOrderCombatHandler                   = new();
+
+        private readonly MoveSelection.MoveSelectorManager MoveSelectorManager                  = new();
+        private readonly TargetSelection.TargetSelectorManager TargetSelectorManager            = new();
+
+        private readonly AttackResolution.AttackResolutionManager AttackResolutionManager       = new();
+        private readonly Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager;
+
 
 
         private static CombatTurnOrchestrationPhase currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
@@ -38,13 +49,38 @@ namespace TurnBased.Phases {
 
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
-            this.combatRoundIntentionManager.Awake();
+            this.TurnOrderManager.Awake();
+
+            this.UnitHealthManager.Awake();
+            this.UnitIntentionManager.Awake();
+
             this.turnOrderCombatHandler.Awake();
+
+            this.MoveSelectorManager.Awake();
+            this.TargetSelectorManager.Awake();
+
+            this.AttackResolutionManager.Awake();
+            this.combatRoundIntentionManager.Awake(); 
         }
 
         public void OnDestroy()
         {
             TurnBased.GameState.GameStateManager.OnGameStateUpdated -= GameStateManager_OnGameStateUpdated;
+
+            this.phaseManager.OnDestroy();
+            this.subPhaseManager.OnDestroy();
+            this.TurnOrderManager.OnDestroy();
+
+            this.UnitHealthManager.OnDestroy();
+            this.UnitIntentionManager.OnDestroy();
+
+            this.turnOrderCombatHandler.OnDestroy();
+
+            this.MoveSelectorManager.OnDestroy();
+            this.TargetSelectorManager.OnDestroy();
+
+            this.AttackResolutionManager.OnDestroy();
+            this.combatRoundIntentionManager.OnDestroy();
         }
 
         public void Update()

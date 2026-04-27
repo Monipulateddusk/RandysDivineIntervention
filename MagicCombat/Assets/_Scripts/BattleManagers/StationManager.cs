@@ -558,6 +558,14 @@ public class StationManager
         CreateStartingStations();
     }
 
+    public void OnDestroy()
+    {
+        if (instance != null && instance == this)
+        {
+            instance = null;
+        }
+    }
+
     public List<UnitIndex>      GetAllActiveUnits()                                                                         => this.SceneUnitData.GetAllActiveUnits();
     public List<UnitIndex>      GetUnitsOnTeam              (UnitTeam team)                                                 => this.SceneUnitData.GetUnitsOnTeam(team);
     public bool                 TryGetUnitIndexesOfTeam     (UnitTeam team, out List<UnitIndex> unitIndexesOnTeam)          => this.SceneUnitData.TryGetUnitIndexesOfTeam(team, out unitIndexesOnTeam);

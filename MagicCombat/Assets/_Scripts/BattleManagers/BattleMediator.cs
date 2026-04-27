@@ -62,13 +62,8 @@ namespace TurnBased
         private readonly LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
         private readonly GameState.GameStateManager             GameStateManager            = new();
 
-        private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager         = new();
-        private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager       = new();
-        private readonly TurnOrder.TurnOrderManager             TurnOrderManager            = new();
-        private readonly Intention.UnitIntentionManager         UnitIntentionManager        = new();
-        private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager  = new();
-        private readonly AttackResolution.AttackResolutionManager AttackResolutionManager   = new();
-        private readonly Health.UnitHealthManager               UnitHealthManager = new();
+        private readonly Intention.IntentionVisualiserManager IntentionVisualiserManager = new();
+
 
         [SerializeField] GameObject textPrefab;
 
@@ -77,15 +72,14 @@ namespace TurnBased
             instance = this;
 
             this.UnitDeathHandler.Awake();
-            this.TurnOrderManager.Awake();
-            this.UnitIntentionManager.Awake();
+
             this.StationHandler.Awake();
             this.StationSelectorManager.Awake();
-            this.MoveSelectorManager.Awake();
-            this.TargetSelectorManager.Awake();
+
             this.IntentionVisualiserManager.Awake();
-            this.AttackResolutionManager.Awake();
-            this.UnitHealthManager.Awake();
+
+
+
 
             this.CombatTurnOrchestrator.Awake();
             this.GameStateManager.Awake();
@@ -100,13 +94,15 @@ namespace TurnBased
 
         private void OnDestroy()
         {
-            this.UnitIntentionManager.OnDestroy();
-            this.MoveSelectorManager.OnDestroy();
-            this.TargetSelectorManager.OnDestroy();
             this.IntentionVisualiserManager.OnDestroy();
-            this.UnitHealthManager.OnDestroy();
+            this.CombatTurnOrchestrator.OnDestroy();
+
 
             this.GameStateManager.OnDestroy();
+
+            this.UnitDeathHandler.OnDestroy();
+            this.StationSelectorManager.OnDestroy();
+            this.StationHandler.OnDestroy();
         }
 
         private void Start()

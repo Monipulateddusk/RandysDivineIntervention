@@ -37,6 +37,14 @@ namespace TurnBased.Phases
             };
         }
 
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+        }
         public void Update()
         {
             this.CurrentPhase?.Update();

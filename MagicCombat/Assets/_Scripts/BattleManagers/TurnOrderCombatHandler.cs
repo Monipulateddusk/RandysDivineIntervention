@@ -27,6 +27,15 @@ namespace TurnBased.Combat
             instance = this;
         }
 
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+        }
+
         public void StartTurnOrderCombat()
         {
             UnityEngine.Debug.LogWarning($"Starting combat resolution!");

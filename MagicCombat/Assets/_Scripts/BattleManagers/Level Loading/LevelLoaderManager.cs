@@ -26,7 +26,18 @@ namespace TurnBased.LoaderUnloader
 
         private void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
         }
 
         public void CreateCombatEncounter()

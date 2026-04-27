@@ -33,6 +33,14 @@ namespace TurnBased.TurnOrder
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+        }
+
         private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfTheRemovedUnit, StationIndex? theStationUnit, BaseBattleUnit battleUnitOfTheRemovedUnit)
         {
             /*  If the removed unit exists in our turn order, remove it.    */

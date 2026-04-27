@@ -29,6 +29,14 @@ namespace TurnBased.AttackResolution
             instance = this;
         }
 
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+        }
+
         /// <summary>
         /// When called, goes through the TurnOrder Queue to process each Unit's intentions.
         /// </summary>
