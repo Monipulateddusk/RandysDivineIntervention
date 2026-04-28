@@ -130,5 +130,29 @@ namespace TurnBased.AttackResolution
 
             return true;
         }
+
+        public static void GetAttackActionTypeFromMoveValueAmounts(MoveValueAmounts valueAmounts, out AttackActionType type, out float majorityValue)
+        {
+            type = AttackActionType.DAMAGE;
+            majorityValue = 0;
+
+            /*  Check what value has the majority between Damage and Health. Depending on that, we report that value back. Makes UI visualisation much easier.  */
+            if (valueAmounts.DamageAmount > valueAmounts.HealingAmount)
+            {
+                type = AttackActionType.DAMAGE;
+                majorityValue = valueAmounts.DamageAmount;
+            }
+            else if (valueAmounts.DamageAmount < valueAmounts.HealingAmount)
+            {
+                type = AttackActionType.HEALING;
+                majorityValue = valueAmounts.HealingAmount;
+            }
+            else
+            {
+                type = AttackActionType.IMBUE_ENVIRONMENTS;
+                majorityValue = 0;
+            }
+        }
+
     }
 }

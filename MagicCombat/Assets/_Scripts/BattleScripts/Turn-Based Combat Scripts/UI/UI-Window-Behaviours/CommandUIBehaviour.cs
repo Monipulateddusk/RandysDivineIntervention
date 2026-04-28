@@ -1,6 +1,7 @@
 using System.Linq;
 using TurnBased.Intention;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TurnBased.UI
 {
@@ -291,6 +292,7 @@ namespace TurnBased.UI
             foreach (MoveUIPrefabData obj in this.InstanciatedMoveUIElements)
             {
                 obj.OnButtonClicked -= OnMoveButtonClick;
+
                 Destroy(obj.gameObject);
             }
             this.InstanciatedMoveUIElements.Clear();

@@ -15,11 +15,15 @@ namespace TurnBased.UI
 
         public void Initalise(UnitIndex indexOfUnitHealthCorrelatesTo)
         {
-            this.associatedUnitIndex = indexOfUnitHealthCorrelatesTo;
-            InitaliseHealthTextTMP();
-
             Health.UnitHealthManager.OnUnitHealthChange += UnitHealthManager_OnUnitHealthChange;
 
+            UpdateUnitIndex(indexOfUnitHealthCorrelatesTo);
+        }
+
+        public void UpdateUnitIndex(UnitIndex indexOfUnitHealthCorrelatesTo)
+        {
+            this.associatedUnitIndex = indexOfUnitHealthCorrelatesTo;
+            InitaliseHealthTextTMP();
 
             /*  Once everything is initalised, update the health bar for the current health values. */
             UpdateHealthAmount();

@@ -53,6 +53,16 @@ namespace TurnBased.UI
             
         }
 
+        public void OnPointerEnter()
+        {
+            UnityEngine.Debug.LogError("Pointer Enter");
+        }
+
+        public void OnPointerExit()
+        {
+            UnityEngine.Debug.LogError("Pointer Exit");
+
+        }
         public void Initalise(UnitIndex unitIndex, IBattleMove move)
         {
             if (this.MoveNameUIElementText != null && this.MoveDescriptionUIElementText != null)
@@ -70,35 +80,15 @@ namespace TurnBased.UI
             string descriptionStart = string.Empty;
             if (totalValues.DamageAmount > 0)
             {
-                descriptionStart = $"Deals {totalValues.DamageAmount} Total Damage to {GetMoveTargetText(move)}.\n";
+                descriptionStart = $"Deals {totalValues.DamageAmount} Total Damage to {UserInterfaceUtility.GetMoveTargetText(move)}.\n";
             }
             else if (totalValues.HealingAmount > 0 && totalValues.DamageAmount <= 0)
             {
-                descriptionStart = $"Heals {GetMoveTargetText(move)} for {totalValues.DamageAmount} Health Points.\n";
+                descriptionStart = $"Heals {UserInterfaceUtility.GetMoveTargetText(move)} for {totalValues.DamageAmount} Health Points.\n";
             }
 
             return descriptionStart;    
 
-        }
-
-        private string GetMoveTargetText(IBattleMove move)
-        {
-            switch (move.GetMoveTargetType())
-            {
-                default:
-                case MoveTarget.Self:
-                    return "Itself";
-                case MoveTarget.SingleEnemy:
-                    return "a Single Enemy";
-                case MoveTarget.SingleAlly:
-                    return "a Single Ally";
-                case MoveTarget.AllEnemies:
-                    return "All Enemies";
-                case MoveTarget.AllAllies:
-                    return "All Allies";
-                case MoveTarget.Area:
-                    return "the Entire Area";
-            }
         }
 
 

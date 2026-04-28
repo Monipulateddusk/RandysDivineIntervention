@@ -101,6 +101,13 @@ public enum CommandUIBehaviourStates
     UnitIntention = 3,
 };
 
+public enum SummaryInspectionUIBehaviourStates
+{
+    UnitSummary = 0,
+    MoveSelection = 1,
+    TargetSelection = 2,
+};
+
 
 public enum SelectionUIBehaviourState 
 { 

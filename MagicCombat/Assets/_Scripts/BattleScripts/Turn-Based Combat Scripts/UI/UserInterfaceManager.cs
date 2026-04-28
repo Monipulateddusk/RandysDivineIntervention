@@ -258,5 +258,47 @@ namespace TurnBased.UI
         {
             return (current - minimum) / (maximum - minimum);
         }
+
+        public static string GetMoveTargetText(IBattleMove move)
+        {
+            return move.GetMoveTargetType() switch
+            {
+                MoveTarget.SingleEnemy => "a Single Enemy",
+                MoveTarget.SingleAlly => "a Single Ally",
+                MoveTarget.AllEnemies => "All Enemies",
+                MoveTarget.AllAllies => "All Allies",
+                MoveTarget.Area => "the Entire Area",
+                _ => "Itself",
+            };
+        }
+
+        /// <summary>
+        /// Gets the Unit Name if the intention targets a single Unit. Otherwise, it defaults to GetMoveTargetText
+        /// </summary>
+        /// <param name="intention"></param>
+        /// <returns></returns>
+        public static bool TryGetIntentionTargetText(Intention.UnitIntention intention, out string text)
+        {
+            text = string.Empty;
+
+            if (intention.TargetIndexList.Count <= 0)   { return false; }
+            if (intention.MoveSelection == null)        { return false; }
+
+            MoveTarget targetType = intention.MoveSelection.GetMoveTargetType();
+            if (targetType == MoveTarget.SingleEnemy  || targetType == MoveTarget.SingleAlly)
+            {
+                /*  Get the 0-Index of the Targetting list and return it's name.    */
+                StationIndex firstStationIndex = intention.TargetIndexList[0];
+                if (!StationManager.Instance.TryGetUnitDataOnStation(firstStationIndex, out UnitData unitData)) {  return false; }
+
+                text = unitData.name;
+                return true;
+            }
+            else
+            {
+                text = GetMoveTargetText(intention.MoveSelection);
+                return true;
+            }
+        }
     }
 }
