@@ -146,7 +146,7 @@ namespace TurnBased.UI
                     conjunction = $"Imbuing the Environment with {unitData.element}.";
                     break;
                 case AttackActionType.STATUS_EFFECT:
-                    conjunction = $"Inflicting the Environment with {unitData.element}.";
+                    conjunction = $"Inflicting status to {unitName}.";
                     break;
             }
 

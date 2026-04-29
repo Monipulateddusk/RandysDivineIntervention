@@ -91,20 +91,37 @@ namespace TurnBased.AttackResolution
     {
         public class MoveValueAmounts
         {
-            public float HealingAmount { get; }
-            public float DamageAmount { get; }
+            public int AttackActionTypeInstanceDamageCount      { get; }
+            public int AttackActionTypeInstanceHealingCount     { get; }
+            public int AttackActionTypeInstanceStatusCount      { get; }
+            public int AttackActionTypeInstanceImbuementCount   { get; }
 
-            public MoveValueAmounts(float damage, float healing)
+            public float DamageValueAmount { get; }
+            public float HealingValueAmount { get; }
+
+            public MoveValueAmounts(int damageInstanceCount, int healingInstanceCount, int statusInstanceCount, int imbuementInstanceCount, float damage, float healing)
             {
-                this.DamageAmount = damage;
-                this.HealingAmount = healing;
+                this.AttackActionTypeInstanceDamageCount = damageInstanceCount;
+                this.AttackActionTypeInstanceHealingCount = healingInstanceCount;
+                this.AttackActionTypeInstanceStatusCount = statusInstanceCount;
+                this.AttackActionTypeInstanceImbuementCount = imbuementInstanceCount;
+
+
+                this.DamageValueAmount = damage;
+                this.HealingValueAmount = healing;
             }
         }
 
         public static bool TryGetTotalValuesOfMoveFromSourceIndexToTarget(UnitIndex sourceUnitIndex, IBattleMove sourceBattleMove, out MoveValueAmounts valueAmounts)
         {
-            float damageTotal = 0;
-            float healingTotal = 0;
+            int damageAttackActionInstanceTotal = 0;
+            int healingAttackActionInstanceTotal = 0;
+            int statusAttackActionInstanceTotal = 0;
+            int imbueAttackActionInstanceTotal = 0;
+
+
+            float damageValueTotal = 0;
+            float healingValueTotal = 0;
 
             valueAmounts = default;
             if (!IntentionCombatResolver.TryGetUnitDataForCombatResolution(sourceUnitIndex, out IntentionCombatResolver.UnitDataForCombatResolution combatResData)) { return false; }
@@ -115,18 +132,29 @@ namespace TurnBased.AttackResolution
             {
                 foreach (AttackAction action in step.Actions)
                 {
-                    if (action.Type == AttackActionType.DAMAGE)
+                    switch (action.Type)
                     {
-                        damageTotal += action.Value;
-                    }
-                    else if (action.Type == AttackActionType.HEALING)
-                    {
-                        healingTotal += action.Value;
-                    }                  
+                        case AttackActionType.DAMAGE:
+                            damageAttackActionInstanceTotal++;
+                            damageValueTotal += action.Value;
+                            break;
+                        case AttackActionType.HEALING:
+                            healingAttackActionInstanceTotal++;
+                            healingValueTotal += action.Value;
+                            break;
+                        case AttackActionType.STATUS_EFFECT:
+                            statusAttackActionInstanceTotal++;
+
+                            break;
+                        case AttackActionType.IMBUE_ENVIRONMENTS:
+                            imbueAttackActionInstanceTotal++;
+
+                            break;
+                    }              
                 }
             }
 
-            valueAmounts = new(damageTotal, healingTotal);
+            valueAmounts = new(damageAttackActionInstanceTotal, healingAttackActionInstanceTotal, statusAttackActionInstanceTotal, imbueAttackActionInstanceTotal, damageValueTotal, healingValueTotal);
 
             return true;
         }
@@ -137,15 +165,15 @@ namespace TurnBased.AttackResolution
             majorityValue = 0;
 
             /*  Check what value has the majority between Damage and Health. Depending on that, we report that value back. Makes UI visualisation much easier.  */
-            if (valueAmounts.DamageAmount > valueAmounts.HealingAmount)
+            if (valueAmounts.DamageValueAmount > valueAmounts.HealingValueAmount)
             {
                 type = AttackActionType.DAMAGE;
-                majorityValue = valueAmounts.DamageAmount;
+                majorityValue = valueAmounts.DamageValueAmount;
             }
-            else if (valueAmounts.DamageAmount < valueAmounts.HealingAmount)
+            else if (valueAmounts.DamageValueAmount < valueAmounts.HealingValueAmount)
             {
                 type = AttackActionType.HEALING;
-                majorityValue = valueAmounts.HealingAmount;
+                majorityValue = valueAmounts.HealingValueAmount;
             }
             else
             {

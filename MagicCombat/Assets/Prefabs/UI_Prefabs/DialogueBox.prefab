@@ -1620,13 +1620,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7148ebb5f17579b40a98e51de2f0f1a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UnitImage: {fileID: 0}
-  CommandWrapperGameObject: {fileID: 0}
-  InspectionGameObject: {fileID: 0}
-  PopupBufferGameObject: {fileID: 0}
-  UnitImageHealthWrapperGameObject: {fileID: 0}
-  TargetSelectionGameObject: {fileID: 0}
-  healthDisplayUI: {fileID: 0}
+  SummaryTabButton: {fileID: 0}
+  SelectionTabButton: {fileID: 0}
+  SummaryRootGameObject: {fileID: 3640523637689183851}
+  UnitImage: {fileID: 3667189099536886429}
+  UnitIntentionText: {fileID: 5506282559385674474}
+  healthDisplayUI: {fileID: 7750521063291816311}
+  MoveSelectionRootGameObject: {fileID: 2324514051290817118}
+  MoveSelectionContentTransform: {fileID: 4884077264869588869}
+  MainTargetRootGameObject: {fileID: 8880211264768893251}
+  TargetSelectionContentTransform: {fileID: 7324477611640761471}
+  TargetSelectionMoveReminderText: {fileID: 3994927139059139964}
   MoveUIPrefab: {fileID: 5894755170994402092, guid: 53d0b74593b83964aa1716f957cc030d, type: 3}
   TargetUIPrefab: {fileID: 5894755170994402092, guid: 32dbec0f344b6704b949842979080f3d, type: 3}
 --- !u!1 &2010491280980938089
@@ -5440,3 +5444,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 4437241601077942896, guid: 116d4e6aeffc22741b1a1c1bc9e10358, type: 3}
   m_PrefabInstance: {fileID: 1376804116482626296}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7750521063291816311 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8688576021165710223, guid: 116d4e6aeffc22741b1a1c1bc9e10358, type: 3}
+  m_PrefabInstance: {fileID: 1376804116482626296}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d57c30d90239fd4db2875cd1ab2fc82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

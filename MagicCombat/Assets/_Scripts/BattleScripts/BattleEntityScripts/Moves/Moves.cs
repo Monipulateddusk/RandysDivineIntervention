@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TurnBased.TargetSelection;
 
 namespace TurnBased
 {
@@ -24,6 +23,10 @@ namespace TurnBased
             AttackTarget = attackTarget;
         }
     }
+
+    
+
+
 
     public class AttackStep
     {
