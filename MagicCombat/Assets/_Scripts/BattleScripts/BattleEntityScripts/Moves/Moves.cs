@@ -21,20 +21,25 @@ namespace TurnBased
     public class DamageAttackAction : AttackAction
     {
         public int DamageAmount { get; }
+        public int HitsAmount { get; }
 
-        public DamageAttackAction(int damageAmount, MoveTarget moveTarget) : base(moveTarget)
+        public DamageAttackAction(int damageAmount, int hitsAmount, MoveTarget moveTarget) : base(moveTarget)
         {
             this.DamageAmount = damageAmount;
+            this.HitsAmount = hitsAmount;
         }
 
         public override string GetDescription()
         {
-            return $"Deal {this.DamageAmount} damage";
+            return this.HitsAmount > 1 ? $"Deal {this.DamageAmount}x{this.HitsAmount} damage" : $"Deal {this.DamageAmount} damage";
         }
 
         public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
         {
-            context.DealDamage(targetUnitIndex, this.DamageAmount);            
+            for (int i = 0; i < this.HitsAmount; i++)
+            {
+                context.DealDamage(targetUnitIndex, this.DamageAmount);
+            }
         }
     }
 
@@ -42,14 +47,14 @@ namespace TurnBased
     {
         public Element ElementEffect { get; private set; }
 
-        public ElementalDamageAttackAction(Element element, int damageAmount, MoveTarget moveTarget) : base(damageAmount, moveTarget)
+        public ElementalDamageAttackAction(Element element, int damageAmount, int hitsAmount, MoveTarget moveTarget) : base(damageAmount, hitsAmount, moveTarget)
         {
             this.ElementEffect = element;
         }
 
         public override string GetDescription()
         {
-            return $"Deal {this.DamageAmount} {DynamicElementalString()} damage";
+            return this.HitsAmount > 1 ? $"Deal {this.DamageAmount}x{this.HitsAmount} {DynamicElementalString()} damage" : $"Deal {this.DamageAmount} {DynamicElementalString()} damage";
         }
 
         private string DynamicElementalString()
@@ -67,7 +72,10 @@ namespace TurnBased
         }
         public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
         {
-            context.DealDamage(targetUnitIndex, this.DamageAmount);
+            for (int i = 0; i < this.HitsAmount; i++)
+            {
+                context.DealDamage(targetUnitIndex, this.DamageAmount);
+            }  
         }
     }
 
@@ -177,7 +185,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction(userInfo.element, userInfo.attack, MoveTarget.SingleEnemy),
+                            new ElementalDamageAttackAction(userInfo.element, userInfo.attack, 1, MoveTarget.SingleEnemy),
                         }
                     },
                 }
@@ -208,21 +216,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, MoveTarget.SingleEnemy)         
+                            new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, 2, MoveTarget.SingleEnemy)         
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                        new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, MoveTarget.SingleEnemy)
-                        }
-                    },
-                    new AttackStep()
-                    {
-                        Actions =
-                        {
-                            new ElementalDamageAttackAction(userInfo.element, damage, MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(userInfo.element, damage, 1, MoveTarget.SingleEnemy)
                         }
                     },
                 }

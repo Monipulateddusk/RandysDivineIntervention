@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TurnBased.Combat;
 using TurnBased.UI;
-using Unity.VisualScripting;
 
 namespace TurnBased.AttackResolution
 {
@@ -115,10 +114,34 @@ namespace TurnBased.AttackResolution
             string intentionText = string.Empty;
             for (int i = 0; i < actions.Count; i++)
             {
-                intentionText += $"{actions[i].GetDescription()}";
-                intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+                if (i != 0)
+                {
+                    intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+                }
+
+                intentionText += $"{actions[i].GetDescription()} to {GetTargettingString(actions[i])}";
             }
             return intentionText;
+        }
+
+        private static string GetTargettingString(AttackAction action)
+        {
+            switch (action.AttackTarget)
+            {
+                default:
+                case MoveTarget.Self:
+                    return "itself";
+                case MoveTarget.SingleAlly:
+                    return "a Single Ally";
+                case MoveTarget.SingleEnemy:
+                    return "a Single Enemy";
+                case MoveTarget.AllEnemies:
+                    return "All Enemies";
+                case MoveTarget.AllAllies:
+                    return "All Allies";
+                case MoveTarget.Area:
+                    return "the Area";
+            }
         }
 
         public static string GetUnitIntentionIntentionString(UnitIndex unitIndex, UnitData unitData, Intention.UnitIntention intention)
@@ -147,7 +170,11 @@ namespace TurnBased.AttackResolution
             string intentionText = $"{unitData.name} is intending to ";
             for (int i = 0; i < actions.Count; i++)
             {
-                intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+                if (i != 0) 
+                { 
+                    intentionText += (i == actions.Count - 1) ? " then, " : ", "; 
+                }
+           
                 intentionText += $"{actions[i].GetDescription()} to {unitName}";
             }
 

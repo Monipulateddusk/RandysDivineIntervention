@@ -40,7 +40,7 @@ public class EM_Inferno : IElementalMoveAction
                         
                         // Afflicting status: Burned to enemies
                         //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.FIRE, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.FIRE, 3,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.FIRE, 3, 1,  MoveTarget.SingleEnemy)
                     }
                 }
             }
@@ -80,7 +80,7 @@ public class EM_Steam : IElementalMoveAction
                         
                         // Afflicting status: Burned to enemies
                         //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.WATER, 3, MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.WATER, 3, 1, MoveTarget.SingleEnemy)
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class EM_Frostburn : IElementalMoveAction
                         
                         // Afflicting status: Frostburn to enemies & Slippery
                        // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.WATER, 3,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.WATER, 3, 1,  MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -150,7 +150,7 @@ public class EM_Volcano : IElementalMoveAction
                         
                         // Afflicting status: Burned to enemies
                        // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                       new ElementalDamageAttackAction(Element.EARTH, totalAttackValue,  MoveTarget.SingleEnemy)
+                       new ElementalDamageAttackAction(Element.EARTH, 1, totalAttackValue,  MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -193,7 +193,7 @@ public class EM_Tsunami : IElementalMoveAction
                 {
                     Actions =
                     {
-                        new ElementalDamageAttackAction (Element.WATER, totalAttackValue, MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction (Element.WATER, 1, totalAttackValue, MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -268,7 +268,7 @@ public class EM_IceAge : IElementalMoveAction
                     Actions =
                     {
                         //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.ICE, totalAttackValue,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.ICE, 1, totalAttackValue,  MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -296,7 +296,7 @@ public class EM_HailCloak : IElementalMoveAction
                     {
                         // All allies are granted Hailcloak
                         //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
-                        new ElementalDamageAttackAction(Element.ICE, 3,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.ICE, 3, 1,  MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -341,7 +341,7 @@ public class EM_Fissure : IElementalMoveAction
                     Actions =
                     {
                         //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.EARTH, 3,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
                     }
                 }
 
@@ -371,7 +371,7 @@ public class EM_FrostLock : IElementalMoveAction
                     {
                         // Afflict targets with frost lock
                         //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Frost Lock", attackTarget: MoveTarget.AllEnemies)
-                        new ElementalDamageAttackAction(Element.EARTH, 3,  MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
 
                     }
                 }
