@@ -5,27 +5,125 @@ namespace TurnBased
     #region Attack Data Classes
 
 
-    public class AttackAction
+    public abstract class AttackAction
     {
-        public AttackActionType Type { get; private set; }
-        public Element ElementEffect { get; private set; }
         public MoveTarget AttackTarget { get; private set; }
-        public int Value { get; private set; }
-        public string StaEffect { get; private set; }
 
-
-        public AttackAction(AttackActionType type, int value = 0, string staEffect = "", Element elementEff = 0, MoveTarget attackTarget = MoveTarget.SingleEnemy)
+        protected AttackAction(MoveTarget moveTarget)
         {
-            Type = type;
-            ElementEffect = elementEff;
-            Value = value;
-            StaEffect = staEffect;
-            AttackTarget = attackTarget;
+            this.AttackTarget = moveTarget;
+        }
+
+        public abstract void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context);
+        public abstract string GetDescription();
+    }
+
+    public class DamageAttackAction : AttackAction
+    {
+        public int DamageAmount { get; }
+
+        public DamageAttackAction(int damageAmount, MoveTarget moveTarget) : base(moveTarget)
+        {
+            this.DamageAmount = damageAmount;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Deal {this.DamageAmount} damage";
+        }
+
+        public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
+        {
+            context.DealDamage(targetUnitIndex, this.DamageAmount);            
         }
     }
 
-    
+    public class ElementalDamageAttackAction : DamageAttackAction
+    {
+        public Element ElementEffect { get; private set; }
 
+        public ElementalDamageAttackAction(Element element, int damageAmount, MoveTarget moveTarget) : base(damageAmount, moveTarget)
+        {
+            this.ElementEffect = element;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Deal {this.DamageAmount} {DynamicElementalString()} damage";
+        }
+
+        private string DynamicElementalString()
+        {
+            return ElementEffect switch
+            {
+                Element.FIRE => $"<color=red>Fire</color>",
+                Element.WATER => $"<color=blue>Water</color>",
+                Element.ICE => $"<color=aqua>Ice</color>",
+                Element.EARTH => $"<color=brown>Earth</color>",
+                Element.LIGHT => $"<color=yellow>Light</color>",
+                Element.DARKNESS => $"<color=grey>Dark</color>",
+                _ => $"Non-Elemental",
+            };
+        }
+        public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
+        {
+            context.DealDamage(targetUnitIndex, this.DamageAmount);
+        }
+    }
+
+    public class HealingAttackAction : AttackAction
+    {
+        public int HealingAmount { get; }
+
+        public HealingAttackAction(int healingAmount, MoveTarget moveTarget) : base(moveTarget)
+        {
+            this.HealingAmount = healingAmount;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Heal for {HealingAmount}";
+        }
+
+        public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
+        {
+            context.HealDamage(targetUnitIndex, this.HealingAmount);
+        }
+    }
+
+    public class ImbueEnvironmentAttackAction : AttackAction
+    {
+        public Element ElementEffect { get; private set; }
+
+        public ImbueEnvironmentAttackAction(Element element, MoveTarget moveTarget) : base(moveTarget)
+        {
+            this.ElementEffect = element;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Imbue the environment with {DynamicElementalString()} Energy.";
+        }
+
+        private string DynamicElementalString()
+        {
+            return ElementEffect switch
+            {
+                Element.FIRE => $"<color=red>Fire</color>",
+                Element.WATER => $"<color=blue>Water</color>",
+                Element.ICE => $"<color=aqua>Ice</color>",
+                Element.EARTH => $"<color=brown>Earth</color>",
+                Element.LIGHT => $"<color=yellow>Light</color>",
+                Element.DARKNESS => $"<color=grey>Dark</color>",
+                _ => $"Non-Elemental",
+            };
+        }
+
+        public override void Execute(UnitIndex targetUnitIndex, AttackActionExecutionContext context)
+        {
+            context.ImbueEnvironment(targetUnitIndex, this.ElementEffect);
+        }
+    }
 
 
     public class AttackStep
@@ -79,9 +177,9 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, userInfo.attack, attackTarget: MoveTarget.SingleEnemy)
-                        }                        
-                    }, 
+                            new ElementalDamageAttackAction(userInfo.element, userInfo.attack, MoveTarget.SingleEnemy),
+                        }
+                    },
                 }
             };
             return resolutionInfo;
@@ -110,22 +208,21 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, MoveTarget.SingleEnemy)         
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                        new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, MoveTarget.SingleEnemy)
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-
-                            new AttackAction(AttackActionType.DAMAGE, damage, attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(userInfo.element, damage, MoveTarget.SingleEnemy)
                         }
                     },
                 }
@@ -156,7 +253,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element, attackTarget: MoveTarget.Area),
+                            new ImbueEnvironmentAttackAction(userInfo.element, MoveTarget.Area)
                         },
                     }
                 }
@@ -170,4 +267,5 @@ namespace TurnBased
         public bool DoesSourceUnitMove() => false;
         public string GetMoveName() => "ImbueEnvironment";
     }
+    
 }

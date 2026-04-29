@@ -31,8 +31,8 @@ public class Station
 
 public class SceneUnitData
 {
-    public Dictionary<int,  BaseBattleUnit> Units = new();           
-    public Dictionary<int,  Station>        Stations = new();
+    public System.Collections.Generic.Dictionary<int,  BaseBattleUnit> Units = new();           
+    public System.Collections.Generic.Dictionary<int,  Station>        Stations = new();
 
     public static int MAX_UNITS_PER_SIDE = 9;
     private int nextUnitId = 0, nextStationId = 0;
@@ -84,7 +84,7 @@ public class SceneUnitData
 
     private bool IsDuplicateStationPosition(UnityEngine.Vector3 stationPosition)
     {
-        foreach(KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
+        foreach(System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
         {
             Station station = stationKeyValuePair.Value;    
 
@@ -840,6 +840,34 @@ public static class StationManagerUtilities
         // TO DO: PASS IN ENVIRONMENT DATA
         return new SceneData_UnitTurn(sourceStationIndex, allyStationIndexes, enemyStationIndexes);
     }
+
+    public static UnitData_SceneData_UnitTurn CreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex)
+    {
+        UnitData sourceUnitData = null;
+        System.Collections.Generic.List<UnitData> allyData  = new();
+        System.Collections.Generic.List<UnitData> enemyData = new();
+
+
+        /*  Get the stationIndexes for each active unit in the scene to loop through them and retrieve their data.  */
+        SceneData_UnitTurn sceneData = CreateCombatSceneDataForUnitIndex(unitIndex);
+
+        foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
+        {
+            if (!StationManager.Instance.TryGetUnitDataOnStation(allyStationIndex, out UnitData unitData)) { continue; }
+            allyData.Add(unitData);
+        }
+
+        foreach (StationIndex enemyStationIndex in sceneData.EnemyStationIndexes)
+        {
+            if (!StationManager.Instance.TryGetUnitDataOnStation(enemyStationIndex, out UnitData unitData)) { continue; }
+            enemyData.Add(unitData);
+        }
+
+        if (!StationManager.Instance.TryGetUnitDataOnStation(sceneData.SourceStationIndex, out sourceUnitData)) { throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+
+        return new UnitData_SceneData_UnitTurn(sourceUnitData, allyData, enemyData);
+    }
+
 
     /// <summary>
     /// Allows the retrieval of a single List of StationIndexes to loop through for purposes of targetting selection 

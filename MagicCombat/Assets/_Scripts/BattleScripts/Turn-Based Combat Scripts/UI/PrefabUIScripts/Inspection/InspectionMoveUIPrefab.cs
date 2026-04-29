@@ -1,3 +1,4 @@
+using TurnBased.AttackResolution;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -75,20 +76,7 @@ namespace TurnBased.UI
 
         private string GetMoveDescription(UnitIndex unitIndex, IBattleMove move)
         {
-            TurnBased.AttackResolution.CombatDamageUtility.TryGetTotalValuesOfMoveFromSourceIndexToTarget(unitIndex, move, out AttackResolution.CombatDamageUtility.MoveValueAmounts totalValues);
-
-            string descriptionStart = string.Empty;
-            if (totalValues.DamageAmount > 0)
-            {
-                descriptionStart = $"Deals {totalValues.DamageAmount} Total Damage to {UserInterfaceUtility.GetMoveTargetText(move)}.\n";
-            }
-            else if (totalValues.HealingAmount > 0 && totalValues.DamageAmount <= 0)
-            {
-                descriptionStart = $"Heals {UserInterfaceUtility.GetMoveTargetText(move)} for {totalValues.DamageAmount} Health Points.\n";
-            }
-
-            return descriptionStart;    
-
+            return CombatDamageUtility.GetMoveDescription(unitIndex, move);
         }
 
 

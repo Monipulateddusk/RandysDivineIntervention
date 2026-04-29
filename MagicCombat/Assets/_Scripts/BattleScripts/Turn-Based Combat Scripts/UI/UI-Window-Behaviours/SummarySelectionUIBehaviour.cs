@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TurnBased.AttackResolution;
 using UnityEngine;
 
@@ -123,34 +124,10 @@ namespace TurnBased.UI
         }
 
         private void SetSummaryIntentionTextWithIntention(UnitIndex selectedUnitIndex, UnitData unitData, Intention.UnitIntention intention)
-        {
-            if (!CombatDamageUtility.TryGetTotalValuesOfMoveFromSourceIndexToTarget(
-                selectedUnitIndex, 
-                intention.MoveSelection, 
-                out CombatDamageUtility.MoveValueAmounts valueAmounts)) { return; }
+        {         
+            this.UnitIntentionText.text = CombatDamageUtility.GetUnitIntentionIntentionString(selectedUnitIndex, unitData, intention);
 
-            CombatDamageUtility.GetAttackActionTypeFromMoveValueAmounts(valueAmounts, out AttackActionType type, out float majorityValue);
-
-            if (!UserInterfaceUtility.TryGetIntentionTargetText(intention, out string unitName)) { return; }
-
-            string conjunction = string.Empty;
-            switch (type)
-            {
-                case AttackActionType.DAMAGE:
-                    conjunction = $"Dealing {majorityValue} Total Damage to {unitName}";
-                    break;
-                case AttackActionType.HEALING:
-                    conjunction = $"Healing for {majorityValue} Health Points. Targetting {unitName}.";
-                    break;
-                case AttackActionType.IMBUE_ENVIRONMENTS:
-                    conjunction = $"Imbuing the Environment with {unitData.element}.";
-                    break;
-                case AttackActionType.STATUS_EFFECT:
-                    conjunction = $"Inflicting status to {unitName}.";
-                    break;
-            }
-
-            this.UnitIntentionText.text = $"{unitData.name} is {conjunction}";
+            return;
         }
 
 

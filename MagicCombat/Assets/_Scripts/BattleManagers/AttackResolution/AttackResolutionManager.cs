@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using TurnBased.Combat;
+using TurnBased.UI;
+using Unity.VisualScripting;
 
 namespace TurnBased.AttackResolution
 {
@@ -89,98 +92,66 @@ namespace TurnBased.AttackResolution
 
     public static class CombatDamageUtility
     {
-        public class MoveValueAmounts
+        public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
-            public int AttackActionTypeInstanceDamageCount      { get; }
-            public int AttackActionTypeInstanceHealingCount     { get; }
-            public int AttackActionTypeInstanceStatusCount      { get; }
-            public int AttackActionTypeInstanceImbuementCount   { get; }
-
-            public float DamageValueAmount { get; }
-            public float HealingValueAmount { get; }
-
-            public MoveValueAmounts(int damageInstanceCount, int healingInstanceCount, int statusInstanceCount, int imbuementInstanceCount, float damage, float healing)
-            {
-                this.AttackActionTypeInstanceDamageCount = damageInstanceCount;
-                this.AttackActionTypeInstanceHealingCount = healingInstanceCount;
-                this.AttackActionTypeInstanceStatusCount = statusInstanceCount;
-                this.AttackActionTypeInstanceImbuementCount = imbuementInstanceCount;
+            /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
+            UnitData_SceneData_UnitTurn unitDataSceneData = StationManagerUtilities.CreateUnitDataSceneDataForUnitIndex(unitIndex);
+            AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
 
-                this.DamageValueAmount = damage;
-                this.HealingValueAmount = healing;
-            }
-        }
-
-        public static bool TryGetTotalValuesOfMoveFromSourceIndexToTarget(UnitIndex sourceUnitIndex, IBattleMove sourceBattleMove, out MoveValueAmounts valueAmounts)
-        {
-            int damageAttackActionInstanceTotal = 0;
-            int healingAttackActionInstanceTotal = 0;
-            int statusAttackActionInstanceTotal = 0;
-            int imbueAttackActionInstanceTotal = 0;
-
-
-            float damageValueTotal = 0;
-            float healingValueTotal = 0;
-
-            valueAmounts = default;
-            if (!IntentionCombatResolver.TryGetUnitDataForCombatResolution(sourceUnitIndex, out IntentionCombatResolver.UnitDataForCombatResolution combatResData)) { return false; }
-
-            AttackResolutionInfo resolutionInfo = sourceBattleMove.ExecuteMove(combatResData.SourceUnitData, combatResData.AllyUnitData, combatResData.TargetUnitData);
-
+            /*  Get a full list of all actions so we can format the string properly.    */
+            List<AttackAction> actions = new();
             foreach (AttackStep step in resolutionInfo.Steps)
             {
                 foreach (AttackAction action in step.Actions)
                 {
-                    switch (action.Type)
-                    {
-                        case AttackActionType.DAMAGE:
-                            damageAttackActionInstanceTotal++;
-                            damageValueTotal += action.Value;
-                            break;
-                        case AttackActionType.HEALING:
-                            healingAttackActionInstanceTotal++;
-                            healingValueTotal += action.Value;
-                            break;
-                        case AttackActionType.STATUS_EFFECT:
-                            statusAttackActionInstanceTotal++;
+                    actions.Add(action);
+                }
+            }
+            /*  If something went wrong, complete the string.   */
+            if (actions.Count <= 0) { return $"Do nothing."; }
 
-                            break;
-                        case AttackActionType.IMBUE_ENVIRONMENTS:
-                            imbueAttackActionInstanceTotal++;
 
-                            break;
-                    }              
+            string intentionText = string.Empty;
+            for (int i = 0; i < actions.Count; i++)
+            {
+                intentionText += $"{actions[i].GetDescription()}";
+                intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+            }
+            return intentionText;
+        }
+
+        public static string GetUnitIntentionIntentionString(UnitIndex unitIndex, UnitData unitData, Intention.UnitIntention intention)
+        {
+            /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
+            UnitData_SceneData_UnitTurn unitDataSceneData = StationManagerUtilities.CreateUnitDataSceneDataForUnitIndex(unitIndex);
+            AttackResolutionInfo resolutionInfo = intention.MoveSelection.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+
+            /*  Determine who the attack is going to.   There is a limitation here, each attack action can go to multiple targets. So we would need to fix this up to account for different targets for each attack action.   */
+            if (!UserInterfaceUtility.TryGetIntentionTargetText(intention, out string unitName)) { return $"{unitData.name} is intending to do nothing."; }
+
+            /*  Get a full list of all actions so we can format the string properly.    */
+            List<AttackAction> actions = new();
+            foreach (AttackStep step in resolutionInfo.Steps)
+            {
+                foreach (AttackAction action in step.Actions)
+                {
+                    actions.Add(action);
                 }
             }
 
-            valueAmounts = new(damageAttackActionInstanceTotal, healingAttackActionInstanceTotal, statusAttackActionInstanceTotal, imbueAttackActionInstanceTotal, damageValueTotal, healingValueTotal);
+            /*  If something went wrong, complete the string.   */
+            if (actions.Count <= 0) { return $"{unitData.name} is intending to do nothing."; }
 
-            return true;
+
+            string intentionText = $"{unitData.name} is intending to ";
+            for (int i = 0; i < actions.Count; i++)
+            {
+                intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+                intentionText += $"{actions[i].GetDescription()} to {unitName}";
+            }
+
+            return intentionText;
         }
-
-        public static void GetAttackActionTypeFromMoveValueAmounts(MoveValueAmounts valueAmounts, out AttackActionType type, out float majorityValue)
-        {
-            type = AttackActionType.DAMAGE;
-            majorityValue = 0;
-
-            /*  Check what value has the majority between Damage and Health. Depending on that, we report that value back. Makes UI visualisation much easier.  */
-            if (valueAmounts.DamageValueAmount > valueAmounts.HealingValueAmount)
-            {
-                type = AttackActionType.DAMAGE;
-                majorityValue = valueAmounts.DamageValueAmount;
-            }
-            else if (valueAmounts.DamageValueAmount < valueAmounts.HealingValueAmount)
-            {
-                type = AttackActionType.HEALING;
-                majorityValue = valueAmounts.HealingValueAmount;
-            }
-            else
-            {
-                type = AttackActionType.IMBUE_ENVIRONMENTS;
-                majorityValue = 0;
-            }
-        }
-
     }
 }
