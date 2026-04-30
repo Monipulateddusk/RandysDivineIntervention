@@ -144,6 +144,7 @@ namespace TurnBased.Intention {
                 if (res)
                 {
                     ProcessIntentionOfResolvingUnit();
+                    StationSelectorManager.Instance.SetSelectedStationIndex(CurrentResolvingUnit.Value);
                 }
                 else
                 {
@@ -169,6 +170,7 @@ namespace TurnBased.Intention {
 
             switch (intention.ResolutionState)
             {
+                case UnitIntentionResolutionState.NONE:
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
                     UnityEngine.Debug.LogWarning($"Changing subphase to move selection");
 

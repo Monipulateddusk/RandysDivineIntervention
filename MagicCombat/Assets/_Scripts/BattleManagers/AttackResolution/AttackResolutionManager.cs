@@ -52,11 +52,8 @@ namespace TurnBased.AttackResolution
         {
             UnitIndex? turnOrderNextUnit = TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
 
-            UnityEngine.Debug.LogWarning($"Next turn order unit is: "+ turnOrderNextUnit);
-
             if (!turnOrderNextUnit.HasValue) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: CANNOT PROCESS NEXT UNIT IN TURN ORDER THAT DOESN'T EXIST!"); return; }
             this.unitIndexToProcess = turnOrderNextUnit.Value;
-
 
             _ = ProcessNextUnitInTurnOrder();
         }

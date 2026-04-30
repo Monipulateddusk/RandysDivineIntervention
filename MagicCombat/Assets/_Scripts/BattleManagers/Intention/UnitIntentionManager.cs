@@ -22,11 +22,12 @@ namespace TurnBased.Intention
             this.TargetIndexList = new();
             this.ResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
         }
-        public UnitIntention()
+        public UnitIntention(bool isAwaitingMoveSelection)
         {
             this.MoveSelection = null;
             this.TargetIndexList = new();
-            this.ResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION;
+
+            this.ResolutionState = isAwaitingMoveSelection ? UnitIntentionResolutionState.AWAITING_MOVE_SELECTION : UnitIntentionResolutionState.NONE;
         }
     }
 
@@ -79,7 +80,7 @@ namespace TurnBased.Intention
         {
             if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            intentionDictionary.Add(unitIndex.Index, new());
+            intentionDictionary.Add(unitIndex.Index, new(false));
             OnUnitIntentionAdded?.Invoke(unitIndex);
         }
 
@@ -105,6 +106,13 @@ namespace TurnBased.Intention
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
 
             UnityEngine.Debug.LogError($"OnUnitIntentionChanged invoked! Current IsAwaitingUserInputState: {Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput}");
+        }
+
+        public void SetReadyForMoveIntention(UnitIndex unitIndex)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            SetIntention(unitIndex, new UnitIntention(true));
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
@@ -134,7 +142,7 @@ namespace TurnBased.Intention
 
             UnityEngine.Debug.LogWarning($"IT DOES!");
 
-            SetIntention(unitIndex, new UnitIntention());
+            SetIntention(unitIndex, new UnitIntention(false));
         }
 
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)

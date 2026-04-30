@@ -223,12 +223,18 @@ public class StationSelectorManager
 
     public void SetSelectedStationIndex(UnitIndex unitIndex)
     {
-        if(!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex newStationIndex)) { return; }
+        UnityEngine.Debug.LogWarning($"Does station Index exist? {unitIndex.Index}!");
+
+        if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex newStationIndex)) { return; }
 
         StationIndex oldStationIndex = this.selectedStationIndex;
 
+        UnityEngine.Debug.LogWarning($"Obtained station index of unitIndex: {unitIndex.Index}! NewStationIndex: {newStationIndex.Index}");
+
         /*  Check to see if this new station index is contained within our StationIndexes. */
         if (!DoesStationIndexExistInStationIndexes(newStationIndex)) { return; }
+
+        UnityEngine.Debug.LogWarning($"Does exist! {newStationIndex.Index}!");
 
 
         this.selectedStationIndex = newStationIndex;

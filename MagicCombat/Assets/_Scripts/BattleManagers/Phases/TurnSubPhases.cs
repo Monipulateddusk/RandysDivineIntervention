@@ -47,6 +47,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
+
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
             Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
         }

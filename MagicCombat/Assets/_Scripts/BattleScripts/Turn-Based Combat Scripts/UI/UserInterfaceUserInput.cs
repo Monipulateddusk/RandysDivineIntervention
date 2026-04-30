@@ -31,7 +31,6 @@ namespace TurnBased.UI
         public void StartSelection(UnitIndex unitIndex)
         {
             this.selectedUnit = unitIndex;
-
             UnityEngine.Debug.LogError($"Start UI selection for UnitIndex: {unitIndex.Index}");
         }
 
