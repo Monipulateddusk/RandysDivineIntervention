@@ -22,5 +22,5 @@ public class UnitData : UnityEngine.ScriptableObject
     public UnitMoveSelectorType moveSelectorType;
     public UnitTargetSelectorType targetSelectorType;
 
-    public UnityEditor.Animations.AnimatorController unitAnimator;
+    public UnityEngine.RuntimeAnimatorController unitAnimator;
 }

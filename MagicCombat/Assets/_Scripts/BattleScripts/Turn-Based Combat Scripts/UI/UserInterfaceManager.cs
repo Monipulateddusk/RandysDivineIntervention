@@ -65,6 +65,9 @@ namespace TurnBased.UI
 
         private void InitaliseCursorManager()
         {
+            /*  Disable the normal cursor so we can use ours.   */
+            Cursor.visible = false;
+
             this.CursorManager = new CursorManager(this.transform, this.UI_PrefabData.CursorPrefab, this.CursorImages);
             this.UserInterfaceElementSelectorManager.Awake(this.CursorManager.SetCursorImageState);
         }
