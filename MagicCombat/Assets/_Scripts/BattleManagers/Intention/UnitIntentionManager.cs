@@ -104,8 +104,6 @@ namespace TurnBased.Intention
             intentionDictionary[unitIndex.Index] = intention;
            
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
-
-            UnityEngine.Debug.LogError($"OnUnitIntentionChanged invoked! Current IsAwaitingUserInputState: {Intention.CombatRoundUnitIntentionManager.IsAwaitingUserInput}");
         }
 
         public void SetReadyForMoveIntention(UnitIndex unitIndex)
@@ -120,8 +118,6 @@ namespace TurnBased.Intention
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             SetIntention(unitIndex, new(battleMove));
-
-            Debug.Log("Setting Move Intention for Unit Index: " + unitIndex.Index + " Move Intention: " +  battleMove.GetMoveName()); 
         }
 
         public void SetTargetIntention(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> targetIntentionList)
@@ -131,16 +127,11 @@ namespace TurnBased.Intention
             UnitIntention currentIntention = intentionDictionary[unitIndex.Index];
 
             SetIntention(unitIndex, new(currentIntention.MoveSelection, targetIntentionList));
-
-            Debug.Log("Setting target intention for Unit Index: " + unitIndex.Index + " target intention size is: " + targetIntentionList.Count);
         }
 
         public void ClearIntention(UnitIndex unitIndex)
         {
-            UnityEngine.Debug.LogWarning($"Does intent exist with unit index: {unitIndex.Index}   ");
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
-
-            UnityEngine.Debug.LogWarning($"IT DOES!");
 
             SetIntention(unitIndex, new UnitIntention(false));
         }
@@ -156,7 +147,6 @@ namespace TurnBased.Intention
 
         public void PrintOutAllIntents()
         {
-            UnityEngine.Debug.LogError("Printing all intents!");
             foreach (var index in this.intentionDictionary)
             {
                 UnityEngine.Debug.LogError($"Unit Index: {index.Key} has selected: {index.Value.MoveSelection} and selected Station {index.Value.TargetIndexList.FirstOrDefault().Index} as their target ");

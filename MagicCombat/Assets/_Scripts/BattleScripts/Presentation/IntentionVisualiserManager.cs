@@ -17,6 +17,11 @@ namespace TurnBased.Intention {
 
         private void UnitIntentionManager_OnUnitIntentionChanged(UnitIndex unitIndex, UnitIntention intentionOfUnit)
         {
+  
+        }
+
+        private void UpdateUnitTextIntentionVisualiser(UnitIndex unitIndex, UnitIntention intentionOfUnit)
+        {
             /*  Get the base battle unit for us to add a game object on to. */
             if (!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit battleUnit)) { return; }
 

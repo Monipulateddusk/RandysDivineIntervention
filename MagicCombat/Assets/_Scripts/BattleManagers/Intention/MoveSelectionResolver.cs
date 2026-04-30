@@ -67,12 +67,8 @@ namespace TurnBased.Intention
             SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
 
-            UnityEngine.Debug.LogError("Before OnMoveSelected event");
-
             /*  Notify CombatRoundIntentionManager that a move has been selected by this UnitIndex. */
             OnMoveSelected?.Invoke(unitIndex, selectedMove);
-
-            UnityEngine.Debug.LogError("After OnMoveSelected event");
         }
     }
 }

@@ -98,8 +98,6 @@ namespace TurnBased.TurnOrder
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
 
-            UnityEngine.Debug.LogError($"TurnOrderList count is {this.UnitIndexTurnOrderList.Count}");
-
             return this.UnitIndexTurnOrderList;
         }
 
