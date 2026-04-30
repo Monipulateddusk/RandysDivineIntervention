@@ -1,10 +1,10 @@
 public abstract class AttackEvent
 {
-    public UnitIndex SourceUnitIndex { get; }
+    public UnitIndex TargetUnitIndex { get; }
 
-    public AttackEvent(UnitIndex sourceUnitIndex)
+    public AttackEvent(UnitIndex targetUnitIndex)
     {
-        this.SourceUnitIndex = sourceUnitIndex;
+        this.TargetUnitIndex = targetUnitIndex;
     }
 }
 
@@ -12,7 +12,7 @@ public abstract class AttackEvent
 public class DamageEvent : AttackEvent
 {
     public int Damage { get; }
-    public DamageEvent(int damage, UnitIndex sourceUnitIndex) : base(sourceUnitIndex)
+    public DamageEvent(int damage, UnitIndex targetUnitIndex) : base(targetUnitIndex)
     {
         this.Damage = damage;
     }
@@ -21,7 +21,7 @@ public class DamageEvent : AttackEvent
 public class ElementalDamageEvent : DamageEvent
 {
     public Element Element { get; }
-    public ElementalDamageEvent(Element element, int damage, UnitIndex sourceUnitIndex) : base(damage, sourceUnitIndex)
+    public ElementalDamageEvent(Element element, int damage, UnitIndex targetUnitIndex) : base(damage, targetUnitIndex)
     {
         this.Element = element; 
     }   
@@ -30,7 +30,7 @@ public class ElementalDamageEvent : DamageEvent
 public class HealEvent : AttackEvent
 {
     public int HealAmount { get; }
-    public HealEvent(int healAmount, UnitIndex sourceUnitIndex) : base(sourceUnitIndex)
+    public HealEvent(int healAmount, UnitIndex targetUnitIndex) : base(targetUnitIndex)
     {
         this.HealAmount = healAmount;
     }
@@ -39,7 +39,7 @@ public class HealEvent : AttackEvent
 public class ImbueElementEvent : AttackEvent
 {
     public Element ImbuedElement { get; }
-    public ImbueElementEvent(Element imbuedElement, UnitIndex sourceUnitIndex) : base(sourceUnitIndex)
+    public ImbueElementEvent(Element imbuedElement, UnitIndex targetUnitIndex) : base(targetUnitIndex)
     {
         this.ImbuedElement = imbuedElement;
     }

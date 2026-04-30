@@ -47,14 +47,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.LogWarning($"Entering : MoveSelection for UnitIndex: {this.currentUnitIndex.Index}");
-
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
-
-            Debug.LogWarning($"Processing move selection!");
             Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
-
-            Debug.LogWarning($"After Processing move selection!");
         }
 
         public override void OnExit()
@@ -69,13 +63,8 @@ namespace TurnBased.Phases
 
         private void OnMoveSelected(UnitIndex selectedUnitIndex, IBattleMove selectedMove)
         {
-            UnityEngine.Debug.LogWarning($"Move was selected: {selectedMove.GetMoveName()}. Setting move intention for  selectedUnitIndex: {selectedUnitIndex.Index}");
-
             /*  Add this selected move to intentionManager. */
             Intention.UnitIntentionManager.Instance.SetMoveIntention(selectedUnitIndex, selectedMove);
-
-
-
             OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
         }
     }
@@ -88,7 +77,6 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : TargetSelection for UnitIndex: {this.currentUnitIndex.Index}");
             Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
             Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(this.currentUnitIndex);
         }
@@ -105,12 +93,8 @@ namespace TurnBased.Phases
 
         private void OnTargetSelected(UnitIndex selectedUnitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
         {
-            UnityEngine.Debug.LogWarning($"Target was selected. Amount of targets: {selectedTarget.Count}. Setting target intention for  selectedUnitIndex: {selectedUnitIndex.Index}");
-
             /*  Add this selected move to intentionManager. */
             Intention.UnitIntentionManager.Instance.SetTargetIntention(selectedUnitIndex, selectedTarget);
-
-
 
             OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
         }
@@ -126,8 +110,6 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.LogWarning($"Entering : READY_TO_EXECUTE_MOVE");
-
             this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
         }
 
@@ -152,8 +134,6 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            MonoBehaviour.print("<color=green>Entering in ResolveAttack</color>");
-
             this.resolveAttackResolutionCompletionManager = new(OnAttackResolutionPhaseComplete);
 
             this.resolveAttackResolutionCompletionManager.AddAction();
@@ -175,8 +155,6 @@ namespace TurnBased.Phases
 
         private void OnAttackResolutionPhaseComplete()
         {
-            MonoBehaviour.print("<color=white>OnAttackResolutionPhaseComplete</color>");
-
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
             this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
         }

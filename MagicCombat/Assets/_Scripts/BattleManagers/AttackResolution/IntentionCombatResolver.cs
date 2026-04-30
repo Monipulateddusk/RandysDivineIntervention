@@ -41,8 +41,7 @@ namespace TurnBased.Combat
             /*  Process each step individually   */
             for (int i = 0; i < exectutedMoveResolutionInfo.Steps.Count; i++)
             {
-                AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
-                UnityEngine.Debug.LogWarning($"Processed attack step for UnitIndex: {unitIndex.Index}");
+                await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
             }
 
             /*  Move the user back.  */

@@ -1,4 +1,6 @@
 using System.Linq;
+using System.Threading.Tasks;
+using TurnBased.Combat;
 using UnityEngine;
 
 namespace TurnBased.AttackResolution
@@ -8,7 +10,7 @@ namespace TurnBased.AttackResolution
     /// </summary>
     public static class CombatAttackHandler
     {
-        public static void ProcessAttackStep(AttackResolutionInfo currentAttackInfo, TurnBased.Intention.UnitIntention intentInfo)
+        public async static System.Threading.Tasks.Task ProcessAttackStep(AttackResolutionInfo currentAttackInfo, TurnBased.Intention.UnitIntention intentInfo)
         {
             if (currentAttackInfo.Steps.Count < 0)
             {
@@ -21,7 +23,7 @@ namespace TurnBased.AttackResolution
             {
                 foreach (AttackAction action in step.Actions)
                 {
-                    ProcessAttackAction(intentInfo, action);
+                    await ProcessAttackAction(intentInfo, action);
                 }
 
                 processedStep = step;
@@ -32,16 +34,13 @@ namespace TurnBased.AttackResolution
         }
 
 
-        public static void ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, CombatEnvironmentController environmentController = null)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, CombatEnvironmentController environmentController = null)
         {
-            /*  Remember this exists for more organised execution.  */
-            AttackActionExecutionContext executionContext = new();
-
             System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict = new();
 
             foreach (StationIndex targetStation in intentInfo.TargetIndexList)
             {
-                if (!StationManager.Instance.TryGetUnitIndexOnStation(targetStation, out UnitIndex unitIndexOnStation)) { Debug.LogWarning("COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE UNIT INDEX OF TARGET"); continue; }
+                if (!StationManager.Instance.TryGetUnitIndexOnStation(targetStation, out UnitIndex unitIndexOnStation)) { Debug.LogWarning($"COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE UNIT INDEX OF TARGET. TARGET STATION INDEX IS: {targetStation.Index}"); continue; }
 
                 System.Collections.Generic.List<AttackEvent> attackEvents = attackAction.Execute(unitIndexOnStation);
 
@@ -54,11 +53,13 @@ namespace TurnBased.AttackResolution
                 unitIndexTargetPerAttackEventDict[unitIndexOnStation].AddRange(attackEvents);
             }
 
-            ConvertAttackEventsToTimeline(unitIndexTargetPerAttackEventDict);
+            await ConvertAttackEventsToTimeline(unitIndexTargetPerAttackEventDict);
         }
 
-        private static void ConvertAttackEventsToTimeline(System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
+        private async static System.Threading.Tasks.Task ConvertAttackEventsToTimeline(System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
         {
+            if (unitIndexTargetPerAttackEventDict.Count <= 0) { return; }
+
             /*  As we want each part of an action to hit all required units at the same time, a timeline is needed. 
              *  An example would be a shockwave. Instead of looping through the units and each one processes one after the other, we want all units to be damaged at the same time. 
              */
@@ -94,12 +95,7 @@ namespace TurnBased.AttackResolution
                 attackEventTimeline.Add(timelineTick);
             }
 
-            ProcessAttackTimeline(attackEventTimeline);
-        }
-
-        private static void ProcessAttackTimeline(System.Collections.Generic.List<System.Collections.Generic.List<AttackEvent>> attackEventTimeline)
-        {
-
+            await AttackTimelineManager.ResolveCombatAttackTimeline(attackEventTimeline);
         }
     }
 }

@@ -164,10 +164,10 @@ namespace TurnBased.AttackResolution
             }
 
             /*  If something went wrong, complete the string.   */
-            if (actions.Count <= 0) { return $"{unitData.name} is intending to do nothing."; }
+            if (actions.Count <= 0) { return $"{unitData.name} is going to do nothing."; }
 
 
-            string intentionText = $"{unitData.name} is intending to ";
+            string intentionText = $"{unitData.name} is going to ";
             for (int i = 0; i < actions.Count; i++)
             {
                 if (i != 0) 

@@ -1,6 +1,5 @@
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace TurnBased.UI
 {
@@ -27,7 +26,7 @@ namespace TurnBased.UI
         private UnityEngine.UI.GraphicRaycaster raycaster;
 
 
-        [SerializeField] RawImage GameScreen;
+        [SerializeField] UnityEngine.UI.RawImage GameScreen;
 
         [Header("Task bar Properties")]
         [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;

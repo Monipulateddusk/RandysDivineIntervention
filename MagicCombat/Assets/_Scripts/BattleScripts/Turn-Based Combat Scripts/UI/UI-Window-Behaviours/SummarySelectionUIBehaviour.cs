@@ -154,6 +154,7 @@ namespace TurnBased.UI
                 this.SelectionTabButton.gameObject.SetActive(true);
             }
 
+            this.healthDisplayUI.UpdateUnitIndex(unitIndex);
 
             SetState(SummaryInspectionUIBehaviourStates.UnitSummary);
         }

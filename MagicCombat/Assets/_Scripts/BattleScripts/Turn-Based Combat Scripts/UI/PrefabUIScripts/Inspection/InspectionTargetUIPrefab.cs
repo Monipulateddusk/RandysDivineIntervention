@@ -55,12 +55,12 @@ namespace TurnBased.UI
 
         public void OnPointerEnter()
         {
-            UnityEngine.Debug.LogError("Pointer Enter");
+          //  UnityEngine.Debug.LogError("Pointer Enter");
         }
 
         public void OnPointerExit()
         {
-            UnityEngine.Debug.LogError("Pointer Exit");
+           // UnityEngine.Debug.LogError("Pointer Exit");
 
         }
 
