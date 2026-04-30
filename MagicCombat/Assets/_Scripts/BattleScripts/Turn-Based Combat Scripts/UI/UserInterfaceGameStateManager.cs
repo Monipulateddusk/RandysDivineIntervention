@@ -45,14 +45,14 @@ namespace TurnBased.UI
         {
             if (currentGameState == MetaGameState.Running) { return; }
 
-            _ = OnGameOver();
+            _ = OnGameOver(currentGameState);
         }
 
-        private async System.Threading.Tasks.Task OnGameOver()
+        private async System.Threading.Tasks.Task OnGameOver(MetaGameState currentGameState)
         {
             await DarkenScreenOverTime();
 
-
+            UserInterfaceManager.Instance.PopUpBehviour.Initalise(currentGameState);
         }
 
         private async System.Threading.Tasks.Task DarkenScreenOverTime()

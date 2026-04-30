@@ -27,6 +27,20 @@ namespace TurnBased.UI
 
 
         [SerializeField] UnityEngine.UI.RawImage GameScreen;
+        [SerializeField] Transform GameOverPanelTransform;
+
+        private EndOfBattlePopupBehaviour instanciatedPopupBehaviour;
+        public EndOfBattlePopupBehaviour PopUpBehviour
+        {
+            get
+            {
+                return instanciatedPopupBehaviour;
+            }
+            private set
+            {
+                this.instanciatedPopupBehaviour = value;    
+            }
+        }
 
         [Header("Task bar Properties")]
         [SerializeField, Tooltip("REQUIRED FIELD: SLOT IN POPULATED SCRIPTABLE OBJECT!!")] UICollection_SO UI_PrefabData;
@@ -86,6 +100,19 @@ namespace TurnBased.UI
             }
         }
 
+        private void InitaliseGameOverPanel()
+        {
+            if (this.UI_PrefabData == null || this.GameOverPanelTransform == null) { return; }  
+            GameObject instanciatedPopupObject = GameObject.Instantiate(this.UI_PrefabData.EndOfBattlePopupPrefab, this.GameOverPanelTransform);
+
+            if (instanciatedPopupObject == null) { return; }
+
+            if (instanciatedPopupObject.TryGetComponent(out EndOfBattlePopupBehaviour behaviour))
+            {
+                this.PopUpBehviour = behaviour;
+            }
+        }
+
         private void OnValidate()
         {
             InitialiseComponents();
@@ -110,6 +137,7 @@ namespace TurnBased.UI
             InitialiseComponents();
             InitaliseCursorManager();
             InitaliseTaskBarManager();
+            InitaliseGameOverPanel();
             this.UserInterfaceGameStateVisualisationManager.Awake(this.GameScreen);
         }
 
