@@ -4,6 +4,6 @@ public class LevelData : UnityEngine.ScriptableObject
 {
     public string levelName;
 
-    public System.Collections.Generic.List<UnitData> AllyUnitsInLevel = new();
-    public System.Collections.Generic.List<UnitData> EnemyUnitsInLevel = new();
+    [UnityEngine.SerializeField] public System.Collections.Generic.List<UnitData> AllyUnitsInLevel = new();
+    [UnityEngine.SerializeField] public System.Collections.Generic.List<UnitData> EnemyUnitsInLevel = new();
 }

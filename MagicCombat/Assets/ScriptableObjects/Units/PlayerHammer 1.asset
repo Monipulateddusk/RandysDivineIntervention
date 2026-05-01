@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerHammer 1
   m_EditorClassIdentifier: 
   name: Fire Hammer
-  maxHP: 5
+  maxHP: 8
   attack: 5
   speed: 9
   color: {r: 1, g: 0, b: 0, a: 1}

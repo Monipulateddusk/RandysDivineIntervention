@@ -145,6 +145,7 @@ namespace TurnBased.UI
         {
             this.UserInterfaceUserInput.OnDestroy();
             this.UserInterfaceGameStateVisualisationManager.OnDestroy();
+            this.CursorManager.OnDestroy();
         }
 
         // Update is called once per frame

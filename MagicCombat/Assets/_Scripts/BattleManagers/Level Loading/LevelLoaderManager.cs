@@ -42,20 +42,28 @@ namespace TurnBased.LoaderUnloader
             }
         }
 
-        private void Update()
+        /// <summary>
+        /// Only switch to the level selection screen if we are in the main scene
+        /// </summary>
+        public void SwitchToLevelSelection()
         {
-            if (Input.GetKeyDown(KeyCode.H))
+            if (SceneManager.GetActiveScene().buildIndex == SceneManager.GetSceneByName("MainScene").buildIndex)
             {
-                if (SceneManager.GetActiveScene().buildIndex == 0)
-                {
-                    SceneManager.LoadScene(1);
-                }
-                else
-                {
-                    SceneManager.LoadScene(0);
-                }        
+                SceneManager.LoadScene("LevelSelect");
             }
         }
+
+        /// <summary>
+        /// Only switch to the MainScene screen if we are in the level selection screen
+        /// </summary>
+        public void SwitchToMainSceneSelection()
+        {
+            if (SceneManager.GetActiveScene().buildIndex == SceneManager.GetSceneByName("LevelSelect").buildIndex)
+            {
+                SceneManager.LoadScene("MainScene");
+            }
+        }
+
         public void CreateCombatEncounter()
         {
             if (this.currentLevelData == null) { return; }
@@ -89,6 +97,10 @@ namespace TurnBased.LoaderUnloader
             OnCreateUnit?.Invoke(instanciatedBaseBattleUnit);
         }
 
+        public void SetLevelData(LevelData levelData)
+        {
+            this.currentLevelData = levelData;
+        }
 
     }
 }
