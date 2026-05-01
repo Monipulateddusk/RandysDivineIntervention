@@ -103,7 +103,6 @@ namespace TurnBased.LoaderUnloader
             if (SceneManager.GetActiveScene().buildIndex != SceneManager.GetSceneByName("MainScene").buildIndex) { return; }
 
             this.currentLevelIndex++;
-            this.currentLevelData = this.AllLevelData[this.currentLevelIndex];
 
             if (this.currentLevelIndex > this.AllLevelData.Count - 1)
             {
@@ -111,6 +110,7 @@ namespace TurnBased.LoaderUnloader
             }
             else
             {
+                this.currentLevelData = this.AllLevelData[this.currentLevelIndex];
                 SceneManager.LoadScene("MainScene");
             }
         }
