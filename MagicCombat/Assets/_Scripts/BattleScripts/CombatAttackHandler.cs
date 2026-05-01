@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Threading.Tasks;
 using TurnBased.Combat;
 using UnityEngine;
 
@@ -18,7 +17,6 @@ namespace TurnBased.AttackResolution
                 return;
             }
 
-            AttackStep processedStep = null;
             foreach (AttackStep step in currentAttackInfo.Steps)
             {
                 foreach (AttackAction action in step.Actions)
@@ -27,12 +25,7 @@ namespace TurnBased.AttackResolution
 
                     await ProcessAttackAction(intentInfo, action);
                 }
-
-                processedStep = step;
-                break;
             }
-            // Remove the processed step from the Steps List
-            currentAttackInfo.Steps.Remove(processedStep);
         }
 
 
@@ -48,7 +41,7 @@ namespace TurnBased.AttackResolution
 
                 System.Collections.Generic.List<AttackEvent> attackEvents = attackAction.Execute(unitIndexOnStation);
 
-                UnityEngine.Debug.LogWarning($"Got attack events");
+                UnityEngine.Debug.LogWarning($"Got attack events. Events count is: {attackEvents.Count}");
 
                 /*  Execute the attack for this UnitIndex and store it. */
                 if (!unitIndexTargetPerAttackEventDict.ContainsKey(unitIndexOnStation))

@@ -48,10 +48,9 @@ namespace TurnBased.Combat
 
 
                 /*  Process each step individually   */
-                for (int i = 0; i < exectutedMoveResolutionInfo.Steps.Count; i++)
-                {
-                    await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
-                }
+     
+                await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
+                
 
                 UnityEngine.Debug.LogWarning($"Moving back to station");
 
@@ -60,9 +59,10 @@ namespace TurnBased.Combat
 
                 UnityEngine.Debug.LogWarning($"Clearing intention");
 
-                /*  Clear the intention of the attack once done.    */
-                Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
             }
+
+            /*  Clear the intention of the attack once done.    */
+            Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
 
             UnityEngine.Debug.LogWarning($"Determining dead units");
 

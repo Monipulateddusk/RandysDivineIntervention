@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace TurnBased
 {
     public abstract class AttackAction
@@ -77,6 +79,8 @@ namespace TurnBased
             {
                 events.Add(new ElementalDamageEvent(this.ElementEffect, this.DamageAmount, targetUnitIndex));
             }
+
+            UnityEngine.Debug.LogError($"Elemental Damage Event List count is: {events.Count}");
 
             return events;
         }
