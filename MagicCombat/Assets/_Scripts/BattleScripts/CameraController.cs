@@ -22,7 +22,7 @@ public class CameraController : MonoBehaviour
     UnityEngine.Rendering.Volume cameraLocalisedVolume;
     UnityEngine.Rendering.Universal.UniversalAdditionalCameraData URP_CameraData;
     Camera sceneCamera;
-    [SerializeField]GameObject cameraGameObject, blendCameraGameObject;
+    [SerializeField] GameObject cameraGameObject, blendCameraGameObject;
     SpriteRenderer cameraCoverSprite;
     private readonly Vector3[] CameraPositions =
     {
@@ -32,12 +32,30 @@ public class CameraController : MonoBehaviour
         new (  -8,  9,  -3),
     };
     private readonly Vector3[] CameraRotations =
-{
+    {
         new (  30,   50,  0),
         new (  40,  -90,  0),
         new (  40,  -150, 0),
         new (  45,  -270, 0),
     };
+
+    private readonly float[] AllyRotationsCamera =
+    {
+        15,
+        -75,
+        -120,
+        50
+    };
+
+    private readonly float[] EnemyRotationsCamera =
+    {
+        50,
+        -125,
+        -135,
+        90
+    };
+
+
     public int CurrentCameraIndex { get; private set; }
     private const int VERTICAL_FOV = 60, SCREEN_SHAKE_INTENSITY = 2;
     [SerializeField] RawImage GameScreen;
@@ -49,7 +67,7 @@ public class CameraController : MonoBehaviour
     [SerializeField, Range(0.01f, 1)] private float ANIMATE_DURATION = 0.025f;
     [SerializeField] Sprite[] cameraStaticSprites;
     [SerializeField] Color cameraStaticColor;
-    [SerializeField] CameraAnimType isFadingInAndOut = CameraAnimType.Fade;
+    [SerializeField] CameraAnimType cameraAnimationType = CameraAnimType.Static;
     private bool isAnimating;
 
     #region Shader
@@ -80,6 +98,7 @@ public class CameraController : MonoBehaviour
         Initalise();
         InitialiseShader();
         SetCameraIndex(0);
+        StationManager.OnAddUnit += StationManager_OnAddUnit;
     }
     private void Initalise()
     {
@@ -101,6 +120,7 @@ public class CameraController : MonoBehaviour
     {
         instance = this;
     }
+
     private void CreateCameraObject()
     {
         this.cameraGameObject = new GameObject("Camera", typeof(Camera), typeof(AudioListener), typeof(UnityEngine.Rendering.Universal.UniversalAdditionalCameraData), typeof(UnityEngine.Rendering.Volume));
@@ -148,7 +168,17 @@ public class CameraController : MonoBehaviour
         }
     }
 
+    private void StationManager_OnAddUnit(UnitIndex unitIndex)
+    {
+        RotateUnitIndexToFaceCamera(unitIndex);
+    }
+
     #endregion
+
+    private void OnDestroy()
+    {
+        StationManager.OnAddUnit -= StationManager_OnAddUnit;
+    }
 
     private void Update()
     {
@@ -395,7 +425,7 @@ public class CameraController : MonoBehaviour
         int index = this.CurrentCameraIndex + 1;
         if (index > this.CameraPositions.Length - 1) { index = 0; }
 
-        if (isFadingInAndOut == CameraAnimType.Fade)
+        if (cameraAnimationType == CameraAnimType.Fade)
         {
             await AnimateCameraFadeInOut(true);
 
@@ -403,7 +433,7 @@ public class CameraController : MonoBehaviour
 
             await AnimateCameraFadeInOut(false);
         }
-        else if(isFadingInAndOut == CameraAnimType.Shift)
+        else if(cameraAnimationType == CameraAnimType.Shift)
         {
             Vector3 curPos  = this.CameraPositions[this.CurrentCameraIndex];
             Vector3 nextPos = this.CameraPositions[index];
@@ -413,12 +443,12 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else if (isFadingInAndOut == CameraAnimType.Static)
+        else if (cameraAnimationType == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();
         }
-        else if (isFadingInAndOut == CameraAnimType.Shader)
+        else if (cameraAnimationType == CameraAnimType.Shader)
         {
             await AnimateCameraShader(index, false);
         }
@@ -430,7 +460,7 @@ public class CameraController : MonoBehaviour
         int index = this.CurrentCameraIndex - 1;
         if (index < 0) { index = this.CameraPositions.Length - 1; }
 
-        if (isFadingInAndOut == CameraAnimType.Fade)
+        if (cameraAnimationType == CameraAnimType.Fade)
         {
             await AnimateCameraFadeInOut(true);
 
@@ -438,7 +468,7 @@ public class CameraController : MonoBehaviour
 
             await AnimateCameraFadeInOut(false);
         }
-        else if (isFadingInAndOut == CameraAnimType.Shift)
+        else if (cameraAnimationType == CameraAnimType.Shift)
         {
             Vector3 curPos = this.CameraPositions[this.CurrentCameraIndex];
             Vector3 nextPos = this.CameraPositions[index];
@@ -448,15 +478,43 @@ public class CameraController : MonoBehaviour
             await AnimateCameraMoveToNextPosition(curPos, nextPos, curRot, nextRot);
             SetCameraIndex(index);
         }
-        else if (isFadingInAndOut == CameraAnimType.Static)
+        else if (cameraAnimationType == CameraAnimType.Static)
         {
             SetCameraIndex(index);
             await AnimateCameraStatic();            
         }
-        else if(isFadingInAndOut == CameraAnimType.Shader)
+        else if(cameraAnimationType == CameraAnimType.Shader)
         {
             await AnimateCameraShader(index, true);
         }
+    }
+
+    private void RotateActiveUnitsToFaceCamera()
+    {
+        float allyRotation  = this.AllyRotationsCamera  [this.CurrentCameraIndex];
+        float enemyRotation = this.EnemyRotationsCamera [this.CurrentCameraIndex];
+
+        /*  Get all active units on the field and set their rotations accordingly.  */
+        System.Collections.Generic.List<UnitIndex> activeUnitIndexes = StationManager.Instance.GetAllActiveUnits();
+
+        foreach (UnitIndex unitIndex in activeUnitIndexes)
+        {
+            if (!RotateUnitIndexToFaceCamera(unitIndex)) { continue; }
+        }
+    }
+
+    private bool RotateUnitIndexToFaceCamera(UnitIndex unitIndex)
+    {
+        /*  Get the BaseBattleUnit of this unit.    */
+        if (!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit unit)) { return false; }
+
+        /*  Get the team to determine what rotation to apply.   */
+        float rotationValue = unit.GetTeam() == UnitTeam.ALLY ? this.AllyRotationsCamera[this.CurrentCameraIndex] : this.EnemyRotationsCamera[this.CurrentCameraIndex];
+        bool isFlippingX = rotationValue < 0 ? true : false;
+
+        unit.gameObject.transform.rotation = Quaternion.Euler(0, rotationValue, 0);
+        unit.GetSpriteComponent().FlipSpriteRendererX(isFlippingX);
+        return true;
     }
 
     private void SetCameraIndex(int index)
@@ -466,6 +524,7 @@ public class CameraController : MonoBehaviour
 
         this.CurrentCameraIndex = index;
         SetCameraPosition();
+        RotateActiveUnitsToFaceCamera(); 
     }
 
     void SetCameraPosition()

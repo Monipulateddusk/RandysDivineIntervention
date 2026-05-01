@@ -1,12 +1,7 @@
-using System;
 using UnityEngine;
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
-
-    // This event handles damage and healing. If the bool is true, then we handle healing, if false, we are taking damage
-    public event Action<int, bool> OnAlterHealth;
-
     [Header("Debugging")]
     [SerializeField] UnitData unitData;
     [SerializeField] Animator unitAnimator;
@@ -14,12 +9,15 @@ public class BaseBattleUnit : MonoBehaviour
     [SerializeField] UnitTeam team;
 
     /*  Custom Components for the Unit. Using Dependency Injection  */
-    HealthComponent unitHealthComponent;
     SpriteComponent unitSpriteComponent;
     CombatComponent unitCombatComponent;
 
-    private void Awake()
+    public void Initialise(UnitData unitData)
     {
+        if (this.unitData != null) { return; }
+
+        this.unitData = unitData;
+
         /*  Get Unity Components and Attach them    */
         if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
         {
@@ -34,38 +32,12 @@ public class BaseBattleUnit : MonoBehaviour
         }
 
         /*  Gain a referance to the required components for a Unit.   */
-        unitHealthComponent = new HealthComponent(this, unitData);
         unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
         unitCombatComponent = new CombatComponent(this, unitData, gameObject.transform);
 
 
     }
 
-    private void OnDestroy()
-    {
-        OnAlterHealth = null;
-    }
-
-    public void Damage(int damageAmount)
-    {
-        OnAlterHealth?.Invoke(damageAmount, false);
-    }
-    public void Heal(int healAmount)
-    {
-        OnAlterHealth?.Invoke(healAmount, true);
-    }
-
-    private void Update()
-    {
-        if (Input.GetKeyUp(KeyCode.D))
-        {
-            Damage(1);
-        }
-        if (Input.GetKeyUp(KeyCode.H))
-        {
-            Heal(1);
-        }
-    }
 
     #region Animation Methods
 
@@ -103,9 +75,7 @@ public class BaseBattleUnit : MonoBehaviour
     #endregion
 
     #region Getter/Setter Methods
-
     public UnitData GetBaseUnit() { return unitData; }
-    public HealthComponent GetHealthComponent() { return unitHealthComponent; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
     public CombatComponent GetCombatComponent() { return unitCombatComponent; }
     public void SetTeam(UnitTeam team) { this.team = team; }

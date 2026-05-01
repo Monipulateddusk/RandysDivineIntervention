@@ -18,55 +18,80 @@ namespace TurnBased.Phases
             }
         }
 
-        System.Collections.Generic.Dictionary<PHASE_TYPES, Phase> PhaseDictionary = new();
-        private PHASE_TYPES CurrentPhaseType;
+        private System.Collections.Generic.Dictionary<CombatTurnOrchestrationPhase, Phase> PhaseDictionary = new();
         private Phase CurrentPhase;
 
-        public void Awake()
+        public void Awake(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
         {
-            instance = this;
-        }
+            if (instance == null)
+            {
+                instance = this;
+            }
 
-        public void Initialise()
-        {
             this.PhaseDictionary = new()
             {
-                {PHASE_TYPES.START_ROUND,   new BeginRoundPhase () },
-                {PHASE_TYPES.PRE_UNIT_TURN, new PreTurnPhase    () },
-                {PHASE_TYPES.UNIT_TURN,     new UnitTurnPhase   () },
-                {PHASE_TYPES.END_ROUND,     new EndRoundPhase   () }
+                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase                (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase                 (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase                    (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase                   (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.TurnOrderRes,     new TurnOrderCombatResolutionPhase  (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfBattle,      new EndOfBattlePhase                (cRUIM, onMainPhaseComplete) },
             };
-            ChangeState(PHASE_TYPES.START_ROUND);
         }
 
-        public void UpdatePhases()
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                UnityEngine.Debug.LogError("Destroying PhaseManager");
+                instance = null;
+            }
+
+            int phaseCount = this.PhaseDictionary.Count;
+            for (int i = 0; i < phaseCount; i++)
+            {
+                this.PhaseDictionary[(CombatTurnOrchestrationPhase)i] = null;
+            }
+
+            this.PhaseDictionary = null;
+        }
+        public void Update()
         {
             this.CurrentPhase?.Update();
         }
 
-        public void ChangeState(PHASE_TYPES newPhaseType)
+        public void ChangeState(CombatTurnOrchestrationPhase newPhaseType)
         {
+            UnityEngine.Debug.LogWarning($"Exiting {this.CurrentPhase}, entering {newPhaseType}");
             this.CurrentPhase?.OnExit();
 
-            this.CurrentPhaseType = newPhaseType;
-            this.CurrentPhase = PhaseDictionary[newPhaseType];
+            CombatTurnOrchestrator.CurrentOrchestrationPhase = newPhaseType;
+            this.CurrentPhase = PhaseDictionary[CombatTurnOrchestrator.CurrentOrchestrationPhase];
 
             this.CurrentPhase?.OnEnter();
         }
 
         public void ChangeToNextStateInOrder()
         {
-            // Get which state we are in, decide which state is next
-            int index = (int)this.CurrentPhaseType;
-
-            index++;
-
-            if (index > this.PhaseDictionary.Count - 1)
+            switch (CombatTurnOrchestrator.CurrentOrchestrationPhase)
             {
-                index = 0;
+                case CombatTurnOrchestrationPhase.StartOfBattle:
+                    ChangeState(CombatTurnOrchestrationPhase.StartOfRound);
+                    break;
+                case CombatTurnOrchestrationPhase.StartOfRound:
+                    ChangeState(CombatTurnOrchestrationPhase.PrePlayerTurn);
+                    break;
+                case CombatTurnOrchestrationPhase.PrePlayerTurn:
+                    ChangeState(CombatTurnOrchestrationPhase.PlayerTurn);
+                    break;
+                case CombatTurnOrchestrationPhase.PlayerTurn:
+                    ChangeState(CombatTurnOrchestrationPhase.EndOfRound);
+                    break;
+                case CombatTurnOrchestrationPhase.EndOfRound:
+                    ChangeState(CombatTurnOrchestrationPhase.StartOfRound);
+                    break;
             }
-
-            ChangeState((PHASE_TYPES)index);
         }
 
 

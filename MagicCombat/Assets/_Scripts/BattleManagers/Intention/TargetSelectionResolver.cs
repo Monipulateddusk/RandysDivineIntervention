@@ -1,8 +1,43 @@
 namespace TurnBased.Intention
 {
-    public static class TargetSelectionResolver
+    public class TargetSelectionResolver
     {
-        public static bool ProcessIntentionTargetSelection(UnitIndex unitIndex)
+        private static TargetSelectionResolver instance;
+        public static TargetSelectionResolver Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
+
+
+        public static System.Action<UnitIndex> OnRequireUserInput;
+        public static System.Action<UnitIndex> OnCompleteUserInput;
+        public static System.Action<UnitIndex, System.Collections.Generic.List<StationIndex>> OnTargetSelected;
+
+        public void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }
+        }
+
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            OnRequireUserInput = null;
+            OnCompleteUserInput = null;
+            OnTargetSelected = null;
+        }
+
+        public bool ProcessIntentionTargetSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.Log("Try get Target selector!");
 
@@ -14,49 +49,54 @@ namespace TurnBased.Intention
             /*  If this is player driven, then we need to select that Unit if it isn't already and await the player's move selection.   */
             if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
             {
-                /*  Select this Unit in our Station selector and tell the UI that we are awaiting calls.    */
-                if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { return false; }
-                StationSelectorManager.Instance.SetSelectedStationIndex(stationIndexOfUnitIndex);
-
-                /*  Alert the UI    */
-                TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
+                OnRequireUserInput?.Invoke(unitIndex);
                 return true;
             }
             else
             {
-                UnityEngine.Debug.Log("Move Selector! " + targetSelector.ToString());
+                UnityEngine.Debug.Log("Processing Autonomous Target Selector! " + targetSelector.ToString());
                 ProcessTargetSelector(unitIndex, targetSelector);
                 return true;
             }
         }
 
-        public static bool ProcessTargetSelector(UnitIndex unitIndex, TargetSelection.ITargetSelector targetSelector)
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+        /// 
+        /// When A Player Selects a Move Via UI
+        /// 
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+        public void OnPlayerDrivenSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
+        {
+            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { return; }
+
+            if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
+            {
+                (targetSelector as TargetSelection.PlayerDrivenTargetSelector).SelectedTarget = selectedTarget;
+            }
+
+            OnCompleteUserInput?.Invoke(unitIndex);
+
+            ProcessTargetSelector(unitIndex, targetSelector);
+        }
+
+        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+        public bool ProcessTargetSelector(UnitIndex unitIndex, TargetSelection.ITargetSelector targetSelector)
         {
             if (targetSelector == null) { UnityEngine.Debug.Log("Target selector is null?"); return false; }
 
             /*  Create the scene data for this unit.    */
-            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn sceneData)){ return false; }
 
             /*  Get the move data for the target selection. */
             if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention intention)) {  return false; } 
 
             System.Collections.Generic.List<StationIndex> selectedTargets = targetSelector.SelectTargets(sceneData, intention.MoveSelection);
 
-
-            /*  Add this selected move to intentionManager. */
-            UnitIntentionManager.Instance.SetTargetIntention(unitIndex, selectedTargets);
-
-            UnityEngine.Debug.Log("Invoking OnTargetSelectionComplete");
-
-            IntentionResolver.Instance.ContinueProcessIntention(unitIndex);
+            /*  Notify CombatRoundIntentionManager that a Target has been selected by this UnitIndex. */
+            OnTargetSelected?.Invoke(unitIndex, selectedTargets);
             return true;
         }
-        public static void OnPlayerDrivenSelection(UnitIndex unitIndex)
-        {
-            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)){ return; }
-
-            ProcessTargetSelector(unitIndex, targetSelector);
-        }
-
     }
 }

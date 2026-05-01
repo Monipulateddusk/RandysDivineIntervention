@@ -13,7 +13,7 @@ namespace TurnBased.Intention
         {
             this.MoveSelection = moveData;
             this.TargetIndexList = targetIndex;
-            this.ResolutionState = UnitIntentionResolutionState.COMPLETE;
+            this.ResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
         }
 
         public UnitIntention(IBattleMove moveData)
@@ -22,11 +22,12 @@ namespace TurnBased.Intention
             this.TargetIndexList = new();
             this.ResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
         }
-        public UnitIntention()
+        public UnitIntention(bool isAwaitingMoveSelection)
         {
             this.MoveSelection = null;
             this.TargetIndexList = new();
-            this.ResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION;
+
+            this.ResolutionState = isAwaitingMoveSelection ? UnitIntentionResolutionState.AWAITING_MOVE_SELECTION : UnitIntentionResolutionState.NONE;
         }
     }
 
@@ -50,7 +51,7 @@ namespace TurnBased.Intention
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, UnitIntention> intentionDictionary = new();
+        private System.Collections.Generic.Dictionary<int, UnitIntention> intentionDictionary = new();
 
         public static event System.Action<UnitIndex> OnUnitIntentionAdded;
         /// <summary>
@@ -59,40 +60,59 @@ namespace TurnBased.Intention
         public static event System.Action<UnitIndex, UnitIntention> OnUnitIntentionChanged;
         public static event System.Action<UnitIndex> OnUnitIntentionRemoved;
 
-        private bool areUnitIntentsDone = false;
-        public bool AreUnitIntentionsDone
-        {
-            get
-            {
-                return areUnitIntentsDone;
-            }
-            set
-            {
-                areUnitIntentsDone = value;
-            }
-        }
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.intentionDictionary = new();
+
             StationManager.OnAddUnit += AddUnitIndexToDictionary;
+            StationManager.OnRemoveUnit += RemoveUnitIndexFromDictionary;
         }
 
-        ~UnitIntentionManager()
+
+
+        public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            this.intentionDictionary.Clear();
+
             StationManager.OnAddUnit -= AddUnitIndexToDictionary;
+            StationManager.OnRemoveUnit -= RemoveUnitIndexFromDictionary;
+
+            OnUnitIntentionAdded = null;
+            OnUnitIntentionChanged = null;
+            OnUnitIntentionRemoved = null;
         }
 
         public void AddUnitIndexToDictionary(UnitIndex unitIndex)
         {
             if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            intentionDictionary.Add(unitIndex.Index, new());
+            intentionDictionary.Add(unitIndex.Index, new(false));
             OnUnitIntentionAdded?.Invoke(unitIndex);
         }
+
+        private void RemoveUnitIndexFromDictionary(UnitIndex unitIndex, StationIndex? arg2, BaseBattleUnit arg3)
+        {
+            UnityEngine.Debug.LogError("Starting to remove intention from UnitIntentionManager");
+
+            RemoveIntention(unitIndex);
+
+            UnityEngine.Debug.LogError("Removed unit index from UnitIntentionManager");
+        }
+
         public void RemoveIntention(UnitIndex unitIndex)
         {
-            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             intentionDictionary.Remove(unitIndex.Index);
             OnUnitIntentionRemoved?.Invoke(unitIndex);
@@ -103,9 +123,15 @@ namespace TurnBased.Intention
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             intentionDictionary[unitIndex.Index] = intention;
+           
             OnUnitIntentionChanged?.Invoke(unitIndex, intention);
+        }
 
-            DetermineIntentionCompletionStatus(intention);
+        public void SetReadyForMoveIntention(UnitIndex unitIndex)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            SetIntention(unitIndex, new UnitIntention(true));
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
@@ -113,8 +139,6 @@ namespace TurnBased.Intention
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             SetIntention(unitIndex, new(battleMove));
-
-            Debug.Log("Setting Move Intention for Unit Index: " + unitIndex.Index + " Move Intention: " +  battleMove.GetMoveName()); 
         }
 
         public void SetTargetIntention(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> targetIntentionList)
@@ -124,16 +148,15 @@ namespace TurnBased.Intention
             UnitIntention currentIntention = intentionDictionary[unitIndex.Index];
 
             SetIntention(unitIndex, new(currentIntention.MoveSelection, targetIntentionList));
-
-            Debug.Log("Setting target intention for Unit Index: " + unitIndex.Index + " target intention size is: " + targetIntentionList.Count);
         }
 
         public void ClearIntention(UnitIndex unitIndex)
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, new());
+            SetIntention(unitIndex, new UnitIntention(false));
         }
+
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
         {
             intention = default;
@@ -143,31 +166,8 @@ namespace TurnBased.Intention
             return true;
         }
 
-        private void DetermineIntentionCompletionStatus(UnitIntention nextSettingIntention)
-        {
-            if(nextSettingIntention.ResolutionState != UnitIntentionResolutionState.COMPLETE) { return; }
-
-            AreAllIntentionsDone();
-        }
-        private void AreAllIntentionsDone()
-        {
-            foreach(System.Collections.Generic.KeyValuePair<int, UnitIntention> intentionKeyValuePair in this.intentionDictionary)
-            {
-                UnitIntention intention = intentionKeyValuePair.Value;
-
-                if(intention != null && intention.ResolutionState != UnitIntentionResolutionState.COMPLETE)
-                {
-                    this.AreUnitIntentionsDone = false;
-                    return;
-                }
-            }
-            this.AreUnitIntentionsDone = true;
-            return;
-        }
-
         public void PrintOutAllIntents()
         {
-            UnityEngine.Debug.LogError("Printing all intents!");
             foreach (var index in this.intentionDictionary)
             {
                 UnityEngine.Debug.LogError($"Unit Index: {index.Key} has selected: {index.Value.MoveSelection} and selected Station {index.Value.TargetIndexList.FirstOrDefault().Index} as their target ");

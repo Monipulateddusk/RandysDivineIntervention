@@ -10,7 +10,6 @@ public class CursorManager
 
     private GameObject cursorObject;
     UnityEngine.UI.Image cursorObjectImageComp;
-    [SerializeField]TextMeshProUGUI tmpUGUI;
 
     private readonly Dictionary<CursorIcons, Sprite> CursorIconDict = new();
 
@@ -39,7 +38,7 @@ public class CursorManager
         this.cursorObjectImageComp.raycastTarget = false;
         SetCursorImageState(CursorIcons.Cursor);
 
-        tmpUGUI = this.cursorObject.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault();
+       // tmpUGUI = this.cursorObject.GetComponentsInChildren<TextMeshProUGUI>().FirstOrDefault();
     }
 
     public CursorManager(Transform parentTransform, GameObject cursorObject, Texture2D cursorTextures)
@@ -47,7 +46,18 @@ public class CursorManager
         InitaliseDictionary(cursorTextures);
         InitaliseCursorObject(parentTransform, cursorObject);
 
-        instance = this;    
+        if (instance == null)
+        {
+            instance = this;
+        }          
+    }
+
+    public void OnDestroy()
+    {
+        if (instance != null && instance == this)
+        {
+            instance = null;
+        }
     }
 
     public void SetCursorImageState(CursorIcons icon)

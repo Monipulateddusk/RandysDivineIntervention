@@ -15,6 +15,13 @@ namespace TurnBased.UI
 
         public void Initalise(UnitIndex indexOfUnitHealthCorrelatesTo)
         {
+            Health.UnitHealthManager.OnUnitHealthChange += UnitHealthManager_OnUnitHealthChange;
+
+            UpdateUnitIndex(indexOfUnitHealthCorrelatesTo);
+        }
+
+        public void UpdateUnitIndex(UnitIndex indexOfUnitHealthCorrelatesTo)
+        {
             this.associatedUnitIndex = indexOfUnitHealthCorrelatesTo;
             InitaliseHealthTextTMP();
 
@@ -22,15 +29,26 @@ namespace TurnBased.UI
             UpdateHealthAmount();
         }
 
+        private void UnitHealthManager_OnUnitHealthChange(UnitIndex unitIndexWhoseHealthChanged, int newHealthValueOfUnitIndex)
+        {
+            /*  If health changed on a Unit we aren't associated with, don't do anything.   */
+            if(unitIndexWhoseHealthChanged.Index != this.associatedUnitIndex.Index) { return; }
+
+            UpdateHealthAmount();
+        }
+
+        private void OnDestroy()
+        {
+            Health.UnitHealthManager.OnUnitHealthChange -= UnitHealthManager_OnUnitHealthChange;
+        }
+
         private void UpdateHealthAmount()
         {
             if (this.mainHealthBarGameObject != null && this.healthBarValueStringGameObject != null)
             {
                 /*  Get the battle unit of this unit to get it's current Health and max health. */
-                if(!StationManager.Instance.TryGetBattleUnitOfIndex(this.associatedUnitIndex, out BaseBattleUnit battleUnit)) { return; }
-
-                int currentHealth = battleUnit.GetHealthComponent().GetHealth();
-                int maximumHealth = battleUnit.GetBaseUnit().maxHP;
+                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(this.associatedUnitIndex, out int currentHealth)) { return; }
+                if (!Health.UnitHealthManager.Instance.GetMaximumHealthOfUnitIndex(this.associatedUnitIndex, out int maximumHealth)) { return; }
 
                 float value = UserInterfaceUtility.GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
 

@@ -110,10 +110,10 @@ public class UITaskBarManager
     const int MAX_WINDOW_COUNT = 20;
 
     /*  Minimised Window Variables and Referances   */
-    UICollection_SO UI_PrefabData;
+    private readonly UICollection_SO UI_PrefabData;
 
-    private RectTransform WindowGridTransform;
-    private RectTransform ScreenElementsTransform;
+    private readonly RectTransform WindowGridTransform;
+    private readonly RectTransform ScreenElementsTransform;
 
     private Dictionary<int, WindowData> WindowDataDict = new();
 

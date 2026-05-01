@@ -1,29 +1,8 @@
 using System.Collections.Generic;
-using TurnBased.TargetSelection;
 
 namespace TurnBased
 {
     #region Attack Data Classes
-
-
-    public class AttackAction
-    {
-        public AttackActionType Type { get; private set; }
-        public Element ElementEffect { get; private set; }
-        public MoveTarget AttackTarget { get; private set; }
-        public int Value { get; private set; }
-        public string StaEffect { get; private set; }
-
-
-        public AttackAction(AttackActionType type, int value = 0, string staEffect = "", Element elementEff = 0, MoveTarget attackTarget = MoveTarget.SingleEnemy)
-        {
-            Type = type;
-            ElementEffect = elementEff;
-            Value = value;
-            StaEffect = staEffect;
-            AttackTarget = attackTarget;
-        }
-    }
 
     public class AttackStep
     {
@@ -76,9 +55,9 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, userInfo.attack, attackTarget: MoveTarget.SingleEnemy)
-                        }                        
-                    }, 
+                            new DamageAttackAction(userInfo.attack, 1, MoveTarget.SingleEnemy),
+                        }
+                    },
                 }
             };
             return resolutionInfo;
@@ -107,22 +86,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
+                            new DamageAttackAction(damageAmount: 1, 2, MoveTarget.SingleEnemy)         
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.DAMAGE, 1, attackTarget: MoveTarget.SingleEnemy)
-                        }
-                    },
-                    new AttackStep()
-                    {
-                        Actions =
-                        {
-
-                            new AttackAction(AttackActionType.DAMAGE, damage, attackTarget: MoveTarget.SingleEnemy)
+                            new DamageAttackAction(damage, 1, MoveTarget.SingleEnemy)
                         }
                     },
                 }
@@ -153,7 +124,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new AttackAction(AttackActionType.IMBUE_ENVIRONMENTS, elementEff: userInfo.element, attackTarget: MoveTarget.Area),
+                            new ImbueEnvironmentAttackAction(userInfo.element, MoveTarget.Area)
                         },
                     }
                 }
@@ -167,4 +138,5 @@ namespace TurnBased
         public bool DoesSourceUnitMove() => false;
         public string GetMoveName() => "ImbueEnvironment";
     }
+    
 }

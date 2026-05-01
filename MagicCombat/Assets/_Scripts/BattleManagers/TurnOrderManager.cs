@@ -28,7 +28,39 @@ namespace TurnBased.TurnOrder
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.UnitIndexTurnOrderList = new();
+
+            StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
+        }
+
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            OnUpdateTurnOrder = null;
+            StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
+        }
+
+        private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfTheRemovedUnit, StationIndex? theStationUnit, BaseBattleUnit battleUnitOfTheRemovedUnit)
+        {
+            UnityEngine.Debug.LogError("Starting to remove unit from TurnOrderManager");
+
+            /*  If the removed unit exists in our turn order, remove it.    */
+            if (this.UnitIndexTurnOrderList.Contains(unitIndexOfTheRemovedUnit))
+            {
+                UnityEngine.Debug.LogError($"Removed Unit Index {unitIndexOfTheRemovedUnit.Index} from turnOrderList");
+                this.UnitIndexTurnOrderList.Remove(unitIndexOfTheRemovedUnit);
+            }
+
+            UnityEngine.Debug.LogError("Removed unit from TurnOrderManager");
         }
 
         /// <summary>
@@ -78,8 +110,6 @@ namespace TurnBased.TurnOrder
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
 
-            UnityEngine.Debug.LogError($"TurnOrderList count is {this.UnitIndexTurnOrderList.Count}");
-
             return this.UnitIndexTurnOrderList;
         }
 
@@ -87,11 +117,15 @@ namespace TurnBased.TurnOrder
         {
             if (!(this.UnitIndexTurnOrderList.Count > 0)) { return null; }
 
-            currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
-            UnitIndexTurnOrderList.RemoveAt(0);
+            this.currentUnit = UnitIndexTurnOrderList.FirstOrDefault();
+            this.UnitIndexTurnOrderList.RemoveAt(0);
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
             return currentUnit;
-
+        }
+        public void ResetCurrentUnit()
+        {
+            this.currentUnit = null;
+            OnUpdateTurnOrder?.Invoke(this.UnitIndexTurnOrderList);
         }
 
         public System.Collections.Generic.List<UnitIndex> GetTurnOrderList() => this.UnitIndexTurnOrderList;

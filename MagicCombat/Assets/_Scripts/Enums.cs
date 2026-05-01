@@ -67,6 +67,26 @@ public enum UnitTargetSelectorType
     PlayerDriven
 }
 
+
+public enum CombatTurnOrchestrationPhase
+{
+    StartOfBattle   = 0,
+    StartOfRound    = 1,
+    PrePlayerTurn   = 2,
+    PlayerTurn      = 3,
+    TurnOrderRes    = 4,
+    EndOfRound      = 5,
+    EndOfBattle     = 6,
+}
+
+public enum MetaGameState
+{
+    Running     = 0,
+    PlayerWin   = 1,
+    PlayerLoss  = 2,
+}
+
+
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
 /// UI ENUMERATIONS
@@ -75,10 +95,17 @@ public enum UnitTargetSelectorType
 
 public enum CommandUIBehaviourStates 
 {
-    UnitIntention = 0,
-    MoveSelection = 1, 
-    TargetSelection = 2, 
-    UnitEndTurn = 3,
+    UnitSummary = 0,
+    MoveSelection = 1,
+    TargetSelection = 2,
+    UnitIntention = 3,
+};
+
+public enum SummaryInspectionUIBehaviourStates
+{
+    UnitSummary = 0,
+    MoveSelection = 1,
+    TargetSelection = 2,
 };
 
 
@@ -141,18 +168,19 @@ public enum UIWindowFactoryWindowType
 /// 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-public enum MAIN_TURN_STATE 
-{ 
-    IDLE = 0, 
-    AWAITING_MOVE_SELECTION = 1, 
-    AWAITING_TARGET_SELECTION = 2, 
-    READY_TO_EXECUTE_MOVE = 3,
-    RESOLVE_ATTACK = 4,
-    ATTACK_COMPLETE = 5,
+public enum SubPhaseState 
+{
+    NONE                        = 0,
+    AWAITING_MOVE_SELECTION     = 1, 
+    AWAITING_TARGET_SELECTION   = 2, 
+    READY_TO_EXECUTE_MOVE       = 3,
+    RESOLVE_ATTACK              = 4,
+    ATTACK_COMPLETE             = 5,
 }
 
 public enum PHASE_TYPES
 {
+    START_BATTLE,
     START_ROUND,
     PRE_UNIT_TURN,
     UNIT_TURN,
@@ -164,8 +192,16 @@ public enum UnitIntentionResolutionState
     NONE = 0,
     AWAITING_MOVE_SELECTION = 1,
     AWAITING_TARGET_SELECTION = 2,
-    COMPLETE = 3,   
+    COMPLETED_INTENTION = 3,   
+    RESOLVED_MOVE = 4,
 }
+
+public enum MoveResolutionTiming
+{
+    Instant,
+    TurnOrderSequence
+}
+
 
 public enum TurnOrderCreationState
 {

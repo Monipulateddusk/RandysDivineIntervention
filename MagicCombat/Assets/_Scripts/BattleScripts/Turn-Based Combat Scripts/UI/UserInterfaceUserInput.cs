@@ -19,29 +19,55 @@ namespace TurnBased.UI
             }
         }
 
-        private UnitIndex selectedUnit;
+        private UnitIndex? selectedUnit;
 
 
         public void Initalise()
         {
             /*  Initalise the Singleton.    */
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+        }
+
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
         }
 
         public void StartSelection(UnitIndex unitIndex)
         {
             this.selectedUnit = unitIndex;
+            UnityEngine.Debug.LogError($"Start UI selection for UnitIndex: {unitIndex.Index}");
         }
 
-
-        public void OnMoveSelection()
+        public void StopSelection(UnitIndex unitIndex)
         {
-            Intention.MoveSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
+            this.selectedUnit = null;
+            UnityEngine.Debug.LogError($"Stop UI selection for UnitIndex: {unitIndex.Index}");
+
         }
 
-        public void OnTargetSelection()
+        public void OnMoveSelection(IBattleMove selectedMove)
         {
-            Intention.TargetSelectionResolver.OnPlayerDrivenSelection(selectedUnit);
+            if (this.selectedUnit.HasValue)
+            {
+                Intention.MoveSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedMove);
+            }
         }
+
+        public void OnTargetSelection(System.Collections.Generic.List<StationIndex> selectedTarget)
+        {
+            if (this.selectedUnit.HasValue)
+            {
+                Intention.TargetSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
+            }
+        }
+
+        public UnitIndex? GetSelectedUnit() => this.selectedUnit;
     }
 }

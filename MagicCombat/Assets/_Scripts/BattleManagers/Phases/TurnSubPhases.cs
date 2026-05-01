@@ -2,76 +2,33 @@ using UnityEngine;
 
 namespace TurnBased.Phases
 {
-    public abstract class UnitTurnSubPhase : Phase
+    public abstract class SubPhase : Phase
     {
+        protected System.Action<SubPhaseState> OnSubPhaseComplete;
         protected UnitIndex currentUnitIndex;
-        public UnitTurnSubPhase() : base()
+        public SubPhase(System.Action<SubPhaseState> onSubPhaseComplete) : base()
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
+        }
+
+        ~SubPhase()
+        {
+            Debug.LogError("Deconstructing Subphase");
+            OnSubPhaseComplete = null;
         }
 
         public void SetCurrentUnitIndex(UnitIndex unitIndex) { this.currentUnitIndex = unitIndex; }
     }
 
-    public class UnitTurnPhase_Idle : UnitTurnSubPhase
+    public class UnitTurnPhase_None : SubPhase
     {
-        public UnitTurnPhase_Idle() : base()
+        public UnitTurnPhase_None(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
         public override void OnEnter()
         {
-            UnityEngine.Debug.Log($"Entering IDLE! TRYING TO GET UNIT INTENTIONS!");
 
-            /*  Retrieve the Unit Intention for this Unit to determine which phase of the Intention we are. */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentUnitIndex, out Intention.UnitIntention unitIntention)) { UnityEngine.Debug.LogWarning($"UNABLE TO GET INTENTIONS!"); return;  }
-
-            UnityEngine.Debug.Log($"Obtained UNIT INTENTIONS!");
-
-            switch (unitIntention.ResolutionState)
-            {
-                case UnitIntentionResolutionState.NONE:
-                    UnityEngine.Debug.Log("No state?");
-
-                    return;
-                case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
-                    UnityEngine.Debug.Log($"Selecting move for unitIndex: {currentUnitIndex.Index}");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_MOVE_SELECTION);
-                    return;
-                case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
-                    UnityEngine.Debug.Log($"Selecting target for unitIndex: {currentUnitIndex.Index}");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.AWAITING_TARGET_SELECTION);
-
-                    return;
-                case UnitIntentionResolutionState.COMPLETE:
-                    UnityEngine.Debug.Log($"Complete? for unitIndex: {currentUnitIndex.Index}");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.READY_TO_EXECUTE_MOVE);
-                    return;
-            }
-        }
-
-        public override void OnExit()
-        {
-
-        }
-
-        public override void Update()
-        {
-            
-        }
-    }
-
-    public class UnitTurnPhase_MoveSelection : UnitTurnSubPhase
-    {
-        public UnitTurnPhase_MoveSelection() : base()
-        {
-        }
-
-
-        public override void OnEnter()
-        {
-            Debug.Log($"Entering : MoveSelection for UnitIndex: {currentUnitIndex.Index}");
-
-            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(currentUnitIndex);
         }
 
         public override void OnExit()
@@ -85,62 +42,97 @@ namespace TurnBased.Phases
         }
     }
 
-    public class UnitTurnPhase_TargetSelection : UnitTurnSubPhase
+
+    public class UnitTurnPhase_MoveSelection : SubPhase
     {
-        public UnitTurnPhase_TargetSelection() : base()
+
+        public UnitTurnPhase_MoveSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
+
+        }
+
+        ~UnitTurnPhase_MoveSelection()
+        {
+            Debug.LogError("MoveSelection Deconstructor called");
+
+            Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
         }
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : TargetSelection for UnitIndex: {currentUnitIndex.Index}");
-            Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(currentUnitIndex);
+            Debug.LogWarning($"Ready for move intention");
+
+            Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
+
+            Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
+            Intention.MoveSelectionResolver.Instance.ProcessIntentionMoveSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
         {
-
+            Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
         }
 
         public override void Update()
         {
-            //MonoBehaviour.print("<color=pink>TargetSelection</color>");
-         //   this.mainTurnManager.SwitchToNextSubPhase();
+
+        }
+
+        private void OnMoveSelected(UnitIndex selectedUnitIndex, IBattleMove selectedMove)
+        {
+            /*  Add this selected move to intentionManager. */
+            Intention.UnitIntentionManager.Instance.SetMoveIntention(selectedUnitIndex, selectedMove);
+            OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
         }
     }
 
-
-    public class UnitTurnPhase_ReadyToExecuteMove : UnitTurnSubPhase
+    public class UnitTurnPhase_TargetSelection : SubPhase
     {
-        public UnitTurnPhase_ReadyToExecuteMove() : base()
+        public UnitTurnPhase_TargetSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        {
+        }
+
+        ~UnitTurnPhase_TargetSelection()
+        {
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
+        }
+
+        public override void OnEnter()
+        {
+            Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
+            Intention.TargetSelectionResolver.Instance.ProcessIntentionTargetSelection(this.currentUnitIndex);
+        }
+
+        public override void OnExit()
+        {
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
+        }
+
+        public override void Update()
+        {
+
+        }
+
+        private void OnTargetSelected(UnitIndex selectedUnitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
+        {
+            /*  Add this selected move to intentionManager. */
+            Intention.UnitIntentionManager.Instance.SetTargetIntention(selectedUnitIndex, selectedTarget);
+
+            OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
+        }
+
+    }
+
+
+    public class UnitTurnPhase_ReadyToExecuteMove : SubPhase
+    {
+        public UnitTurnPhase_ReadyToExecuteMove(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
         public override void OnEnter()
         {
-            Debug.Log($"Entering : READY_TO_EXECUTE_MOVE");
-
-            if(Intention.IntentionResolver.Instance.GetQueueCount() > 0)
-            {
-                Intention.IntentionResolver.Instance.ProcessNextUnitIndex();
-
-            }
-            else
-            {
-                /*  
-                 *  If we have no more Intentions to resolve, check to see if all intents have been filled out. If so, proceed to combat. 
-                 *  If not, we are likely in the StartOfRound Phase and so we want to move onto the Unit Turn Phase to proceed with Player-Driven Input.    
-                 */
-                if (!Intention.UnitIntentionManager.Instance.AreUnitIntentionsDone)
-                {
-                    PhaseManager.Instance.ChangeToNextStateInOrder();
-                }
-                else
-                {
-                    Debug.Log("No one left to resolve. Switching to Resolve Attack");
-                    Intention.IntentionResolver.Instance.SwitchSubPhase(MAIN_TURN_STATE.RESOLVE_ATTACK);
-                }
-            }         
+            this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
         }
 
         public override void OnExit()
@@ -150,59 +142,71 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
-           // throw new NotImplementedException();
         }
     }
 
-    public class UnitTurnPhase_ResolveAttack : UnitTurnSubPhase
+    public class UnitTurnPhase_ResolveAttack : SubPhase
     {
-        public UnitTurnPhase_ResolveAttack() : base()
+        PhaseTaskCompletionManager resolveAttackResolutionCompletionManager;
+
+        public UnitTurnPhase_ResolveAttack(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        {
+
+        }
+
+        ~UnitTurnPhase_ResolveAttack()
         {
 
         }
 
         public override void OnEnter()
         {
-            MonoBehaviour.print("<color=green>Entering in ResolveAttack</color>");
+            this.resolveAttackResolutionCompletionManager = new(OnAttackResolutionPhaseComplete);
+
+            this.resolveAttackResolutionCompletionManager.AddAction();
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += this.resolveAttackResolutionCompletionManager.OnActionComplete;
+            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
+
         }
 
         public override void OnExit()
         {
-
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= this.resolveAttackResolutionCompletionManager.OnActionComplete;
         }
 
         public override void Update()
         {
-            if (Input.GetKey(KeyCode.Backspace))
-            {
-             //   this.mainTurnManager.SwitchToNextSubPhase();
-            }
-            else if (Input.GetKey(KeyCode.KeypadEnter))
-            {
-                PhaseManager.Instance.ChangeToNextStateInOrder();
-            }
+
         }
+
+
+        private void OnAttackResolutionPhaseComplete()
+        {
+            /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
+            this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
+        }
+
     }
 
-    public class UnitTurnPhase_AttackComplete : UnitTurnSubPhase
+    public class UnitTurnPhase_AttackComplete : SubPhase
     {
-        public UnitTurnPhase_AttackComplete() : base()
+        public UnitTurnPhase_AttackComplete(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
         }
 
         public override void OnEnter()
         {
-            throw new System.NotImplementedException();
+            this.OnSubPhaseComplete(SubPhaseState.ATTACK_COMPLETE);
         }
 
         public override void OnExit()
         {
-            throw new System.NotImplementedException();
+
         }
 
         public override void Update()
         {
-            throw new System.NotImplementedException();
+
         }
     }
 }

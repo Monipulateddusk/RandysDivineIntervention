@@ -30,4 +30,7 @@ public class UICollection_SO : ScriptableObject
 
     [Header("Selector Manager UI")]
     public GameObject   SelectorManagerPrefab;
+
+    [Header("VictoryLoss UI")]
+    public GameObject   EndOfBattlePopupPrefab;
 }

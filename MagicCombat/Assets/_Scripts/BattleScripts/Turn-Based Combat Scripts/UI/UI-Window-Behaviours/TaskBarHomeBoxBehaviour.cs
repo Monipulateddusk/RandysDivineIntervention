@@ -1,3 +1,4 @@
+using TurnBased.LoaderUnloader;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -57,11 +58,11 @@ namespace TurnBased.UI
         public void OnShutDownClick()
         {
             Debug.Log("Shutting down");
-            Application.Quit();
 
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#endif
+            if (LevelLoaderManager.Instance != null)
+            {
+                LevelLoaderManager.Instance.SwitchToLevelSelection();
+            }
         }
 
         public override void SetDialogueBoxName(string newText)

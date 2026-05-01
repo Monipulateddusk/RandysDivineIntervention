@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace TurnBased.TargetSelection
 {
     public interface ITargetSelector
@@ -102,7 +104,10 @@ namespace TurnBased.TargetSelection
 
     public class PlayerDrivenTargetSelector : ITargetSelector
     {
-        public int SelectedTargetIndex { private get; set; }
+        /// <summary>
+        /// Can contain multiple targets or just one. By peeking at the selected move, we will know what to do with this List. I.e. Get the first index, or all targets. 
+        /// </summary>
+        public System.Collections.Generic.List<StationIndex> SelectedTarget { private get; set; }
         public System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
@@ -120,19 +125,38 @@ namespace TurnBased.TargetSelection
                 /// Single Enemy
                 if (moveTargetType == MoveTarget.SingleEnemy)
                 {
-                    /*  Confirm that the selected index the player chose is within the list's size. If not, abort!  */
-                    if (this.SelectedTargetIndex > data.EnemyStationIndexes.Count - 1) { return null; }
+                    /*  Confirm that the selected target is possible, if not pick the 0 index from the Enemy List.  */
+                    if (DoesSelectedTargetExistInList(data.EnemyStationIndexes))
+                    {
+                        return this.SelectedTarget;
+                    }
 
-                    return new() { data.EnemyStationIndexes[this.SelectedTargetIndex] };
+                    return new() { data.EnemyStationIndexes.FirstOrDefault()};
                 }
                 /// Single Ally
                 else
                 {
-                    if (this.SelectedTargetIndex > data.AllyStationIndexes.Count - 1) { return null; }
+                    /*  Confirm that the selected target is possible, if not pick the 0 index from the Enemy List.  */
+                    if (DoesSelectedTargetExistInList(data.AllyStationIndexes))
+                    {
+                        return this.SelectedTarget;
+                    }
 
-                    return new() { data.AllyStationIndexes[this.SelectedTargetIndex] };
+                    return new() { data.AllyStationIndexes.FirstOrDefault() };
                 }
             }
+        }
+
+        private bool DoesSelectedTargetExistInList(System.Collections.Generic.List<StationIndex> List)
+        {
+            foreach (StationIndex stationIndex in List)
+            {
+                if(stationIndex.Index == SelectedTarget.FirstOrDefault().Index)
+                {
+                    return true;
+                }
+            }
+            return false;   
         }
     }
 

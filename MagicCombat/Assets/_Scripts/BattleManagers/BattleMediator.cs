@@ -55,97 +55,93 @@ namespace TurnBased
             }
 
         }
-        private readonly StationManager                         StationHandler          = new();
-        private readonly StationSelectorManager                 StationSelectorManager  = new();
+        private StationManager                         StationHandler              = new();
+        private StationSelectorManager                 StationSelectorManager      = new();
 
-        private readonly MoveSelection.MoveSelectorManager      MoveSelectorManager     = new();
-        private readonly TargetSelection.TargetSelectorManager  TargetSelectorManager   = new();
-        private readonly TurnOrder.TurnOrderManager             TurnOrderManager        = new();
-        private readonly Phases.PhaseManager                    PhaseManager            = new();
-        private readonly Intention.IntentionResolver            IntentionResolver       = new();
-        private readonly Intention.UnitIntentionManager         UnitIntentionManager    = new();
-        private readonly Intention.IntentionVisualiserManager   IntentionVisualiserManager = new();
+        private Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
+        private LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
+        private GameState.GameStateManager             GameStateManager            = new();
+
+        private Intention.IntentionVisualiserManager IntentionVisualiserManager = new();
 
 
-        [SerializeField] TMPro.TextMeshProUGUI tempUnitResolutionChangeVisualiser;
         [SerializeField] GameObject textPrefab;
-
-        void CreateUnit(GameObject objectWithUnitComponent, int stationIndexValue, UnitTeam unitTeam)
-        {
-            BaseBattleUnit spawnedUnit = Instantiate(objectWithUnitComponent).GetComponent<BaseBattleUnit>();
-            spawnedUnit.SetTeam(unitTeam);
-
-            /*  Initalise the Unit Slot.    */
-            this.StationHandler.CreateUnit(spawnedUnit);
-        }
-        public void CreateCombatEncounter()
-        {
-            /*  
-                Instanciate Enemies from Resources for now, we will do it differently later. 
-                After that, compare the enemy Index with the slots. If the Index exceeds the amount of slots, the Unit spawned is in resurve.
-            */
-            int i = 0;
-            foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Enemies").Cast<GameObject>())
-            {
-                CreateUnit(obj, i, UnitTeam.ENEMY);
-                i++;
-            }
-
-
-            // Instanciate active allies
-            foreach (GameObject obj in Resources.LoadAll("TempPrefabs/Players").Cast<GameObject>())
-            {
-                CreateUnit(obj, i, UnitTeam.ALLY);
-                i++;
-            }
-        }
 
         private void Awake()
         {
-            instance = this;
-            this.TurnOrderManager.Awake();
-            this.IntentionResolver.Awake();
-            this.UnitIntentionManager.Awake();
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.StationHandler = new();
+            this.StationSelectorManager = new();
+            this.CombatTurnOrchestrator = new();
+            this.UnitDeathHandler = new();
+            this.GameStateManager = new();
+            this.IntentionVisualiserManager = new();
+
+
+            this.UnitDeathHandler.Awake();
+
             this.StationHandler.Awake();
             this.StationSelectorManager.Awake();
-            this.MoveSelectorManager.Awake();
-            this.TargetSelectorManager.Awake();
-            this.PhaseManager.Awake();
+
             this.IntentionVisualiserManager.Awake();
 
 
-            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange += IntentionResolver_OnUnitIntentionResolutionStateChange;
+
+
+            this.CombatTurnOrchestrator.Awake();
+            this.GameStateManager.Awake();
+
+            LoaderUnloader.LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
+        }
+
+        private void LevelLoaderManager_OnCreateUnit(BaseBattleUnit instanciatedUnit)
+        {
+            this.StationHandler.CreateUnit(instanciatedUnit);
         }
 
         private void OnDestroy()
         {
-            Phases.MainTurnManager.OnUnitIntentionResolutionStateChange -= IntentionResolver_OnUnitIntentionResolutionStateChange;
-        }
-
-        private void IntentionResolver_OnUnitIntentionResolutionStateChange(UnitIndex unitIndex, UnitIntentionResolutionState state)
-        {
-            if (tempUnitResolutionChangeVisualiser != null)
+            if (instance != null && instance == this)
             {
-                if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return; }
-
-                this.tempUnitResolutionChangeVisualiser.text = $"UnitIndex: {unitIndex.Index} named: {unitData.name} is in this Resolution State: {state}";
+                instance = null;
             }
+            this.IntentionVisualiserManager.OnDestroy();
+            this.CombatTurnOrchestrator.OnDestroy();
+
+
+            this.GameStateManager.OnDestroy();
+
+            this.UnitDeathHandler.OnDestroy();
+            this.StationSelectorManager.OnDestroy();
+            this.StationHandler.OnDestroy();
+
+            LoaderUnloader.LevelLoaderManager.OnCreateUnit -= LevelLoaderManager_OnCreateUnit;
         }
 
         private void Start()
         {
+            LoaderUnloader.LevelLoaderManager.Instance.CreateCombatEncounter();  
+
+
+
             this.IntentionVisualiserManager.SetTextPrefab(textPrefab);
 
-            CreateCombatEncounter();
+
+
             this.StationHandler.DeployUnitsForStartOfBattle();
             this.StationSelectorManager.Start();
 
-            this.PhaseManager.Initialise();
+            this.CombatTurnOrchestrator.Start();
+
         }
 
         private void Update()
         {
-            this.PhaseManager.UpdatePhases();
+            this.CombatTurnOrchestrator.Update();
         }
 
 

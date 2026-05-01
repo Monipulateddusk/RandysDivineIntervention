@@ -11,3 +11,17 @@
         this.EnemyStationIndexes = enemyStationIndexes;
     }
 }
+
+public class UnitData_SceneData_UnitTurn
+{
+    public UnitData SourceUnitData { get; }
+    public System.Collections.Generic.List<UnitData> AllyUnitData { get; }
+    public System.Collections.Generic.List<UnitData> EnemyUnitData { get; }
+
+    public UnitData_SceneData_UnitTurn(UnitData sourceUnitIndex, System.Collections.Generic.List<UnitData> allyStationIndexes, System.Collections.Generic.List<UnitData> enemyStationIndexes)
+    {
+        this.SourceUnitData = sourceUnitIndex;
+        this.AllyUnitData = allyStationIndexes;
+        this.EnemyUnitData = enemyStationIndexes;
+    }
+}
