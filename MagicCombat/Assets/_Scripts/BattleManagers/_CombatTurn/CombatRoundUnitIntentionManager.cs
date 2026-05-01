@@ -4,7 +4,7 @@ using UnityEngine;
 namespace TurnBased.Intention {
     public class CombatRoundUnitIntentionManager
     {
-        private readonly Phases.CombatTurnOrchestrator orchestrator;
+        private Phases.CombatTurnOrchestrator orchestrator;
 
         /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
         /// 
@@ -62,14 +62,14 @@ namespace TurnBased.Intention {
 
         private System.Collections.Generic.List<UnitIndex> ProcessingUnitIndexes;
 
-        public CombatRoundUnitIntentionManager(Phases.CombatTurnOrchestrator combatTurnOrchestrator)
+
+        public void Awake(Phases.CombatTurnOrchestrator combatTurnOrchestrator)
         {
+            UnityEngine.Debug.LogError($"Assigning the orchestrator to: {combatTurnOrchestrator}");
             this.orchestrator = combatTurnOrchestrator;
-        }
 
+            this.ProcessingUnitIndexes = new();
 
-        public void Awake()
-        {
             StationSelectorManager.OnSelectionChange        += OnStationSelectionChange;
 
             MoveSelectionResolver.OnRequireUserInput        += SetIsAwaitingUserInput;
@@ -81,20 +81,35 @@ namespace TurnBased.Intention {
 
         public void OnDestroy()
         {
+            UnityEngine.Debug.Log($"Nullifying the orchestrator");
+            this.orchestrator = null;
+            IsAwaitingUserInput = false;
+            IsAllUnitIntentionsComplete = false;
+            StationSelectorManager.OnSelectionChange -= OnStationSelectionChange;
+
             MoveSelectionResolver.OnRequireUserInput        -= SetIsAwaitingUserInput;
             TargetSelectionResolver.OnRequireUserInput      -= SetIsAwaitingUserInput;
             MoveSelectionResolver.OnCompleteUserInput       -= CompleteAwaitingUserInput;
             TargetSelectionResolver.OnCompleteUserInput     -= CompleteAwaitingUserInput;
+
+            OnResolvingUnitChange = null;
+            OnAllIntentionsResolved = null;
         }
 
         private void OnStationSelectionChange(StationIndex newSelectedIndex, StationIndex? oldSelectedIndex)
         {
+            UnityEngine.Debug.Log($"CombatRoundUnitIntentionManager - OnStationSelectionChange  called !");
+
             /*  Get the selectedUnitIndex on the new selected station. If the new selected unit index exists in our resolution list, select that new Unit.  */
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) { return; }
 
             if (!DoesUnitIndexExistInResolvingList(selectedUnitIndex)) { return; }
 
+            UnityEngine.Debug.Log($"Station selection change. Selected unit index does exist  in list!");
+
             SelectNewUnit(selectedUnitIndex);
+
+            UnityEngine.Debug.Log($"Selected new unit!");
         }
 
         private void SelectNewUnit(UnitIndex unitIndex)
@@ -109,12 +124,16 @@ namespace TurnBased.Intention {
 
         public void ObtainNonPlayerDrivenUnitIntentions()
         {
+            Debug.LogWarning($"Getting autonomous. Orchestrator is: {this.orchestrator} ");
+
             this.ProcessingUnitIndexes = IntentionResolverUtility.GetAllAutonomousUnits();
 
             if (this.ProcessingUnitIndexes.Count > 0)
             {
                 CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
             }
+
+            Debug.LogWarning($"Autonomous count is: {this.ProcessingUnitIndexes.Count}. Orchestrator is: {this.orchestrator}  ");
 
             ProcessIntentionOfResolvingUnit();
         }
@@ -152,11 +171,14 @@ namespace TurnBased.Intention {
             /*  Peek at the current Unit's intention state. Tell the Orchestrator to move into that state.  */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentResolvingUnit.Value, out UnitIntention intention)) { GetNextUnitInList(CurrentResolvingUnit.Value); }
 
+            Debug.LogWarning($"Intention res state is: {intention.ResolutionState}");
 
             switch (intention.ResolutionState)
             {
                 case UnitIntentionResolutionState.NONE:
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
+
+                    Debug.LogWarning($"Awaiting move selection. Orchestrator is: {this.orchestrator}");
 
                     this.orchestrator.ChangeSubPhase(SubPhaseState.AWAITING_MOVE_SELECTION, CurrentResolvingUnit.Value);
                     break;
@@ -193,9 +215,12 @@ namespace TurnBased.Intention {
                 if (!this.ProcessingUnitIndexes.Remove(previousUnit)) { throw new System.IndexOutOfRangeException("ERROR — INTENTION MANAGER: UNABLE TO REMOVE THE PREVIOUS UNIT WHEN SELECTING NEW UNIT! UNIT DOES NOT EXIST IN COLLECTION"); }
                 else
                 {
-                   // UnityEngine.Debug.LogWarning($"Removed previous unit: {previousUnit.Index}");
+                    UnityEngine.Debug.LogWarning($"Removed previous unit: {previousUnit.Index}");
                 }
             }
+
+
+            Debug.LogWarning($"Processing indexes count is: {this.ProcessingUnitIndexes.Count}");
 
             /*  Retrieve the next new active unit if the container exists. If not, we are done. */
             if (this.ProcessingUnitIndexes.Count > 0)
@@ -203,6 +228,8 @@ namespace TurnBased.Intention {
                 CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
                 return true;
             }
+
+            Debug.LogWarning($"All intents resolved");
 
             /*  The list is empty, therefore we are done with our intentions.   */
             OnAllIntentionsResolved?.Invoke();

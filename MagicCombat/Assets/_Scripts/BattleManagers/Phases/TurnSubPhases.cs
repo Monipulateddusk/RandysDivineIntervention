@@ -4,11 +4,17 @@ namespace TurnBased.Phases
 {
     public abstract class SubPhase : Phase
     {
-        protected System.Action<SubPhaseState> OnSubPhaseComplete; 
+        protected System.Action<SubPhaseState> OnSubPhaseComplete;
         protected UnitIndex currentUnitIndex;
         public SubPhase(System.Action<SubPhaseState> onSubPhaseComplete) : base()
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
+        }
+
+        ~SubPhase()
+        {
+            Debug.LogError("Deconstructing Subphase");
+            OnSubPhaseComplete = null;
         }
 
         public void SetCurrentUnitIndex(UnitIndex unitIndex) { this.currentUnitIndex = unitIndex; }
@@ -22,7 +28,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
- 
+
         }
 
         public override void OnExit()
@@ -42,15 +48,24 @@ namespace TurnBased.Phases
 
         public UnitTurnPhase_MoveSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
         {
+
         }
 
+        ~UnitTurnPhase_MoveSelection()
+        {
+            Debug.LogError("MoveSelection Deconstructor called");
+
+            Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
+        }
 
         public override void OnEnter()
         {
+            Debug.LogWarning($"Ready for move intention");
+
             Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
 
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
-            Intention.MoveSelectionResolver.ProcessIntentionMoveSelection(this.currentUnitIndex);
+            Intention.MoveSelectionResolver.Instance.ProcessIntentionMoveSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -77,10 +92,15 @@ namespace TurnBased.Phases
         {
         }
 
+        ~UnitTurnPhase_TargetSelection()
+        {
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
+        }
+
         public override void OnEnter()
         {
             Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
-            Intention.TargetSelectionResolver.ProcessIntentionTargetSelection(this.currentUnitIndex);
+            Intention.TargetSelectionResolver.Instance.ProcessIntentionTargetSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -130,6 +150,11 @@ namespace TurnBased.Phases
         PhaseTaskCompletionManager resolveAttackResolutionCompletionManager;
 
         public UnitTurnPhase_ResolveAttack(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        {
+
+        }
+
+        ~UnitTurnPhase_ResolveAttack()
         {
 
         }

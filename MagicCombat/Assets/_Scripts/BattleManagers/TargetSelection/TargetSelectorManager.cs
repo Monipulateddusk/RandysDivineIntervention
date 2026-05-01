@@ -1,3 +1,4 @@
+using System.Linq;
 using TurnBased.MoveSelection;
 using UnityEngine;
 
@@ -22,33 +23,44 @@ namespace TurnBased.TargetSelection
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, ITargetSelector> unitIndexTargetSelectionDictionary = new();
+        private System.Collections.Generic.Dictionary<int, ITargetSelector> unitIndexTargetSelectionDictionary = new();
 
         public void Awake()
         {
             /*  Initalise the Singleton.    */
-            if (instance != null && instance != this)
+            if (instance == null)
             {
-                return;
+                instance = this;
             }
-            instance = this;
+
+            this.unitIndexTargetSelectionDictionary = new();
             StationManager.OnAddUnit += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 
         public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
             StationManager.OnAddUnit -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
+
+            RemoveAllUnitIndexesFromDictionary();
         }
+
 
         private void RemoveAllUnitIndexesFromDictionary()
         {
-            foreach (System.Collections.Generic.KeyValuePair<int, ITargetSelector> unitIndexTargetSelectorKeyValuePair in this.unitIndexTargetSelectionDictionary)
+            System.Collections.Generic.List<int> keys = this.unitIndexTargetSelectionDictionary.Keys.ToList();
+
+            for (int i = 0; i < keys.Count; i++)
             {
-                int key = unitIndexTargetSelectorKeyValuePair.Key;
-                this.unitIndexTargetSelectionDictionary.Remove(key);
+                this.unitIndexTargetSelectionDictionary.Remove(keys[i]);
             }
+            this.unitIndexTargetSelectionDictionary.Clear();
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)
@@ -59,7 +71,11 @@ namespace TurnBased.TargetSelection
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationIndex, BaseBattleUnit unit)
         {
+            UnityEngine.Debug.LogError("Starting to remove unit from TargetSelectorManager");
+
             RemoveUnitTargetSelector(unitIndex);
+
+            UnityEngine.Debug.LogError("Removed unit from TargetSelectorManager");
         }
 
         public bool AddUnitTargetSelector(UnitIndex unitIndex, UnitTargetSelectorType targetSelectorType)

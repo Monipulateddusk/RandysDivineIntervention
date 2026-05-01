@@ -55,21 +55,32 @@ namespace TurnBased
             }
 
         }
-        private readonly StationManager                         StationHandler              = new();
-        private readonly StationSelectorManager                 StationSelectorManager      = new();
+        private StationManager                         StationHandler              = new();
+        private StationSelectorManager                 StationSelectorManager      = new();
 
-        private readonly Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
-        private readonly LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
-        private readonly GameState.GameStateManager             GameStateManager            = new();
+        private Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
+        private LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
+        private GameState.GameStateManager             GameStateManager            = new();
 
-        private readonly Intention.IntentionVisualiserManager IntentionVisualiserManager = new();
+        private Intention.IntentionVisualiserManager IntentionVisualiserManager = new();
 
 
         [SerializeField] GameObject textPrefab;
 
         private void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.StationHandler = new();
+            this.StationSelectorManager = new();
+            this.CombatTurnOrchestrator = new();
+            this.UnitDeathHandler = new();
+            this.GameStateManager = new();
+            this.IntentionVisualiserManager = new();
+
 
             this.UnitDeathHandler.Awake();
 
@@ -94,6 +105,10 @@ namespace TurnBased
 
         private void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
             this.IntentionVisualiserManager.OnDestroy();
             this.CombatTurnOrchestrator.OnDestroy();
 
@@ -103,6 +118,8 @@ namespace TurnBased
             this.UnitDeathHandler.OnDestroy();
             this.StationSelectorManager.OnDestroy();
             this.StationHandler.OnDestroy();
+
+            LoaderUnloader.LevelLoaderManager.OnCreateUnit -= LevelLoaderManager_OnCreateUnit;
         }
 
         private void Start()

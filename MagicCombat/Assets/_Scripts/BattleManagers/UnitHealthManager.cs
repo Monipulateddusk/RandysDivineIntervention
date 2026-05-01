@@ -87,20 +87,36 @@ namespace TurnBased.Health {
         public static event System.Action<UnitIndex, int>   OnUnitHealthChange;
         public static event System.Action<UnitIndex>        OnUnitHealthRemoved;
 
-        private readonly System.Collections.Generic.Dictionary<int, UnitHealthData> UnitIndexHealthDict = new();
+        private System.Collections.Generic.Dictionary<int, UnitHealthData> UnitIndexHealthDict = new();
 
         public void Awake()
         {
-            Instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
 
+            this.UnitIndexHealthDict = new();
+            
             StationManager.OnAddUnit    += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 
         public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            this.UnitIndexHealthDict.Clear();
+
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
+
+            OnUnitHealthAdded = null;
+            OnUnitHealthChange = null;  
+            OnUnitHealthRemoved = null;
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)
@@ -112,7 +128,11 @@ namespace TurnBased.Health {
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfRemovedUnit, StationIndex? stationOfUnitIndex, BaseBattleUnit battleUnitOfRemovedUnit)
         {
+            UnityEngine.Debug.LogError("Starting to remove unit index from UnitHealthManager");
+
             RemoveUnitHealthToDictionary(unitIndexOfRemovedUnit);
+
+            UnityEngine.Debug.LogError("Removed unit index from UnitHealthManager");
         }
 
         public bool AddUnitHealthToDictionary(UnitIndex unitIndex, int maximumHealth)

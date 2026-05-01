@@ -23,7 +23,10 @@ namespace TurnBased.Phases
 
         public void Awake(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
 
             this.PhaseDictionary = new()
             {
@@ -41,9 +44,17 @@ namespace TurnBased.Phases
         {
             if (instance != null && instance == this)
             {
+                UnityEngine.Debug.LogError("Destroying PhaseManager");
                 instance = null;
             }
 
+            int phaseCount = this.PhaseDictionary.Count;
+            for (int i = 0; i < phaseCount; i++)
+            {
+                this.PhaseDictionary[(CombatTurnOrchestrationPhase)i] = null;
+            }
+
+            this.PhaseDictionary = null;
         }
         public void Update()
         {
@@ -52,6 +63,7 @@ namespace TurnBased.Phases
 
         public void ChangeState(CombatTurnOrchestrationPhase newPhaseType)
         {
+            UnityEngine.Debug.LogWarning($"Exiting {this.CurrentPhase}, entering {newPhaseType}");
             this.CurrentPhase?.OnExit();
 
             CombatTurnOrchestrator.CurrentOrchestrationPhase = newPhaseType;

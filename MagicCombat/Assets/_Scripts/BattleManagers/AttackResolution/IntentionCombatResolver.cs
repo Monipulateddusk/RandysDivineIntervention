@@ -34,21 +34,37 @@ namespace TurnBased.Combat
             /*  Execute the selected move by the User.  */
             if (!ExecuteMove(intention, UnitDataForCombatResolution, out AttackResolutionInfo exectutedMoveResolutionInfo)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO EXECUTE SELECTED MOVE!"); return; }
 
+            UnityEngine.Debug.LogWarning($"Executing move inside process attack. Is there a valid target?    ");
 
-            /*  Determine if the Attack moves the user or not.  */
-            await BattlePresentationManager.Instance.MoveUnitToTarget(sceneData.SourceStationIndex, intention.TargetIndexList.FirstOrDefault());
-
-            /*  Process each step individually   */
-            for (int i = 0; i < exectutedMoveResolutionInfo.Steps.Count; i++)
+            /*  If there is a targeted unit, proceed */
+            if (StationManagerUtilities.DoesStationIndexListContainExistantTarget(intention.TargetIndexList))
             {
-                await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
+                UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
+
+                /*  Determine if the Attack moves the user or not.  */
+                await BattlePresentationManager.Instance.MoveUnitToTarget(sceneData.SourceStationIndex, intention.TargetIndexList.FirstOrDefault());
+
+                UnityEngine.Debug.LogWarning($"Processing attack step");
+
+
+                /*  Process each step individually   */
+                for (int i = 0; i < exectutedMoveResolutionInfo.Steps.Count; i++)
+                {
+                    await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
+                }
+
+                UnityEngine.Debug.LogWarning($"Moving back to station");
+
+                /*  Move the user back.  */
+                await BattlePresentationManager.Instance.MoveUnitToStation(sceneData.SourceStationIndex);
+
+                UnityEngine.Debug.LogWarning($"Clearing intention");
+
+                /*  Clear the intention of the attack once done.    */
+                Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
             }
 
-            /*  Move the user back.  */
-            await BattlePresentationManager.Instance.MoveUnitToStation(sceneData.SourceStationIndex);
-
-            /*  Clear the intention of the attack once done.    */
-            Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
+            UnityEngine.Debug.LogWarning($"Determining dead units");
 
             AttackResolution.UnitDeathResolver.DetermineDeadUnits();
         }
@@ -58,7 +74,7 @@ namespace TurnBased.Combat
             outUnitDataForCombatResolution = default;
 
             /*  Get the unit data for the User, their Allies, their enemies.    */
-            SceneData_UnitTurn sceneUnitData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(sourceUnitIndex);
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(sourceUnitIndex, out SceneData_UnitTurn sceneUnitData)) { return false; }
 
             if (!StationManager.Instance.TryGetUnitDataOnStation(sceneUnitData.SourceStationIndex, out UnitData unitDataSource)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE SCENE UNIT DATA OF USER!"); return false; }
             System.Collections.Generic.List<UnitData> ally_UnitData = StationManagerUtilities.GetUnitDataOfStationIndexes(sceneUnitData.AllyStationIndexes);

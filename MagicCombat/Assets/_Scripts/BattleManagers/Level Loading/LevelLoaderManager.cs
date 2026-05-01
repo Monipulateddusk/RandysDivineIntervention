@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TurnBased.LoaderUnloader
 {
@@ -29,6 +30,7 @@ namespace TurnBased.LoaderUnloader
             if (instance == null)
             {
                 instance = this;
+                DontDestroyOnLoad(this.gameObject);
             }
         }
 
@@ -40,6 +42,20 @@ namespace TurnBased.LoaderUnloader
             }
         }
 
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                if (SceneManager.GetActiveScene().buildIndex == 0)
+                {
+                    SceneManager.LoadScene(1);
+                }
+                else
+                {
+                    SceneManager.LoadScene(0);
+                }        
+            }
+        }
         public void CreateCombatEncounter()
         {
             if (this.currentLevelData == null) { return; }

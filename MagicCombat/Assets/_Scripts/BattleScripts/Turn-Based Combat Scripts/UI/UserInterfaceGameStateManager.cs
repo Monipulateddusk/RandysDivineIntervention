@@ -27,11 +27,21 @@ namespace TurnBased.UI
 
         public void Awake(UnityEngine.UI.RawImage GameSceneScreen)
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
             this.GameSceneRawImageScreen = GameSceneScreen;
             GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
         }
 
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+        }
 
         public void Update()
         {

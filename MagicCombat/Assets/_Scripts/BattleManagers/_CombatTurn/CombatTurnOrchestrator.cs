@@ -4,20 +4,23 @@ namespace TurnBased.Phases {
 
     public class CombatTurnOrchestrator
     {
-        private readonly PhaseManager phaseManager                                              = new();
-        private readonly SubPhaseManager subPhaseManager                                        = new();
-        private readonly TurnOrder.TurnOrderManager TurnOrderManager                            = new();
+        private Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager   = new();
+        private PhaseManager phaseManager                                               = new();
+        private SubPhaseManager subPhaseManager                                         = new();
+        private TurnOrder.TurnOrderManager TurnOrderManager                             = new();
 
-        private readonly Health.UnitHealthManager UnitHealthManager                             = new();
-        private readonly Intention.UnitIntentionManager UnitIntentionManager                    = new();
+        private Health.UnitHealthManager UnitHealthManager                              = new();
+        private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
-        private readonly Combat.TurnOrderCombatHandler turnOrderCombatHandler                   = new();
+        private Combat.TurnOrderCombatHandler turnOrderCombatHandler                    = new();
 
-        private readonly MoveSelection.MoveSelectorManager MoveSelectorManager                  = new();
-        private readonly TargetSelection.TargetSelectorManager TargetSelectorManager            = new();
+        private Intention.IntentionResolverManager intentionResolverManager             = new();
 
-        private readonly AttackResolution.AttackResolutionManager AttackResolutionManager       = new();
-        private readonly Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager;
+        private MoveSelection.MoveSelectorManager MoveSelectorManager                   = new();
+        private TargetSelection.TargetSelectorManager TargetSelectorManager             = new();
+
+        private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
+
 
 
 
@@ -38,15 +41,27 @@ namespace TurnBased.Phases {
             }
         }
 
-        public CombatTurnOrchestrator()
-        {
-            this.combatRoundIntentionManager = new(this);
-        }
-
         public void Awake()
         {
+            UnityEngine.Debug.LogError("AWAKE CALLED INSIDE ORCHESTRATOR");
             TurnBased.GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
 
+            currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
+
+            this.combatRoundIntentionManager = new();
+            this.phaseManager = new();
+            this.subPhaseManager = new();
+            this.TurnOrderManager = new();  
+            this.UnitHealthManager = new();
+            this.UnitIntentionManager = new();
+            this.turnOrderCombatHandler = new();
+            this.intentionResolverManager = new();
+            this.MoveSelectorManager = new();
+            this.TargetSelectorManager = new();
+            this.AttackResolutionManager = new();
+
+
+            this.combatRoundIntentionManager.Awake(this);
             this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
             this.subPhaseManager.Awake(OnSubPhaseComplete);
             this.TurnOrderManager.Awake();
@@ -56,11 +71,13 @@ namespace TurnBased.Phases {
 
             this.turnOrderCombatHandler.Awake();
 
+            this.intentionResolverManager.Awake();
+
             this.MoveSelectorManager.Awake();
             this.TargetSelectorManager.Awake();
 
             this.AttackResolutionManager.Awake();
-            this.combatRoundIntentionManager.Awake(); 
+
         }
 
         public void OnDestroy()
@@ -76,11 +93,32 @@ namespace TurnBased.Phases {
 
             this.turnOrderCombatHandler.OnDestroy();
 
+            this.intentionResolverManager.OnDestroy();
+
             this.MoveSelectorManager.OnDestroy();
             this.TargetSelectorManager.OnDestroy();
 
             this.AttackResolutionManager.OnDestroy();
             this.combatRoundIntentionManager.OnDestroy();
+
+
+
+            this.phaseManager = null;
+            this.subPhaseManager = null;
+            this.TurnOrderManager = null;
+
+            this.UnitHealthManager = null;
+            this.UnitIntentionManager = null;
+
+            this.turnOrderCombatHandler = null;
+
+            this.intentionResolverManager = null;
+
+            this.MoveSelectorManager = null;
+            this.TargetSelectorManager = null;
+
+            this.AttackResolutionManager = null;
+            this.combatRoundIntentionManager = null;
         }
 
         public void Update()
@@ -163,7 +201,7 @@ namespace TurnBased.Phases {
 
                 case CombatTurnOrchestrationPhase.TurnOrderRes:
 
-                    UnityEngine.Debug.LogWarning($"Turn order resolved. Moving to end of round.   ");
+                    UnityEngine.Debug.LogWarning($"Turn order resolved. Moving to end of round.  Phase Manager  is:  {this.phaseManager}");
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.EndOfRound;
                     this.phaseManager.ChangeState(CurrentOrchestrationPhase);

@@ -24,7 +24,10 @@ namespace TurnBased.Combat
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
         }
 
         public void OnDestroy()
@@ -33,7 +36,7 @@ namespace TurnBased.Combat
             {
                 instance = null;
             }
-
+            OnTurnOrderAttacksFullyResolved = null;
         }
 
         public void StartTurnOrderCombat()

@@ -10,7 +10,7 @@ public class StationSelectorManager
     public static event System.Action<StationIndex, StationIndex?> OnSelectionChange;
     public static event System.Action<StationSelectionState> OnSelectionStateChange;
 
-    System.Collections.Generic.List<StationIndex> stationIndexes = new();
+    System.Collections.Generic.List<StationIndex> stationIndexes;
     StationIndex selectedStationIndex;
     StationSelectionState selectionState;
 
@@ -35,6 +35,8 @@ public class StationSelectorManager
     {
         InitaliseSingleton();
 
+        this.stationIndexes = new();
+
         StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
     }
 
@@ -45,12 +47,23 @@ public class StationSelectorManager
 
     public void OnDestroy()
     {
+        if (instance != null && instance == this)
+        {
+            instance = null;
+        }
         StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
+
+        OnSelectionChange = null;
+        OnSelectionStateChange = null;
     }
 
     private void StationManager_OnRemoveUnit(UnitIndex arg1, StationIndex? arg2, BaseBattleUnit arg3)
     {
+        UnityEngine.Debug.LogError("Starting to remove unit from StationSelectorManager");
+
         UpdateStationIndexes();
+
+        UnityEngine.Debug.LogError("Removed unit from StationSelectorManager");
     }
 
     private void InitaliseSingleton()
@@ -68,9 +81,15 @@ public class StationSelectorManager
     /// </summary>
     private void UpdateStationIndexes()
     {
+        UnityEngine.Debug.LogError("Getting station indexes from stationHandler");
         GetStationIndexesFromStationHandler();
+
+        UnityEngine.Debug.LogError("Sorting station indexes for teams");
         SortStationIndexesForTeams();
+
+        UnityEngine.Debug.LogError($"Selecting first unit index. Station index count is: {this.stationIndexes} ");
         SelectFirstIndexOnListCreation();
+        UnityEngine.Debug.LogError("Selected first unit index");
     }
 
     private void GetStationIndexesFromStationHandler()
@@ -218,13 +237,15 @@ public class StationSelectorManager
 
         this.selectedStationIndex = this.stationIndexes[wrappedIndex.Value];
 
+        UnityEngine.Debug.LogError($"Selected station index {this.selectedStationIndex.Index}!");
+
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
+
+        UnityEngine.Debug.LogError($"Finished on selection change");
     }
 
     public void SetSelectedStationIndex(UnitIndex unitIndex)
     {
-        UnityEngine.Debug.LogWarning($"Does station Index exist? {unitIndex.Index}!");
-
         if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex newStationIndex)) { return; }
 
         StationIndex oldStationIndex = this.selectedStationIndex;
@@ -243,12 +264,20 @@ public class StationSelectorManager
 
     public void SetSelectedStationIndex(StationIndex newStationIndex)
     {
+
+        UnityEngine.Debug.LogWarning($"Get old station index!");
         StationIndex oldStationIndex = this.selectedStationIndex;
 
         /*  Check to see if this new station index is contained within our StationIndexes. */
         if (!DoesStationIndexExistInStationIndexes(newStationIndex)) { return; }
 
+        UnityEngine.Debug.LogWarning($"Station index exists!");
+
+
         this.selectedStationIndex = newStationIndex;
+
+        UnityEngine.Debug.LogWarning($"OnSelectionChange invoked!");
+
 
         OnSelectionChange?.Invoke(this.selectedStationIndex, oldStationIndex);
     }

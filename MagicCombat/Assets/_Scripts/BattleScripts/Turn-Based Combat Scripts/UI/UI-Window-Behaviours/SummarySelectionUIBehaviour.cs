@@ -1,5 +1,5 @@
 using TurnBased.AttackResolution;
-using Unity.VisualScripting;
+using TurnBased.TurnOrder;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -140,8 +140,12 @@ namespace TurnBased.UI
 
         private void StationSelectorManager_OnSelectionChange(StationIndex newSelectedStation, StationIndex? oldStation)
         {
+            Debug.LogError("Summary UI OnSelectionChange invoked");
+
             /*  When we select a new Unit, check if it is needing User Input. If not, disable switching to the SelectionTab.    */
             if (!StationManager.Instance.TryGetUnitIndexOnStation(newSelectedStation, out UnitIndex unitIndex)) { return; }
+
+            Debug.LogError("Unit index exists on station");
 
             if (UserInterfaceUserInput.Instance.GetSelectedUnit() == null || 
                     (UserInterfaceUserInput.Instance.GetSelectedUnit() != null && UserInterfaceUserInput.Instance.GetSelectedUnit().Value.Index != unitIndex.Index)
@@ -154,9 +158,15 @@ namespace TurnBased.UI
                 this.SelectionTabButton.gameObject.SetActive(true);
             }
 
+            Debug.LogError("Updating the health display");
+
             this.healthDisplayUI.UpdateUnitIndex(unitIndex);
 
+            Debug.LogError("Done updating the health display");
+
             SetState(SummaryInspectionUIBehaviourStates.UnitSummary);
+
+            Debug.LogError("Summary UI OnSelectionChange done");
         }
 
 
@@ -167,10 +177,18 @@ namespace TurnBased.UI
 
         private void UpdateBehaviourState()
         {
+            Debug.LogError("Updaing behviour state");
+
+            if (StationManager.Instance == null) { return; }
             StationIndex selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationIndex();
             if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
 
+
+            Debug.LogError("Resetting behaviour state");
+
             ResetBehviourState();
+
+            Debug.LogError($"Done resetting behaviour state. Visualising the current state: {this.currentState}");
 
             switch (this.currentState)
             {

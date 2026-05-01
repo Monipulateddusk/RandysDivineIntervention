@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using TurnBased.TargetSelection;
+using UnityEditor.Build;
 
 public readonly struct UnitIndex     
 {  
@@ -31,8 +33,8 @@ public class Station
 
 public class SceneUnitData
 {
-    public System.Collections.Generic.Dictionary<int,  BaseBattleUnit> Units = new();           
-    public System.Collections.Generic.Dictionary<int,  Station>        Stations = new();
+    public System.Collections.Generic.Dictionary<int, BaseBattleUnit> Units = new();
+    public System.Collections.Generic.Dictionary<int, Station> Stations = new();
 
     public static int MAX_UNITS_PER_SIDE = 9;
     private int nextUnitId = 0, nextStationId = 0;
@@ -40,8 +42,19 @@ public class SceneUnitData
     public SceneUnitData()
     {
         this.nextUnitId = 0;
-        this.Units      = new();
-        this.Stations   = new();
+        this.Units = new();
+        this.Stations = new();
+    }
+
+    ~SceneUnitData()
+    {
+        this.nextStationId = 0;
+        
+        this.Units.Clear();
+        this.Units = null;
+
+        this.Stations.Clear();
+        this.Stations = null;
     }
 
     /// <summary>
@@ -305,6 +318,8 @@ public class SceneUnitData
                 activeUnits.Add(station.UnitOnStation.Value);
             }
         }
+
+        UnityEngine.Debug.LogError($"Active units count is: {activeUnits.Count}");
         return activeUnits;
     }
 
@@ -478,12 +493,14 @@ public class StationManager
     private static StationManager instance;
     public static StationManager Instance 
     {  
-        get { return instance; } 
-        set 
+        get { return instance; }
+        set
         {
-            if(instance != null) { UnityEngine.Debug.LogError("ERROR — STATION_MANAGER: TRYING TO ASSIGN SINGLETON WHEN THERE IS ALREADY A STATION_MANAGER!!"); return; }
-            instance = value;
-        } 
+            if (instance != null)
+            {
+                instance = value;
+            }
+        }
     }
 
     #region Events
@@ -538,7 +555,7 @@ public class StationManager
 
     #endregion
 
-    private readonly SceneUnitData SceneUnitData = new();
+    private SceneUnitData SceneUnitData = new();
 
     readonly List<UnityEngine.Vector3> ALLY_STATION_LOCATIONS = new(){
         new(0,      0,  1),         new(-3,         0,      1),         new(3,      0,      1),
@@ -554,7 +571,12 @@ public class StationManager
 
     public void Awake()
     {
-        Instance = this;
+        if (instance == null)
+        {
+            instance = this;
+        }
+
+        this.SceneUnitData = new();
         CreateStartingStations();
     }
 
@@ -564,6 +586,15 @@ public class StationManager
         {
             instance = null;
         }
+
+        OnAddUnit = null;
+        OnRemoveUnit = null;
+        OnSwapUnits = null;
+        OnFailSwapUnits = null;
+        OnDeployUnit = null;
+
+
+        this.SceneUnitData = null;
     }
 
     public List<UnitIndex>      GetAllActiveUnits()                                                                         => this.SceneUnitData.GetAllActiveUnits();
@@ -587,6 +618,8 @@ public class StationManager
         UnitIndex? createdUnitIndex = this.SceneUnitData.CreateUnit(unit);
         if (createdUnitIndex.HasValue)
         {
+            UnityEngine.Debug.LogWarning($"Added Unit");
+
             OnAddUnit?.Invoke(createdUnitIndex.Value);
             return createdUnitIndex;
         }
@@ -606,11 +639,17 @@ public class StationManager
     }
     public bool RemoveUnit(UnitIndex unitIndex)
     {
+        UnityEngine.Debug.LogError("Does station of unit index exist?");
         if (!this.SceneUnitData.TryGetStationIndexOfUnitIndex(unitIndex, out StationIndex removedUnitStationIndex)) {  return false; }
+        UnityEngine.Debug.LogError("It does. Get the battle unit");
 
         if (!this.SceneUnitData.GetBattleUnitOfIndex(unitIndex, out BaseBattleUnit removedUnit)) {  return false; }
 
+        UnityEngine.Debug.LogError("Got battle unit, Removing Unit!");
+
         bool sucess = this.SceneUnitData.RemoveUnit(unitIndex);
+
+        UnityEngine.Debug.LogError($"Sucess is: {sucess}");
         if (sucess) 
         {
             OnRemoveUnit?.Invoke(unitIndex, removedUnitStationIndex, removedUnit);
@@ -745,6 +784,13 @@ public class StationManager
         return unitData != null;
     }
 
+    public bool DoesUnitIndexExist(UnitIndex index)
+    {
+        if (this.SceneUnitData.Units.ContainsKey(index.Index)) { return true; }
+        return false;
+    }
+
+
     /// <summary>
     /// This is working as intended.
     /// </summary>
@@ -805,31 +851,35 @@ public static class StationManagerUtilities
         return true;
     }
 
-    public static SceneData_UnitTurn CreateCombatSceneDataForUnitIndex(UnitIndex sourceUnitIndex)
+    public static bool TryCreateCombatSceneDataForUnitIndex(UnitIndex sourceUnitIndex, out SceneData_UnitTurn sceneData)
     {
+        sceneData = default;
         StationManager stationManager = StationManager.Instance;
 
         /*  Get a list of all UnitIndexes on the opposite team. */
         UnitTeam sourceTeam = stationManager.GetUnitTeamOfIndex(sourceUnitIndex);
+        if (sourceTeam == UnitTeam.NULL) { return false; }
+
         UnitTeam oppositeTeam = GetOppositeTeamType(stationManager.GetUnitTeamOfIndex(sourceUnitIndex));
+        if (sourceTeam == UnitTeam.NULL) { return false; }
 
         /*  Get a list of all UnitIndexes that are on the team. */
         if (!stationManager.TryGetUnitIndexesOfTeam(sourceTeam, out List<UnitIndex> allIUnitIndexesOnAlliedTeam))
-        { throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!"); }
+        { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!");  }
         if (!stationManager.TryGetUnitIndexesOfTeam(oppositeTeam, out List<UnitIndex> unitIndexesOfOppositeTeam))
-        { throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!"); }
+        { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!"); }
 
         /*  Confirm that the sourceUnitIndex is contained within UnitIndexesOnTeam. If not, something broke.    */
-        if (!allIUnitIndexesOnAlliedTeam.Contains(sourceUnitIndex)) { throw new InvalidOperationException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX NOT PRESENT INSIDE TEAMED INDEXES!"); }
+        if (!allIUnitIndexesOnAlliedTeam.Contains(sourceUnitIndex)) { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX NOT PRESENT INSIDE TEAMED INDEXES!"); }
 
         /*  Confirm that we have a teamedIndex array of length greater than 0. If it is 0, we don't want to proceed.    */
-        if (allIUnitIndexesOnAlliedTeam.Count <= 0) { throw new InvalidOperationException("ERROR — STATION_HANDLER: TEAMED UNIT INDEX LIST IS LESS THAN 0!"); }
+        if (allIUnitIndexesOnAlliedTeam.Count <= 0) { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: TEAMED UNIT INDEX LIST IS LESS THAN 0!"); }
 
         /*  Remove the source Unit Index from the TeamedIndexes Array.  */
         List<UnitIndex> TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
 
         /*  Try to convert the UnitIndex to the stationIndex for purposes of Scene Data.    */
-        if (!stationManager.TryGetStationIndexOfIndex(sourceUnitIndex, out StationIndex sourceStationIndex)) { throw new InvalidOperationException("ERROR — STATION_HANDLER: UNABLE TO RETRIEVE STATION INDEX OF UNIT INDEX!"); }
+        if (!stationManager.TryGetStationIndexOfIndex(sourceUnitIndex, out StationIndex sourceStationIndex)) { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: UNABLE TO RETRIEVE STATION INDEX OF UNIT INDEX!"); }
 
         /*  Convert UnitIndex of both allied and enemy lists to the StationIndex of that Unit. */
         List<StationIndex> allyStationIndexes = stationManager.GetStationIndexesFromUnitIndexes(TeamedIndexes);
@@ -838,18 +888,22 @@ public static class StationManagerUtilities
 
 
         // TO DO: PASS IN ENVIRONMENT DATA
-        return new SceneData_UnitTurn(sourceStationIndex, allyStationIndexes, enemyStationIndexes);
+        sceneData = new SceneData_UnitTurn(sourceStationIndex, allyStationIndexes, enemyStationIndexes);
+        return true;
     }
 
-    public static UnitData_SceneData_UnitTurn CreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex)
+    public static bool TryCreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex, out UnitData_SceneData_UnitTurn unitDataSceneData)
     {
+        unitDataSceneData = default;
+
         UnitData sourceUnitData = null;
         System.Collections.Generic.List<UnitData> allyData  = new();
         System.Collections.Generic.List<UnitData> enemyData = new();
 
+        UnityEngine.Debug.LogError($"Creating combat scene data for unit index");
 
         /*  Get the stationIndexes for each active unit in the scene to loop through them and retrieve their data.  */
-        SceneData_UnitTurn sceneData = CreateCombatSceneDataForUnitIndex(unitIndex);
+        if (!TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn sceneData)) { return false; }
 
         foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
         {
@@ -863,9 +917,10 @@ public static class StationManagerUtilities
             enemyData.Add(unitData);
         }
 
-        if (!StationManager.Instance.TryGetUnitDataOnStation(sceneData.SourceStationIndex, out sourceUnitData)) { throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        if (!StationManager.Instance.TryGetUnitDataOnStation(sceneData.SourceStationIndex, out sourceUnitData)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
 
-        return new UnitData_SceneData_UnitTurn(sourceUnitData, allyData, enemyData);
+        unitDataSceneData = new UnitData_SceneData_UnitTurn(sourceUnitData, allyData, enemyData);
+        return true;
     }
 
 
@@ -917,8 +972,9 @@ public static class StationManagerUtilities
 
     public static TargettingSelectorInfo FindAllPossibleTargettingStationIndexesOfTargettingType(UnitIndex unitIndex, MoveTarget moveTargetType)
     {
-        SceneData_UnitTurn data = CreateCombatSceneDataForUnitIndex(unitIndex);
         List<StationIndex> possibleTargetStationIndexes = new();
+        if (!TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn data)) { return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Uhh. Uhh..."); }
+
         switch (moveTargetType)
         {
             case MoveTarget.Self:
@@ -988,5 +1044,19 @@ public static class StationManagerUtilities
             dataCollection.Add(unitData);
         }
         return dataCollection;
+    }
+
+    public static bool DoesStationIndexListContainExistantTarget(List<StationIndex> stationIndexes)
+    {
+        foreach (StationIndex index in stationIndexes)
+        {
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(index, out UnitIndex unitIndexOnStation)) {  continue; }
+
+            if (StationManager.Instance.DoesUnitIndexExist(unitIndexOnStation))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

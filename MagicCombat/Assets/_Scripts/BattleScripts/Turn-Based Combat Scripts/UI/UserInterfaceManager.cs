@@ -141,6 +141,12 @@ namespace TurnBased.UI
             this.UserInterfaceGameStateVisualisationManager.Awake(this.GameScreen);
         }
 
+        private void OnDestroy()
+        {
+            this.UserInterfaceUserInput.OnDestroy();
+            this.UserInterfaceGameStateVisualisationManager.OnDestroy();
+        }
+
         // Update is called once per frame
         void Update()
         {

@@ -25,7 +25,18 @@ namespace TurnBased.UI
         public void Initalise()
         {
             /*  Initalise the Singleton.    */
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+        }
+
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
         }
 
         public void StartSelection(UnitIndex unitIndex)
@@ -45,7 +56,7 @@ namespace TurnBased.UI
         {
             if (this.selectedUnit.HasValue)
             {
-                Intention.MoveSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedMove);
+                Intention.MoveSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedMove);
             }
         }
 
@@ -53,7 +64,7 @@ namespace TurnBased.UI
         {
             if (this.selectedUnit.HasValue)
             {
-                Intention.TargetSelectionResolver.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
+                Intention.TargetSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
             }
         }
 

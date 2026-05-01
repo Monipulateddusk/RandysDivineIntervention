@@ -2,8 +2,8 @@ namespace TurnBased.Phases
 {
     public class SubPhaseManager
     {
-        private readonly System.Collections.Generic.Dictionary<SubPhaseState, SubPhase> MainPhaseStates = new();
-        private SubPhaseState currentState = SubPhaseState.NONE;
+        private System.Collections.Generic.Dictionary<SubPhaseState, SubPhase> MainPhaseStates = new();
+        private SubPhaseState currentState;
         private UnitIndex? selectedIndex;
         public SubPhaseState CurrentSubPhaseState
         {
@@ -20,6 +20,7 @@ namespace TurnBased.Phases
         public void Awake(System.Action<SubPhaseState> OnSubPhaseComplete) 
         {
             /*  Clear the previous Phases for this currentUnit and Initalise them.  */
+            this.MainPhaseStates = new();
             this.MainPhaseStates.Clear();
 
             /*  Add all phases to the dictionary.   */
@@ -29,16 +30,33 @@ namespace TurnBased.Phases
             this.MainPhaseStates.Add(SubPhaseState.READY_TO_EXECUTE_MOVE,       new UnitTurnPhase_ReadyToExecuteMove(OnSubPhaseComplete));
             this.MainPhaseStates.Add(SubPhaseState.RESOLVE_ATTACK,              new UnitTurnPhase_ResolveAttack(OnSubPhaseComplete));
             this.MainPhaseStates.Add(SubPhaseState.ATTACK_COMPLETE,             new UnitTurnPhase_AttackComplete(OnSubPhaseComplete));
+
+            UnityEngine.Debug.LogError("CREATED ALL SUBPHASES");
+            UnityEngine.Debug.LogWarning($"Size of the list is: {this.MainPhaseStates.Count}");
+
+            this.currentState = SubPhaseState.NONE;
         }
 
         public void OnDestroy()
         {
+            UnityEngine.Debug.LogError("DESTROYING PHASES");
+
+            int count = this.MainPhaseStates.Count;
+            for(int i = 0; i < count; i++) 
+            {
+                this.MainPhaseStates[(SubPhaseState)i] = null;
+            }
+
             this.MainPhaseStates.Clear();
         }
 
         public void SwitchSubPhase(SubPhaseState newState, UnitIndex selectedUnitIndex)
         {
-            UnityEngine.Debug.LogWarning($"Switching to Phase: {newState} ");
+            
+            UnityEngine.Debug.LogWarning($"Switching to Phase: {newState}.");
+            UnityEngine.Debug.LogWarning($"Size of the list is: {this.MainPhaseStates.Count}");
+
+
 
             this.MainPhaseStates[this.CurrentSubPhaseState]?.OnExit();
 

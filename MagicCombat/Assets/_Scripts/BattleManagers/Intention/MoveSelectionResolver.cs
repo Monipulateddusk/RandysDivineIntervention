@@ -1,13 +1,41 @@
 namespace TurnBased.Intention
 {
-    public static class MoveSelectionResolver 
+    public class MoveSelectionResolver 
     {
+        private static MoveSelectionResolver instance;
+        public static MoveSelectionResolver Instance
+        {
+            get
+            {
+                return instance;                
+            }
+        }
+
+
         public static System.Action<UnitIndex> OnRequireUserInput;
         public static System.Action<UnitIndex> OnCompleteUserInput;
         public static System.Action<UnitIndex, IBattleMove> OnMoveSelected;
 
+        public void Awake()
+        {
+            if (instance == null)
+            {
+                instance = this;
+            }
+        }
 
-        public static bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            OnRequireUserInput = null;
+            OnCompleteUserInput = null;
+            OnMoveSelected = null;
+        }
+        public bool ProcessIntentionMoveSelection(UnitIndex unitIndex)
         {
             UnityEngine.Debug.LogWarning("Try get move selector!");
 
@@ -38,7 +66,7 @@ namespace TurnBased.Intention
         /// 
         /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-        public static void OnPlayerDrivenSelection(UnitIndex unitIndex, IBattleMove selectedMove)
+        public void OnPlayerDrivenSelection(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             if (!MoveSelection.MoveSelectorManager.Instance.TryGetMoveSelector(unitIndex, out MoveSelection.IMoveSelector moveSelector)) { return; }
 
@@ -59,12 +87,12 @@ namespace TurnBased.Intention
 
 
 
-        public static void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
+        public void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
         {
             if (moveSelector == null) { UnityEngine.Debug.Log("Move selector is null?"); return; }
 
             /*  Create the scene data for this unit.    */
-            SceneData_UnitTurn sceneData = StationManagerUtilities.CreateCombatSceneDataForUnitIndex(unitIndex);
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn sceneData)) {  return; }
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
 
             /*  Notify CombatRoundIntentionManager that a move has been selected by this UnitIndex. */

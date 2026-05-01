@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace TurnBased.MoveSelection {
@@ -20,35 +21,54 @@ namespace TurnBased.MoveSelection {
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, IMoveSelector> unitIndexMoveSelectionDictionary = new();
+        private System.Collections.Generic.Dictionary<int, IMoveSelector> unitIndexMoveSelectionDictionary = new();
 
         public void Awake()
         {
             /*  Initalise the Singleton.    */
-            if (instance != null && instance != this)
+            if (instance == null)
             {
-                return;
+                instance = this;
             }
-            instance = this;
+
+            this.unitIndexMoveSelectionDictionary = new();
+
             StationManager.OnAddUnit    += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
+
+            Debug.LogWarning($"Subscribed to Station Manager add unit!");
+
+
         }
 
         public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
-           // RemoveAllUnitIndexesFromDictionary();
+            RemoveAllUnitIndexesFromDictionary();
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)
         {
+            UnityEngine.Debug.LogError($"Trying to get battle unit of index");
+
             if (!StationManager.Instance.TryGetBattleUnitOfIndex(unitIndex, out BaseBattleUnit unit)) { return; }
+
+            UnityEngine.Debug.LogError($"Adding unit to move selector   ");
             AddUnitMoveSelector(unitIndex, unit.GetBaseUnit().moveSelectorType);
         }
         private void StationManager_OnRemoveUnit(UnitIndex unitIndex, StationIndex? nullable, BaseBattleUnit unit)
         {
+            Debug.LogError("Starting to remove unit from MoveSelectorManager");
+
             RemoveUnitMoveSelector(unitIndex);
+
+            Debug.LogError("Removed unit from MoveSelectorManager");
         }
 
         public bool AddUnitMoveSelector(UnitIndex unitIndex, UnitMoveSelectorType moveSelectorType)
@@ -86,10 +106,11 @@ namespace TurnBased.MoveSelection {
         }
         private void RemoveAllUnitIndexesFromDictionary()
         {
-            foreach(System.Collections.Generic.KeyValuePair<int, IMoveSelector> unitIndexMoveSelectorKeyValuePair in this.unitIndexMoveSelectionDictionary)
+            System.Collections.Generic.List<int> keys = this.unitIndexMoveSelectionDictionary.Keys.ToList();
+
+            for (int i = 0; i < keys.Count; i++)
             {
-                int key = unitIndexMoveSelectorKeyValuePair.Key;    
-                this.unitIndexMoveSelectionDictionary.Remove(key);
+                this.unitIndexMoveSelectionDictionary.Remove(keys[i]);
             }
         }
 

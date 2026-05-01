@@ -60,7 +60,7 @@ namespace TurnBased.UI
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
         {
-
+            Debug.LogError($"StationSelectorManager_OnSelectionChange");
             if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndex)) { return; }
 
             if (!UnitIntentionManager.Instance.TryGetIntention(unitIndex, out var intention)) {  return; }

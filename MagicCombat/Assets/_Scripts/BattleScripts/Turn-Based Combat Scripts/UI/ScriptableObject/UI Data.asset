@@ -27,3 +27,4 @@ MonoBehaviour:
   InspectionHealthPrefab: {fileID: 2086028032986980008, guid: 116d4e6aeffc22741b1a1c1bc9e10358, type: 3}
   WindowManagerPrefab: {fileID: 6570136656129842540, guid: 2c5617499c9a3b8459e4ddb10f9c62bd, type: 3}
   SelectorManagerPrefab: {fileID: 393109512884838205, guid: d35406a22fa3adb469bf067d0ef67003, type: 3}
+  EndOfBattlePopupPrefab: {fileID: 2128059688638220807, guid: 498dc73dbab535346abd5006938b5e17, type: 3}

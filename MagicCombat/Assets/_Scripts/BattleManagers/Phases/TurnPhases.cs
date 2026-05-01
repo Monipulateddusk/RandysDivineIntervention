@@ -1,4 +1,5 @@
 using System;
+using TurnBased.Health;
 using TurnBased.Intention;
 using UnityEngine;
 
@@ -24,6 +25,11 @@ namespace TurnBased.Phases
             this.OnMainPhaseComplete = onMainPhaseComplete;
             this.RoundUnitIntentionManager = cRUIM;
         }
+        ~MainPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
     }
 
     public class BeginBattlePhase : MainPhase
@@ -46,6 +52,12 @@ namespace TurnBased.Phases
         {
    
         }
+
+        ~BeginBattlePhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
     }
 
 
@@ -59,7 +71,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            Debug.Log("Entering begin round phase");
+            Debug.LogWarning("Entering begin round phase");
 
             /*  Set the StationSelector to be locked so the player cannot select units while processing initial intentions. */
             StationSelectorManager.Instance.SetSelectorStateLocked();
@@ -88,6 +100,8 @@ namespace TurnBased.Phases
         {
             TurnOrderCreationState turnOrderCreationState = TurnOrder.TurnOrderManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
 
+            Debug.LogWarning($"TurnOrder initalisation! State is {turnOrderCreationState}");
+
             if (turnOrderCreationState == TurnOrderCreationState.InsufficentUnits) { throw new System.Exception("ERROR — START OF ROUND: INSUSFICIENT UNIT COUNT!"); }
             else if (turnOrderCreationState == TurnOrderCreationState.OldTurnOrderList)
             {
@@ -98,10 +112,22 @@ namespace TurnBased.Phases
 
         private void SubscribeEventsForStartOfRound()
         {
+            Debug.LogWarning($"Adding events for start of round.");
+
             this.completionManager = new(OnBeginRoundComplete);
 
+            Debug.LogWarning($"Created completion manager.");
+
             this.completionManager.AddAction();
+
+            Debug.LogWarning($"Added action.");
+
+
             Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += this.completionManager.OnActionComplete;
+
+            Debug.LogWarning($"Starting Processing non-player driven unit intentions.");
+
+
             this.RoundUnitIntentionManager.ObtainNonPlayerDrivenUnitIntentions();
         }
 
@@ -113,7 +139,11 @@ namespace TurnBased.Phases
             /*  Once everything is done, we want to move onto the next Phase.   */
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfRound); 
         }
-
+        ~BeginRoundPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
     }
 
     public class PreTurnPhase : MainPhase
@@ -143,7 +173,11 @@ namespace TurnBased.Phases
 
         }
 
-
+        ~PreTurnPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
 
 
     }
@@ -206,6 +240,11 @@ namespace TurnBased.Phases
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PlayerTurn);
             return;
         }
+        ~UnitTurnPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
     }
 
     public class TurnOrderCombatResolutionPhase : MainPhase
@@ -218,6 +257,8 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
+            StationSelectorManager.Instance.SetSelectorStateLocked();
+
             /*  The Combat Round Intention Manager should be the one to put us into the resolve attack sub phase.   */
             this.turnOrderCombatCompletionManager = new(OnTurnOrderCombatFullyResolving);
             this.turnOrderCombatCompletionManager.AddAction();
@@ -241,7 +282,11 @@ namespace TurnBased.Phases
         {
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
         }
-
+        ~TurnOrderCombatResolutionPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
+        }
     }
 
 
@@ -264,12 +309,18 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-
+            StationSelectorManager.Instance.SetSelectorStateUnlocked();
         }
 
         public override void Update()
         {
 
+        }
+
+        ~EndRoundPhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
         }
     }
 
@@ -292,6 +343,11 @@ namespace TurnBased.Phases
         public override void Update()
         {
 
+        }
+        ~EndOfBattlePhase()
+        {
+            this.OnMainPhaseComplete = null;
+            this.RoundUnitIntentionManager = null;
         }
     }
 

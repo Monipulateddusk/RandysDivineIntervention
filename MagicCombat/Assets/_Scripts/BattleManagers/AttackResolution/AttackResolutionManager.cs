@@ -28,7 +28,10 @@ namespace TurnBased.AttackResolution
 
         public void Awake()
         {
-            instance = this;
+            if (Instance == null)
+            {
+                instance = this;
+            }
         }
 
         public void OnDestroy()
@@ -37,6 +40,7 @@ namespace TurnBased.AttackResolution
             {
                 instance = null;
             }
+            OnAllAttacksFullyResolved = null;
         }
 
         /// <summary>
@@ -91,7 +95,7 @@ namespace TurnBased.AttackResolution
         public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            UnitData_SceneData_UnitTurn unitDataSceneData = StationManagerUtilities.CreateUnitDataSceneDataForUnitIndex(unitIndex);
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"Do nothing."; }
             AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
 
@@ -143,9 +147,16 @@ namespace TurnBased.AttackResolution
 
         public static string GetUnitIntentionIntentionString(UnitIndex unitIndex, UnitData unitData, Intention.UnitIntention intention)
         {
+
+            UnityEngine.Debug.LogError($"Getting UnitIntentionIntentionString");
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            UnitData_SceneData_UnitTurn unitDataSceneData = StationManagerUtilities.CreateUnitDataSceneDataForUnitIndex(unitIndex);
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"{unitData.name} is going to do nothing."; }
+
+            UnityEngine.Debug.LogError($"Created unit data for unit index");
+
             AttackResolutionInfo resolutionInfo = intention.MoveSelection.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+
+            UnityEngine.Debug.LogError($"Executed move");
 
             /*  Determine who the attack is going to.   There is a limitation here, each attack action can go to multiple targets. So we would need to fix this up to account for different targets for each attack action.   */
             if (!UserInterfaceUtility.TryGetIntentionTargetText(intention, out string unitName)) { return $"{unitData.name} is intending to do nothing."; }

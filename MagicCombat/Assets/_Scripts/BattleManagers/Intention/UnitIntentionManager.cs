@@ -51,7 +51,7 @@ namespace TurnBased.Intention
             }
         }
 
-        private readonly System.Collections.Generic.Dictionary<int, UnitIntention> intentionDictionary = new();
+        private System.Collections.Generic.Dictionary<int, UnitIntention> intentionDictionary = new();
 
         public static event System.Action<UnitIndex> OnUnitIntentionAdded;
         /// <summary>
@@ -63,7 +63,13 @@ namespace TurnBased.Intention
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.intentionDictionary = new();
+
             StationManager.OnAddUnit += AddUnitIndexToDictionary;
             StationManager.OnRemoveUnit += RemoveUnitIndexFromDictionary;
         }
@@ -72,8 +78,19 @@ namespace TurnBased.Intention
 
         public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
+            this.intentionDictionary.Clear();
+
             StationManager.OnAddUnit -= AddUnitIndexToDictionary;
             StationManager.OnRemoveUnit -= RemoveUnitIndexFromDictionary;
+
+            OnUnitIntentionAdded = null;
+            OnUnitIntentionChanged = null;
+            OnUnitIntentionRemoved = null;
         }
 
         public void AddUnitIndexToDictionary(UnitIndex unitIndex)
@@ -86,7 +103,11 @@ namespace TurnBased.Intention
 
         private void RemoveUnitIndexFromDictionary(UnitIndex unitIndex, StationIndex? arg2, BaseBattleUnit arg3)
         {
+            UnityEngine.Debug.LogError("Starting to remove intention from UnitIntentionManager");
+
             RemoveIntention(unitIndex);
+
+            UnityEngine.Debug.LogError("Removed unit index from UnitIntentionManager");
         }
 
         public void RemoveIntention(UnitIndex unitIndex)

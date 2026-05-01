@@ -21,8 +21,11 @@ namespace TurnBased.LoaderUnloader
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndex, StationIndex? stationRemovedUnitWasOn, BaseBattleUnit battleUnitOfDestroyedUnit)
         {
+
             /*  Animate the death of the Unit by simply shaking and phasing out the Unit.   */
             _ = UnitDeathPhaseOut(battleUnitOfDestroyedUnit);
+
+            UnityEngine.Debug.LogError("Phase out animation done");
         }
 
         private async System.Threading.Tasks.Task UnitDeathPhaseOut(BaseBattleUnit battleUnitOfDestroyedUnit)

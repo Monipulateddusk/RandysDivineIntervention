@@ -56,12 +56,15 @@ public class BattlePresentationManager : MonoBehaviour
 
     private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
     {
+        UnityEngine.Debug.Log($" BattlePresentationManager  OnSelectionChange!");
         StationManagerUtilities.GetBattleUnitOnStation(selectedStationIndex, out BaseBattleUnit battleUnitOnStation);
 
         if (tempVisual != null)
         {
             tempVisual.transform.position = battleUnitOnStation.transform.position;
         }
+
+        UnityEngine.Debug.Log($"Moved the visual!");
     }
 
     public async System.Threading.Tasks.Task MoveUnitToTarget(StationIndex stationOfTheSourceUnit, StationIndex targetStation)

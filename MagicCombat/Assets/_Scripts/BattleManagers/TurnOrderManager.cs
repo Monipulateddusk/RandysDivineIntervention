@@ -28,7 +28,12 @@ namespace TurnBased.TurnOrder
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.UnitIndexTurnOrderList = new();
 
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
@@ -39,16 +44,23 @@ namespace TurnBased.TurnOrder
             {
                 instance = null;
             }
+
+            OnUpdateTurnOrder = null;
+            StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
         }
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfTheRemovedUnit, StationIndex? theStationUnit, BaseBattleUnit battleUnitOfTheRemovedUnit)
         {
+            UnityEngine.Debug.LogError("Starting to remove unit from TurnOrderManager");
+
             /*  If the removed unit exists in our turn order, remove it.    */
             if (this.UnitIndexTurnOrderList.Contains(unitIndexOfTheRemovedUnit))
             {
                 UnityEngine.Debug.LogError($"Removed Unit Index {unitIndexOfTheRemovedUnit.Index} from turnOrderList");
                 this.UnitIndexTurnOrderList.Remove(unitIndexOfTheRemovedUnit);
             }
+
+            UnityEngine.Debug.LogError("Removed unit from TurnOrderManager");
         }
 
         /// <summary>

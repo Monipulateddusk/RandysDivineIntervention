@@ -34,7 +34,10 @@ namespace TurnBased.GameState
 
         public void Awake()
         {
-            instance = this;
+            if (instance == null)
+            {
+                instance = this;
+            }
         }
 
         public void OnDestroy()
@@ -47,6 +50,8 @@ namespace TurnBased.GameState
 
         public void DetermineGameState()
         {
+            UnityEngine.Debug.LogWarning($"Determining game state");
+
             /*  If there are less than 0 Units on the Player's team, the player lost. Check this before checking enemy count.   */
             if (StationManager.Instance.GetUnitsOnTeam(UnitTeam.ALLY).Count <= 0)
             {
@@ -60,6 +65,8 @@ namespace TurnBased.GameState
             {
                 this.CurrentGameState = MetaGameState.Running;
             }
+
+            UnityEngine.Debug.LogWarning($"Game state is: {this.CurrentGameState}");
 
             OnGameStateUpdated?.Invoke(this.CurrentGameState); 
         }
