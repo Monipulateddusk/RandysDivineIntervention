@@ -1,3 +1,4 @@
+using TurnBased.LoaderUnloader;
 using UnityEngine;
 
 public class EndOfBattlePopupBehaviour : MonoBehaviour
@@ -18,6 +19,12 @@ public class EndOfBattlePopupBehaviour : MonoBehaviour
         {
             Initalise(MetaGameState.Running);
         }
+    }
+
+    private void OnDestroy()
+    {
+        this.NoButton.onClick.RemoveAllListeners();
+        this.YesButton.onClick.RemoveAllListeners();    
     }
 
     public void Initalise(MetaGameState metaGameState)
@@ -53,11 +60,17 @@ public class EndOfBattlePopupBehaviour : MonoBehaviour
         this.CanvasGroup.alpha = 1;
         this.AlertTextTmp.text = "No Enemy Combatants Detected.\r\n";
         this.DialogueTextTmp.text = "Would You like To Move To The Next Room?";
+
+        this.NoButton.onClick.AddListener(LevelLoaderManager.Instance.SwitchToLevelSelection);
+        this.YesButton.onClick.AddListener(LevelLoaderManager.Instance.LoadNextLevel);
     }
     private void VisualisePlayerLossPopup()
     {
         this.CanvasGroup.alpha = 1;
         this.AlertTextTmp.text = "All Allied Combatants Missing.\r\n";
         this.DialogueTextTmp.text = "Would you like to try again?";
+
+        this.NoButton.onClick.AddListener(LevelLoaderManager.Instance.SwitchToLevelSelection);
+        this.YesButton.onClick.AddListener(LevelLoaderManager.Instance.ReloadCurrentScene);
     }
 }

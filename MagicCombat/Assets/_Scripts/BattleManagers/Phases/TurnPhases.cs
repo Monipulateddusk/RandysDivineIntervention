@@ -257,7 +257,7 @@ namespace TurnBased.Phases
 
         public override void OnEnter()
         {
-            StationSelectorManager.Instance.SetSelectorStateLocked();
+   
 
             /*  The Combat Round Intention Manager should be the one to put us into the resolve attack sub phase.   */
             this.turnOrderCombatCompletionManager = new(OnTurnOrderCombatFullyResolving);
@@ -309,7 +309,7 @@ namespace TurnBased.Phases
 
         public override void OnExit()
         {
-            StationSelectorManager.Instance.SetSelectorStateUnlocked();
+      
         }
 
         public override void Update()

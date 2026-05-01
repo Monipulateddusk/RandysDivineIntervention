@@ -55,7 +55,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction(userInfo.element, userInfo.attack, 1, MoveTarget.SingleEnemy),
+                            new DamageAttackAction(userInfo.attack, 1, MoveTarget.SingleEnemy),
                         }
                     },
                 }
@@ -86,14 +86,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction(userInfo.element, damageAmount: 1, 2, MoveTarget.SingleEnemy)         
+                            new DamageAttackAction(damageAmount: 1, 2, MoveTarget.SingleEnemy)         
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction(userInfo.element, damage, 1, MoveTarget.SingleEnemy)
+                            new DamageAttackAction(damage, 1, MoveTarget.SingleEnemy)
                         }
                     },
                 }

@@ -53,24 +53,21 @@ public class LevelSelectManager : MonoBehaviour
     {
         if (this.LevelData.Count > 0)
         {
-            LevelLoaderManager.Instance.SetLevelData(this.LevelData[0]);
-            LevelLoaderManager.Instance.SwitchToMainSceneSelection();
+            LevelLoaderManager.Instance.SwitchToMainSceneSelection(this.LevelData, 0);
         }
     }
     private void OnLevel2ButtonPressed()
     {
         if (this.LevelData.Count > 0)
         {
-            LevelLoaderManager.Instance.SetLevelData(this.LevelData[1]);
-            LevelLoaderManager.Instance.SwitchToMainSceneSelection();
+            LevelLoaderManager.Instance.SwitchToMainSceneSelection(this.LevelData, 1);
         }
     }
     private void OnLevel3ButtonPressed()
     {
         if (this.LevelData.Count > 0)
         {
-            LevelLoaderManager.Instance.SetLevelData(this.LevelData[2]);
-            LevelLoaderManager.Instance.SwitchToMainSceneSelection();
+            LevelLoaderManager.Instance.SwitchToMainSceneSelection(this.LevelData, 2);
         }
     }
     private void OnShutDownButtonPressed()
