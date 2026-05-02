@@ -33,7 +33,7 @@ namespace TurnBased
 
     public interface IBattleMove
     {
-        public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null);
+        public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
         public MoveTarget GetMoveTargetType();
         public int GetMaxTargets();
         public bool DoesSourceUnitMove();
@@ -45,7 +45,7 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -75,7 +75,7 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             int damage = userInfo.attack / 3;
             AttackResolutionInfo resolutionInfo = new()
@@ -114,7 +114,7 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, List<UnitData> usersInfo = null, List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {

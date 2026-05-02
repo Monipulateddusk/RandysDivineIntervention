@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 
 namespace TurnBased.TargetSelection
 {
@@ -101,6 +103,58 @@ namespace TurnBased.TargetSelection
             return stationIndexes[randomIndex];
         }
     }
+
+    public class HighestHPTargetSelector : ITargetSelector
+    {
+        public List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
+        {
+            MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
+
+
+            /*  If the this MoveTargetType is any of: Self, Area, AllEnemies, AllAllies. Then we don't need to figure out which of the stations we have available specifically is the target.   */
+            if (!selectorInfo.DoesRequireTargettingSelectorSelection)
+            {
+                return selectorInfo.PossibleTargets;
+            }
+            /*  However, for SingleAlly or SingleEnemy, we need to pick from the all possible options who specifically we are targetting.   */
+            else
+            {
+                /// Single Enemy
+                if (moveTargetType == MoveTarget.SingleEnemy)
+                {
+                    return new() { GetHighestHPTargetFromList(data.EnemyStationIndexes) };
+                }
+                /// Single Ally
+                else
+                {
+                    return new() { GetHighestHPTargetFromList(data.AllyStationIndexes) };
+                }
+            }
+        }
+
+        private StationIndex GetHighestHPTargetFromList(System.Collections.Generic.List<StationIndex> stationIndexes)
+        {
+            StationIndex highestHPUnit = stationIndexes.FirstOrDefault();
+            int highestHPValue = 0;
+
+            foreach (StationIndex stationIndex in stationIndexes)
+            {
+                if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex  unitIndex)) { continue; }
+
+                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int unitHealth)) {  continue; }
+
+                if (unitHealth > highestHPValue) 
+                {  
+                    highestHPValue = unitHealth; 
+                    highestHPUnit = stationIndex;
+                }
+            }
+
+            return highestHPUnit;
+        }
+    }
+
 
     public class PlayerDrivenTargetSelector : ITargetSelector
     {
