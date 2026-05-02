@@ -1,9 +1,6 @@
-using UnityEngine;
-using UnityEngine.SceneManagement;
-
 namespace TurnBased.LoaderUnloader
 {
-    public class LevelLoaderManager : MonoBehaviour
+    public class LevelLoaderManager : UnityEngine.MonoBehaviour
     {
         private static LevelLoaderManager instance;
         public static LevelLoaderManager Instance
@@ -23,7 +20,7 @@ namespace TurnBased.LoaderUnloader
 
         public static event System.Action<BaseBattleUnit> OnCreateUnit;
         private System.Collections.Generic.List<LevelData> AllLevelData;
-        [SerializeField] private LevelData currentLevelData;
+        [UnityEngine.SerializeField] private LevelData currentLevelData;
         private int currentLevelIndex;
 
 
@@ -33,6 +30,10 @@ namespace TurnBased.LoaderUnloader
             {
                 instance = this;
                 DontDestroyOnLoad(this.gameObject);
+            }
+            else if (instance != null && instance != this)
+            {
+                Destroy(this.gameObject);
             }
         }
 
@@ -44,32 +45,15 @@ namespace TurnBased.LoaderUnloader
             }
         }
 
-        //private void Update()
-        //{
-        //    HandleScreenShot();
-        //}
-
-        //private void HandleScreenShot()
-        //{
-        //    if (Input.GetKeyDown(KeyCode.Escape))
-        //    {
-        //        string path = System.IO.Path.Combine(Application.dataPath, "screenshot.png");
-
-        //        Debug.LogError("Printing screenshot at path: " + path);
-
-        //        ScreenCapture.CaptureScreenshot(path);
-        //    }
-        //}
-
 
         /// <summary>
         /// Only switch to the level selection screen if we are in the main scene
         /// </summary>
         public void SwitchToLevelSelection()
         {
-            if (SceneManager.GetActiveScene().buildIndex == SceneManager.GetSceneByName("MainScene").buildIndex)
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == UnityEngine.SceneManagement.SceneManager.GetSceneByName("MainScene").buildIndex)
             {
-                SceneManager.LoadScene("LevelSelect");
+                UnityEngine.SceneManagement.SceneManager.LoadScene("LevelSelect");
             }
         }
 
@@ -85,33 +69,33 @@ namespace TurnBased.LoaderUnloader
 
             this.currentLevelData = this.AllLevelData[this.currentLevelIndex];
 
-            if (SceneManager.GetActiveScene().buildIndex == SceneManager.GetSceneByName("LevelSelect").buildIndex)
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == UnityEngine.SceneManagement.SceneManager.GetSceneByName("LevelSelect").buildIndex)
             {
-                SceneManager.LoadScene("MainScene");
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
             }
         }
 
         public void ReloadCurrentScene()
         {
-            if (SceneManager.GetActiveScene().buildIndex != SceneManager.GetSceneByName("MainScene").buildIndex) { return; }
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex != UnityEngine.SceneManagement.SceneManager.GetSceneByName("MainScene").buildIndex) { return; }
 
-            SceneManager.LoadScene("MainScene");
+            UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
         }
 
         public void LoadNextLevel()
         {
-            if (SceneManager.GetActiveScene().buildIndex != SceneManager.GetSceneByName("MainScene").buildIndex) { return; }
+            if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex != UnityEngine.SceneManagement.SceneManager.GetSceneByName("MainScene").buildIndex) { return; }
 
             this.currentLevelIndex++;
 
             if (this.currentLevelIndex > this.AllLevelData.Count - 1)
             {
-                SceneManager.LoadScene("LevelSelect");                
+                UnityEngine.SceneManagement.SceneManager.LoadScene("LevelSelect");                
             }
             else
             {
                 this.currentLevelData = this.AllLevelData[this.currentLevelIndex];
-                SceneManager.LoadScene("MainScene");
+                UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene");
             }
         }
 
@@ -137,14 +121,14 @@ namespace TurnBased.LoaderUnloader
 
         void CreateUnit(UnitData unitData, UnitTeam unitTeam)
         {
-            GameObject instanciatedGameObject = new GameObject(unitData.name);
-            instanciatedGameObject.transform.localScale = new Vector3(0.5f, 0.5f, 1);
+            UnityEngine.GameObject instanciatedGameObject = new UnityEngine.GameObject(unitData.name);
+            instanciatedGameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 1);
 
             BaseBattleUnit instanciatedBaseBattleUnit = instanciatedGameObject.AddComponent<BaseBattleUnit>();
             instanciatedBaseBattleUnit.Initialise(unitData);
             instanciatedBaseBattleUnit.SetTeam(unitTeam);
 
-            instanciatedBaseBattleUnit.gameObject.transform.localScale = new Vector3(0.5f, 0.5f, 1);
+            instanciatedBaseBattleUnit.gameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 1);
 
             OnCreateUnit?.Invoke(instanciatedBaseBattleUnit);
         }
