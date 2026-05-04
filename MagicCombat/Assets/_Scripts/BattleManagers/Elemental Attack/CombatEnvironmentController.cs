@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace TurnBased.AttackResolution
+namespace TurnBased.Elements
 {
     public struct ImbuedEnvironmentElement
     {
@@ -16,9 +16,26 @@ namespace TurnBased.AttackResolution
 
     public class CombatEnvironmentController
     {
+        private static CombatEnvironmentController instance;
+        public static CombatEnvironmentController Instance
+        {
+            get
+            {
+                return instance;
+            }
+            private set
+            {
+                instance = value;                
+            }
+        }
+
+        public static event System.Action<ImbuedEnvironmentElement> OnAddElementalImbuement;
+        public static event System.Action<ImbuedEnvironmentElement> OnRemoveElementalImbuement;
+
+
         /*  Elemental Look-Up Table     */
         /*  Same size as the Element Enum. Units are able to imbue the Environment with their Element to do an attack if their Ally participates.   */
-        readonly IElementalMoveAction[,] ElementalMoveLookUpTable = new IElementalMoveAction[7, 7]
+        private readonly IElementalMoveAction[,] ElementalMoveLookUpTable = new IElementalMoveAction[7, 7]
         {   /*  NULL,   Fire                Water                   Ice                     Earth                       Light                   Darkness    */
         {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* NULL     */
         {   null,   new EM_Inferno(),   new EM_Steam(),         new EM_Frostburn(),     new EM_Volcano(),           null,                   null,  },   /* Fire     */
@@ -29,26 +46,45 @@ namespace TurnBased.AttackResolution
         {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
         };
 
-        private readonly System.Collections.Generic.List<ImbuedEnvironmentElement> EnvironmentEffects;
+        private System.Collections.Generic.List<ImbuedEnvironmentElement> EnvironmentEffects;
 
-        public CombatEnvironmentController()
+
+        public void Awake()
         {
-            EnvironmentEffects = new();
+            if (instance == null)
+            {
+                instance = this;
+            }
+
+            this.EnvironmentEffects = new();
+        }
+
+        public void OnDestroy()
+        {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+            this.EnvironmentEffects.Clear();
         }
 
         public void AddEnvironmentalEffect(Element effect, UnitTeam team)
         {
-            /*  Add the imbued element to the list. */
-            this.EnvironmentEffects.Add(new ImbuedEnvironmentElement(team, effect));
+            /*  Add the imbued element to the list and alert any listeners. */
+            ImbuedEnvironmentElement imbuedEnvironmentElement = new(team, effect);
+            this.EnvironmentEffects.Add(imbuedEnvironmentElement);
+            OnAddElementalImbuement?.Invoke(imbuedEnvironmentElement);
 
+            DetermineIfProcessingElementalMove(team);
+        }
+
+        private void DetermineIfProcessingElementalMove(UnitTeam team)
+        {
             /*  Check the List. Does it contain two entries on the same team? If so, process that corresponding elemental attack.   */
             System.Collections.Generic.Queue<ImbuedEnvironmentElement> pairedElementsForElementalAttack = new(this.EnvironmentEffects.Where(iEE => iEE.team == team));
             if (pairedElementsForElementalAttack.Count >= 2)
             {
-                for (int i = 0; i < pairedElementsForElementalAttack.Count; i++)
-                {
-                    EnvironmentEffects.Remove(pairedElementsForElementalAttack.ToList()[i]);
-                }
+                RemovePairedElementsForAttack(pairedElementsForElementalAttack);
 
 
                 /*  Get the two elements to process it. */
@@ -58,8 +94,18 @@ namespace TurnBased.AttackResolution
             }
         }
 
+        private void RemovePairedElementsForAttack(System.Collections.Generic.Queue<ImbuedEnvironmentElement> pairedElementsForElementalAttack)
+        {
+            for (int i = 0; i < pairedElementsForElementalAttack.Count; i++)
+            {
+                /*  Remove both imbued Elements on the team and alert any listeners.    */
+                ImbuedEnvironmentElement removedImbuedEnvironmentElement = pairedElementsForElementalAttack.ToList()[i];
+                this.EnvironmentEffects.Remove(removedImbuedEnvironmentElement);
+                OnRemoveElementalImbuement?.Invoke(removedImbuedEnvironmentElement);
+            }
+        }
 
-        public void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team)
+        private void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team)
         {
             // Find out what move the elements combine into and do that move to get the info needed to resolve it
             IElementalMoveAction elementalAttackMoveAction = GetElementalCombination(elementValueA, elementValueB);
@@ -69,13 +115,15 @@ namespace TurnBased.AttackResolution
             System.Collections.Generic.List<UnitIndex> unitsOnTeam = StationManager.Instance.GetUnitsOnTeam(team);
             if (unitsOnTeam.Count <= 0) { return; }
 
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitsOnTeam.FirstOrDefault(), out UnitData_SceneData_UnitTurn unitDataSceneData)) { return; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return; }
 
             /*  Process the attack using the Scene Unit Data.   */
-            AttackResolutionInfo elementalAttackResolutionInfo = elementalAttackMoveAction.DoElementalMove(usersInfo: unitDataSceneData.AllyUnitData, targetsInfo: unitDataSceneData.EnemyUnitData);
+            AttackResolutionInfo elementalAttackResolutionInfo = elementalAttackMoveAction.ExecuteElementalMove(usersInfo: unitDataSceneData.AllyUnitData, targetsInfo: unitDataSceneData.EnemyUnitData);
 
 
             /*  Before we process it, we need to determine the Targets of the attack. The ElementalMoveAction will dictate who it targets.  */
+            
+
 
 
             //CombatAttackHandler.ProcessAttackStep(this, info, users.FirstOrDefault().GetUnitIntentData());

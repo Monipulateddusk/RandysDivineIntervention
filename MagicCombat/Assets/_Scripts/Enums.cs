@@ -64,7 +64,8 @@ public enum UnitTargetSelectorType
 {
     Random,
     Sequential,
-    PlayerDriven
+    PlayerDriven,
+    HighestHP
 }
 
 

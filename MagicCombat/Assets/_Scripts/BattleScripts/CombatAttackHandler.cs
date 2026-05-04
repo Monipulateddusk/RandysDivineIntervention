@@ -29,7 +29,7 @@ namespace TurnBased.AttackResolution
         }
 
 
-        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, CombatEnvironmentController environmentController = null)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, Elements.CombatEnvironmentController environmentController = null)
         {
             System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict = new();
 
@@ -59,12 +59,7 @@ namespace TurnBased.AttackResolution
 
         private async static System.Threading.Tasks.Task ConvertAttackEventsToTimeline(System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
         {
-
-            UnityEngine.Debug.LogWarning($"Is the dict empty?");
-
             if (unitIndexTargetPerAttackEventDict.Count <= 0) { return; }
-
-            UnityEngine.Debug.LogWarning($"dict is not empty");
 
             /*  As we want each part of an action to hit all required units at the same time, a timeline is needed. 
              *  An example would be a shockwave. Instead of looping through the units and each one processes one after the other, we want all units to be damaged at the same time. 

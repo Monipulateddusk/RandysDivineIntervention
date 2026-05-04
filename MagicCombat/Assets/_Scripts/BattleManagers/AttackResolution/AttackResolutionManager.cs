@@ -125,6 +125,40 @@ namespace TurnBased.AttackResolution
             return intentionText;
         }
 
+        public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMoveAction elementalMove)
+        {
+            /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
+
+            AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+
+            /*  Get a full list of all actions so we can format the string properly.    */
+            List<AttackAction> actions = new();
+            foreach (AttackStep step in resolutionInfo.Steps)
+            {
+                foreach (AttackAction action in step.Actions)
+                {
+                    actions.Add(action);
+                }
+            }
+
+            /*  If something went wrong, complete the string.   */
+            if (actions.Count <= 0) { return $"Elemental Move is going to do nothing."; }
+
+            string intentionText = $"";
+            for (int i = 0; i < actions.Count; i++)
+            {
+                if (i != 0)
+                {
+                    intentionText += (i == actions.Count - 1) ? " then, " : ", ";
+                }
+
+                intentionText += $"{actions[i].GetDescription()}"; // To Whom!?
+            }
+
+            return intentionText;
+        }
+
         private static string GetTargettingString(AttackAction action)
         {
             switch (action.AttackTarget)

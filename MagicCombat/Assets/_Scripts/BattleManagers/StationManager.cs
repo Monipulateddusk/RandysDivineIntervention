@@ -921,6 +921,42 @@ public static class StationManagerUtilities
         return true;
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="team"></param>
+    /// <param name="unitDataSceneData"></param>
+    /// <returns>True if sucessful. SourceUnitData is Null as Elemental Moves don't have a source.  </returns>
+    public static bool TryCreateUnitDataSceneDataForElementalMove(UnitTeam team, out UnitData_SceneData_UnitTurn unitDataSceneData)
+    {
+        unitDataSceneData = default;
+
+        System.Collections.Generic.List<UnitData> teamedData = new();
+        System.Collections.Generic.List<UnitData> oppositeTeamData = new();
+
+        UnitTeam oppositeTeam = GetOppositeTeamType(team);
+
+        System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam            = StationManager.Instance.GetUnitsOnTeam(team);
+        System.Collections.Generic.List<UnitIndex> unitIndexesOnOppositeTeam    = StationManager.Instance.GetUnitsOnTeam(oppositeTeam);
+
+        foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
+        {
+            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndexOnTeam, out UnitData unitData)) { continue; }
+            teamedData.Add(unitData);
+        }
+
+        foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
+        {
+            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndexOnOppositeTeam, out UnitData unitData)) { continue; }
+            oppositeTeamData.Add(unitData);
+        }
+
+        if (teamedData.Count <= 0 || oppositeTeamData.Count <= 0) { return false; }
+
+        unitDataSceneData = new UnitData_SceneData_UnitTurn(null, teamedData, oppositeTeamData);
+        return true;
+    }
+
 
     /// <summary>
     /// Allows the retrieval of a single List of StationIndexes to loop through for purposes of targetting selection 

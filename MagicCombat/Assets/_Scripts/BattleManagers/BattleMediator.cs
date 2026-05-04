@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 
 namespace TurnBased
@@ -55,14 +54,15 @@ namespace TurnBased
             }
 
         }
-        private StationManager                         StationHandler              = new();
-        private StationSelectorManager                 StationSelectorManager      = new();
+        private StationManager                          StationHandler              = new();
+        private StationSelectorManager                  StationSelectorManager      = new();
+        private Elements.CombatEnvironmentController    CombatEnvironmentController = new();
 
-        private Phases.CombatTurnOrchestrator          CombatTurnOrchestrator      = new();
-        private LoaderUnloader.UnitDeathHandler        UnitDeathHandler            = new();
-        private GameState.GameStateManager             GameStateManager            = new();
+        private Phases.CombatTurnOrchestrator           CombatTurnOrchestrator      = new();
+        private LoaderUnloader.UnitDeathHandler         UnitDeathHandler            = new();
+        private GameState.GameStateManager              GameStateManager            = new();
 
-        private Intention.IntentionVisualiserManager IntentionVisualiserManager = new();
+        private Intention.IntentionVisualiserManager    IntentionVisualiserManager = new();
 
 
         [SerializeField] GameObject textPrefab;
@@ -76,24 +76,22 @@ namespace TurnBased
 
             this.StationHandler = new();
             this.StationSelectorManager = new();
+            this.CombatEnvironmentController = new();
             this.CombatTurnOrchestrator = new();
             this.UnitDeathHandler = new();
             this.GameStateManager = new();
             this.IntentionVisualiserManager = new();
 
 
-            this.UnitDeathHandler.Awake();
-
             this.StationHandler.Awake();
             this.StationSelectorManager.Awake();
-
-            this.IntentionVisualiserManager.Awake();
-
-
-
+            this.CombatEnvironmentController.Awake();
 
             this.CombatTurnOrchestrator.Awake();
+            this.UnitDeathHandler.Awake();
             this.GameStateManager.Awake();
+
+            this.IntentionVisualiserManager.Awake();
 
             LoaderUnloader.LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
         }
@@ -109,13 +107,14 @@ namespace TurnBased
             {
                 instance = null;
             }
-            this.IntentionVisualiserManager.OnDestroy();
-            this.CombatTurnOrchestrator.OnDestroy();
 
+            this.IntentionVisualiserManager.OnDestroy();  
 
             this.GameStateManager.OnDestroy();
-
             this.UnitDeathHandler.OnDestroy();
+            this.CombatTurnOrchestrator.OnDestroy();
+
+            this.CombatEnvironmentController.OnDestroy();
             this.StationSelectorManager.OnDestroy();
             this.StationHandler.OnDestroy();
 

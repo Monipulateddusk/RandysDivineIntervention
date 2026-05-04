@@ -1,19 +1,17 @@
-using System.Collections.Generic;
-
 namespace TurnBased
 {
     #region Attack Data Classes
 
     public class AttackStep
     {
-        public List<AttackAction> Actions = new();
+        public System.Collections.Generic.List<AttackAction> Actions = new();
 
         public AttackStep()
         {
             Actions = new();
         }
 
-        public AttackStep(List<AttackAction> actions)
+        public AttackStep(System.Collections.Generic.List<AttackAction> actions)
         {
             this.Actions = actions; 
         }
@@ -22,11 +20,11 @@ namespace TurnBased
 
     public class AttackResolutionInfo
     {
-        public List<AttackStep> Steps { get; private set; }
+        public System.Collections.Generic.List<AttackStep> Steps { get; private set; }
 
         public AttackResolutionInfo()
         {
-            Steps = new List<AttackStep>();
+            Steps = new System.Collections.Generic.List<AttackStep>();
         }
     }
     #endregion

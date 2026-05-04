@@ -4,9 +4,10 @@ namespace TurnBased.TargetSelection
     {
         private static readonly System.Collections.Generic.Dictionary<UnitTargetSelectorType, ITargetSelector> targetSelectors = new()
         {
-            {UnitTargetSelectorType.Sequential,   new SequentialTargetSelector()    },
-            {UnitTargetSelectorType.Random,       new RandomTargetSelector()        },
-            {UnitTargetSelectorType.PlayerDriven, new PlayerDrivenTargetSelector()  },
+            {UnitTargetSelectorType.Sequential,     new SequentialTargetSelector()      },
+            {UnitTargetSelectorType.Random,         new RandomTargetSelector()          },
+            {UnitTargetSelectorType.PlayerDriven,   new PlayerDrivenTargetSelector()    },
+            {UnitTargetSelectorType.HighestHP,      new HighestHPTargetSelector()       },
         };
 
         public static bool TryGetSelector(UnitTargetSelectorType type, out ITargetSelector moveSelector)

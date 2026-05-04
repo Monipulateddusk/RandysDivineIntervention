@@ -10,7 +10,6 @@ namespace TurnBased.LoaderUnloader
 
         public void Awake()
         {
-
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
 

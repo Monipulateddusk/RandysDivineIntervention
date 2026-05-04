@@ -1,12 +1,11 @@
-using TurnBased.TargetSelection;
-
 namespace TurnBased
 {
     public interface IElementalMoveAction
     {
-        public abstract AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
+        public abstract AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
         public abstract string GetMoveName();
-        public abstract TargetSelection.ITargetSelector GetTargetSelector();
+        public abstract UnitTargetSelectorType GetTargetSelectorType();
+        public string GetElementalMoveDescription();
     }
 
     #region Fire Moves
@@ -16,44 +15,35 @@ namespace TurnBased
     /// </summary>
     public class EM_Inferno : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo, System.Collections.Generic.List<UnitData> targetsInfo)
         {
-            int totalAttackValue = 0;
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.FIRE)
-                {
-                    totalAttackValue += unit.attack;
-                }
-            }
-
-            // Give a multiplier to the attack to make it better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.5f);
+            int totalFireAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.FIRE);
 
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
+                        Actions =
+                        {
                         
-                        // Afflicting status: Burned to enemies
-                        //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.FIRE, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.FIRE, 3, 1,  MoveTarget.SingleEnemy)
+                            // Afflicting status: Burned to enemies
+                            new ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  MoveTarget.SingleEnemy)
+                        }
                     }
                 }
-            }
             };
             return resolutionInfo;
         }
+
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Fire Damage to the Highest Health Enemy proportional to the Strength of Fire-Elemental Users.";
+
         public string GetMoveName() => "Inferno";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+
     }
 
     /// <summary>
@@ -61,45 +51,35 @@ namespace TurnBased
     /// </summary>
     public class EM_Steam : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
-            int totalAttackValue = 0;
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.WATER)
-                {
-                    totalAttackValue += unit.attack;
-                }
-            }
-
-            // Give a multiplier to the attack to make it slightly better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.25f);
+            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.WATER);
 
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
+                        Actions =
+                        {
                         
-                        // Afflicting status: Burned to enemies
-                        //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.WATER, 3, 1, MoveTarget.SingleEnemy)
+                            // Afflicting status: Burned to enemies
+                            //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, MoveTarget.SingleEnemy)
+                        }
                     }
                 }
-            }
 
             };
             return resolutionInfo;
         }
-        public string GetMoveName() => "Steam";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Water Damage to the Highest Health Enemy proportional to the Strength of Water-Elemental Users.";
+
+        public string GetMoveName() => "Steam";
     }
 
     /// <summary>
@@ -107,33 +87,33 @@ namespace TurnBased
     /// </summary>
     public class EM_Frostburn : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
+                        Actions =
+                        {
                         
-                        // Afflicting status: Frostburn to enemies & Slippery
-                       // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.WATER, 3, 1,  MoveTarget.SingleEnemy)
+                            // Afflicting status: Frostburn to enemies & Slippery
+                           // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.WATER, 3, 1,  MoveTarget.SingleEnemy)
+                        }
                     }
-                }
 
-            }
+                }
             };
             return resolutionInfo;
         }
-        public string GetMoveName() => "Frostburn";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Ice Damage to the Highest Health Enemy proportional to the Strength of Ice-Elemental Users.";
+
+        public string GetMoveName() => "Frostburn";
     }
 
     /// <summary>
@@ -141,7 +121,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Volcano : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             int totalAttackValue = 0;
             foreach (var unit in usersInfo)
@@ -158,29 +138,29 @@ namespace TurnBased
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
+                        Actions =
+                        {
                         
-                        // Afflicting status: Burned to enemies
-                       // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                       new ElementalDamageAttackAction(Element.EARTH, 1, totalAttackValue,  MoveTarget.SingleEnemy)
+                            // Afflicting status: Burned to enemies
+                           // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
+                           new ElementalDamageAttackAction(Element.EARTH, 1, totalAttackValue,  MoveTarget.SingleEnemy)
+                        }
                     }
-                }
 
-            }
+                }
             };
 
             return resolutionInfo;
         }
-        public string GetMoveName() => "Volcano";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Earth Damage to the Highest Health Enemy proportional to the Strength of Earth-Elemental Users.";
+
+        public string GetMoveName() => "Volcano";
     }
 
     #endregion
@@ -192,7 +172,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Tsunami : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             int totalAttackValue = 0;
 
@@ -209,26 +189,26 @@ namespace TurnBased
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
-                        new ElementalDamageAttackAction (Element.WATER, 1, totalAttackValue, MoveTarget.SingleEnemy)
+                        Actions =
+                        {
+                            new ElementalDamageAttackAction (Element.WATER, 1, totalAttackValue, MoveTarget.SingleEnemy)
+                        }
                     }
-                }
 
-            }
+                }
             };
 
             return resolutionInfo;
         }
-        public string GetMoveName() => "Tsunami";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Water Damage to the Highest Health Enemy proportional to the Strength of Water-Elemental Users.";
+
+        public string GetMoveName() => "Tsunami";
     }
 
     /// <summary>
@@ -236,34 +216,33 @@ namespace TurnBased
     /// </summary>
     public class EM_Wellspring : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
-                        // All allies are healed for 2 HP
-                        //new AttackAction(AttackActionType.HEALING, value: 2, attackTarget: MoveTarget.AllAllies)
-                        new HealingAttackAction(2, MoveTarget.AllAllies)
+                        Actions =
+                        {
+                            // All allies are healed for 2 HP
+                            new HealingAttackAction(2, MoveTarget.AllAllies)
+                        }
                     }
-                }
 
-            }
+                }
 
             };
 
             return resolutionInfo;
         }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Heals all Allies for 2 Health Points.";
+
         public string GetMoveName() => "Wellspring";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
     }
 
     #endregion
@@ -275,7 +254,7 @@ namespace TurnBased
     /// </summary>
     public class EM_IceAge : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
 
             int totalAttackValue = 0;
@@ -307,12 +286,12 @@ namespace TurnBased
             };
             return resolutionInfo;
         }
-        public string GetMoveName() => "Ice Age";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Ice Damage to the Highest Health Enemy proportional to the Strength of Ice-Elemental Users.";
+
+        public string GetMoveName() => "Ice Age";
     }
 
     /// <summary>
@@ -320,33 +299,32 @@ namespace TurnBased
     /// </summary>
     public class EM_HailCloak : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
-                        // All allies are granted Hailcloak
-                        //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
-                        new ElementalDamageAttackAction(Element.ICE, 3, 1,  MoveTarget.SingleEnemy)
+                        Actions =
+                        {
+                            // All allies are granted Hailcloak
+                            //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
+                            new ElementalDamageAttackAction(Element.ICE, 3, 1,  MoveTarget.SingleEnemy)
+                        }
                     }
-                }
 
-            }
+                }
 
             };
             return resolutionInfo;
         }
-        public string GetMoveName() => "Hail Cloak";
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public string GetElementalMoveDescription() => "Deals a High amount of Ice Damage to the Highest Health Enemy proportional to the Strength of Ice-Elemental Users.";
+
+        public string GetMoveName() => "Hail Cloak";
     }
 
     #endregion
@@ -358,7 +336,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Fissure : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
 
             int totalAttackValue = 0;
@@ -376,28 +354,28 @@ namespace TurnBased
             AttackResolutionInfo resolutionInfo = new()
             {
                 Steps =
-            {
-                new AttackStep()
                 {
-                    Actions =
+                    new AttackStep()
                     {
-                        //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
+                        Actions =
+                        {
+                            //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
+                        }
                     }
-                }
 
-            }
+                }
             };
 
 
             return resolutionInfo;
         }
-        public string GetMoveName() => "Fissure";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Earth Damage to the Highest Health Enemy proportional to the Strength of Earth-Elemental Users.";
+
+        public string GetMoveName() => "Fissure";
     }
 
     /// <summary>
@@ -405,7 +383,7 @@ namespace TurnBased
     /// </summary>
     public class EM_FrostLock : IElementalMoveAction
     {
-        public AttackResolutionInfo DoElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -428,13 +406,34 @@ namespace TurnBased
 
             return resolutionInfo;
         }
-        public string GetMoveName() => "Frost Lock";
 
-        public ITargetSelector GetTargetSelector()
-        {
-            throw new System.NotImplementedException();
-        }
+        public UnitTargetSelectorType GetTargetSelectorType() => UnitTargetSelectorType.HighestHP;
+
+        public string GetElementalMoveDescription() => "Deals a High amount of Earth Damage to the Highest Health Enemy proportional to the Strength of Earth-Elemental Users.";
+
+        public string GetMoveName() => "Frost Lock";
     }
 
     #endregion
+
+
+
+    public static class ElementalMoveUtilities
+    {
+        public static int GetTotalAttackValueOfUsersWithElement(System.Collections.Generic.List<UnitData> usersInfo, Element element)
+        {
+            int totalAttackValue = 0;
+            foreach (var unit in usersInfo)
+            {
+                if (unit.element == element)
+                {
+                    totalAttackValue += unit.attack;
+                }
+            }
+
+            // Give a multiplier to the attack to make it better than the sum of it's parts
+            return (int)(totalAttackValue * 1.5f);
+        }
+    }
+
 }
