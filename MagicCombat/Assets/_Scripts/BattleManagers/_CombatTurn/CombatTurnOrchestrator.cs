@@ -17,7 +17,7 @@ namespace TurnBased.Phases {
         private Intention.IntentionResolverManager intentionResolverManager             = new();
 
         private MoveSelection.MoveSelectorManager MoveSelectorManager                   = new();
-        private TargetSelection.TargetSelectorManager TargetSelectorManager             = new();
+        private TargetSelection.UnitTargetSelectorManager UnitTargetSelectorManager     = new();
 
         private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
 
@@ -57,7 +57,7 @@ namespace TurnBased.Phases {
             this.turnOrderCombatHandler = new();
             this.intentionResolverManager = new();
             this.MoveSelectorManager = new();
-            this.TargetSelectorManager = new();
+            this.UnitTargetSelectorManager = new();
             this.AttackResolutionManager = new();
 
 
@@ -74,7 +74,7 @@ namespace TurnBased.Phases {
             this.intentionResolverManager.Awake();
 
             this.MoveSelectorManager.Awake();
-            this.TargetSelectorManager.Awake();
+            this.UnitTargetSelectorManager.Awake();
 
             this.AttackResolutionManager.Awake();
 
@@ -96,7 +96,7 @@ namespace TurnBased.Phases {
             this.intentionResolverManager.OnDestroy();
 
             this.MoveSelectorManager.OnDestroy();
-            this.TargetSelectorManager.OnDestroy();
+            this.UnitTargetSelectorManager.OnDestroy();
 
             this.AttackResolutionManager.OnDestroy();
             this.combatRoundIntentionManager.OnDestroy();
@@ -115,7 +115,7 @@ namespace TurnBased.Phases {
             this.intentionResolverManager = null;
 
             this.MoveSelectorManager = null;
-            this.TargetSelectorManager = null;
+            this.UnitTargetSelectorManager = null;
 
             this.AttackResolutionManager = null;
             this.combatRoundIntentionManager = null;

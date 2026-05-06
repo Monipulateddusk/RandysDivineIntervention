@@ -42,7 +42,7 @@ namespace TurnBased.Intention
             UnityEngine.Debug.Log("Try get Target selector!");
 
             /*  Determine if we need to invoke the Player's Input systems to resolve this. If so, halt processing until it is done! */
-            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { UnityEngine.Debug.Log("Target selector invalid?!"); return false; }
+            if (!TargetSelection.UnitTargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { UnityEngine.Debug.Log("Target selector invalid?!"); return false; }
 
 
 
@@ -68,7 +68,7 @@ namespace TurnBased.Intention
 
         public void OnPlayerDrivenSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
         {
-            if (!TargetSelection.TargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { return; }
+            if (!TargetSelection.UnitTargetSelectorManager.Instance.TryGetTargetSelector(unitIndex, out TargetSelection.ITargetSelector targetSelector)) { return; }
 
             if (targetSelector is TargetSelection.PlayerDrivenTargetSelector)
             {

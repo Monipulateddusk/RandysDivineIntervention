@@ -37,17 +37,17 @@ namespace TurnBased.Elements
         /*  Same size as the Element Enum. Units are able to imbue the Environment with their Element to do an attack if their Ally participates.   */
         private readonly IElementalMoveAction[,] ElementalMoveLookUpTable = new IElementalMoveAction[7, 7]
         {   /*  NULL,   Fire                Water                   Ice                     Earth                       Light                   Darkness    */
-        {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* NULL     */
-        {   null,   new EM_Inferno(),   new EM_Steam(),         new EM_Frostburn(),     new EM_Volcano(),           null,                   null,  },   /* Fire     */
-        {   null,   new EM_Steam(),     new EM_Tsunami(),       new EM_HailCloak(),     new EM_Wellspring(),        null,                   null,  },   /* Water    */
-        {   null,   new EM_Frostburn(), new EM_HailCloak(),     new EM_IceAge(),        new EM_FrostLock(),         null,                   null,  },   /* Ice      */
-        {   null,   new EM_Volcano(),   new EM_Wellspring(),    new EM_FrostLock(),     new EM_Fissure(),           null,                   null,  },   /* Earth    */
-        {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* Light    */
-        {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
+            {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* NULL     */
+            {   null,   new EM_Inferno(),   new EM_Steam(),         new EM_Frostburn(),     new EM_Volcano(),           null,                   null,  },   /* Fire     */
+            {   null,   new EM_Steam(),     new EM_Tsunami(),       new EM_HailCloak(),     new EM_Wellspring(),        null,                   null,  },   /* Water    */
+            {   null,   new EM_Frostburn(), new EM_HailCloak(),     new EM_IceAge(),        new EM_FrostLock(),         null,                   null,  },   /* Ice      */
+            {   null,   new EM_Volcano(),   new EM_Wellspring(),    new EM_FrostLock(),     new EM_Fissure(),           null,                   null,  },   /* Earth    */
+            {   null,   null,               null,                   null,                   null,                       null,                   null,  },   /* Light    */
+            {   null,   null,               null,                   null,                   null,                       null,                   null,  }    /* Darkness */
         };
 
         private System.Collections.Generic.List<ImbuedEnvironmentElement> EnvironmentEffects;
-
+        private ElementalAttackTargettingManager ElementalAttackTargettingManager;
 
         public void Awake()
         {
@@ -57,6 +57,10 @@ namespace TurnBased.Elements
             }
 
             this.EnvironmentEffects = new();
+
+            /*  Initalise the Targetting Manager for the moves. */
+            this.ElementalAttackTargettingManager = new();
+            this.ElementalAttackTargettingManager.Awake(this.ElementalMoveLookUpTable);
         }
 
         public void OnDestroy()
@@ -66,6 +70,13 @@ namespace TurnBased.Elements
                 instance = null;
             }
             this.EnvironmentEffects.Clear();
+
+            this.ElementalAttackTargettingManager.OnDestroy();
+        }
+
+        public void Update()
+        {
+            this.ElementalAttackTargettingManager.Update();
         }
 
         public void AddEnvironmentalEffect(Element effect, UnitTeam team)

@@ -26,6 +26,7 @@ namespace TurnBased.TargetSelection
                 UnitTargetSelectorType.Sequential => true,
                 UnitTargetSelectorType.Random => false,
                 UnitTargetSelectorType.PlayerDriven => false,
+                UnitTargetSelectorType.HighestHP => false,
                 _ => false,
             };
         }

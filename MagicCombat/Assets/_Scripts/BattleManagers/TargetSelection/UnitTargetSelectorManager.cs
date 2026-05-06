@@ -3,10 +3,10 @@ using UnityEngine;
 
 namespace TurnBased.TargetSelection
 {
-    public class TargetSelectorManager
+    public class UnitTargetSelectorManager
     {
-        private static TargetSelectorManager instance;
-        public static TargetSelectorManager Instance
+        private static UnitTargetSelectorManager instance;
+        public static UnitTargetSelectorManager Instance
         {
             get
             {
@@ -22,7 +22,7 @@ namespace TurnBased.TargetSelection
             }
         }
 
-        private System.Collections.Generic.Dictionary<int, ITargetSelector> unitIndexTargetSelectionDictionary = new();
+        private System.Collections.Generic.Dictionary<int, ITargetSelector> UnitIndexTargetSelectionDictionary = new();
 
         public void Awake()
         {
@@ -32,7 +32,7 @@ namespace TurnBased.TargetSelection
                 instance = this;
             }
 
-            this.unitIndexTargetSelectionDictionary = new();
+            this.UnitIndexTargetSelectionDictionary = new();
             StationManager.OnAddUnit += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
         }
@@ -53,13 +53,13 @@ namespace TurnBased.TargetSelection
 
         private void RemoveAllUnitIndexesFromDictionary()
         {
-            System.Collections.Generic.List<int> keys = this.unitIndexTargetSelectionDictionary.Keys.ToList();
+            System.Collections.Generic.List<int> keys = this.UnitIndexTargetSelectionDictionary.Keys.ToList();
 
             for (int i = 0; i < keys.Count; i++)
             {
-                this.unitIndexTargetSelectionDictionary.Remove(keys[i]);
+                this.UnitIndexTargetSelectionDictionary.Remove(keys[i]);
             }
-            this.unitIndexTargetSelectionDictionary.Clear();
+            this.UnitIndexTargetSelectionDictionary.Clear();
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)
@@ -80,7 +80,7 @@ namespace TurnBased.TargetSelection
         public bool AddUnitTargetSelector(UnitIndex unitIndex, UnitTargetSelectorType targetSelectorType)
         {
             /*  If we already have this index, stop!    */
-            if (this.unitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+            if (this.UnitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
 
             /*  When called, retrieve the IMoveSelector type.   */
             if (!TargetSelectorHandler.TryGetSelector(targetSelectorType, out ITargetSelector targetSelector)) { return false; }
@@ -91,15 +91,13 @@ namespace TurnBased.TargetSelection
                 /* Create a new instance of the class. Important for selectors like Sequential which have a unit-driven 'memory' for the previously selected move.  */
                 ITargetSelector newSelectorInstance = (ITargetSelector)System.Activator.CreateInstance(targetSelector.GetType());
 
-                this.unitIndexTargetSelectionDictionary.Add(unitIndex.Index, newSelectorInstance);
+                this.UnitIndexTargetSelectionDictionary.Add(unitIndex.Index, newSelectorInstance);
             }
             /*  If not, just get a referance to this Class. */
             else
             {
-                this.unitIndexTargetSelectionDictionary.Add(unitIndex.Index, targetSelector);
+                this.UnitIndexTargetSelectionDictionary.Add(unitIndex.Index, targetSelector);
             }
-
-           // UnityEngine.Debug.Log("Creating target selector of type: " + targetSelector.ToString() + " for index: " + unitIndex.Index);
 
             return true;
         }
@@ -107,9 +105,9 @@ namespace TurnBased.TargetSelection
         public bool RemoveUnitTargetSelector(UnitIndex unitIndex)
         {
             /*  If we don't have this index, stop!    */
-            if (!this.unitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
 
-            this.unitIndexTargetSelectionDictionary.Remove(unitIndex.Index);
+            this.UnitIndexTargetSelectionDictionary.Remove(unitIndex.Index);
             return true;
         }
 
@@ -118,11 +116,11 @@ namespace TurnBased.TargetSelection
             targetSelector = default;
 
             /*  If we don't have this index, stop!    */
-            if (!this.unitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexTargetSelectionDictionary.ContainsKey(unitIndex.Index)) { return false; }
 
 
 
-            targetSelector = this.unitIndexTargetSelectionDictionary[unitIndex.Index];
+            targetSelector = this.UnitIndexTargetSelectionDictionary[unitIndex.Index];
 
             UnityEngine.Debug.Log(targetSelector);
             return true;
