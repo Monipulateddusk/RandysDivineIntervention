@@ -74,11 +74,6 @@ namespace TurnBased.Elements
             this.ElementalAttackTargettingManager.OnDestroy();
         }
 
-        public void Update()
-        {
-            this.ElementalAttackTargettingManager.Update();
-        }
-
         public void AddEnvironmentalEffect(Element effect, UnitTeam team)
         {
             /*  Add the imbued element to the list and alert any listeners. */
@@ -126,16 +121,18 @@ namespace TurnBased.Elements
             System.Collections.Generic.List<UnitIndex> unitsOnTeam = StationManager.Instance.GetUnitsOnTeam(team);
             if (unitsOnTeam.Count <= 0) { return; }
 
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitDataUnitTurnSceneData unitDataSceneData)) { return; }
 
             /*  Process the attack using the Scene Unit Data.   */
             AttackResolutionInfo elementalAttackResolutionInfo = elementalAttackMoveAction.ExecuteElementalMove(usersInfo: unitDataSceneData.AllyUnitData, targetsInfo: unitDataSceneData.EnemyUnitData);
 
 
             /*  Before we process it, we need to determine the Targets of the attack. The ElementalMoveAction will dictate who it targets.  */
-            
+            if (!this.ElementalAttackTargettingManager.TryGetTargetSelector(elementalAttackMoveAction.GetMoveName(), out TargetSelection.ITargetSelector targetSelector)) { return; }
 
+            if (!StationManagerUtilities.TryCreateSceneDataForTeam(team, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) {  return; }
 
+            //targetSelector.SelectTargets(stationIndexesSceneData, )
 
             //CombatAttackHandler.ProcessAttackStep(this, info, users.FirstOrDefault().GetUnitIntentData());
 

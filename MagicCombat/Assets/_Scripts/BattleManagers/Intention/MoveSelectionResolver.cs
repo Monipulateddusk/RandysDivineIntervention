@@ -2,35 +2,12 @@ namespace TurnBased.Intention
 {
     public class MoveSelectionResolver 
     {
-        private static MoveSelectionResolver instance;
-        public static MoveSelectionResolver Instance
-        {
-            get
-            {
-                return instance;                
-            }
-        }
-
-
         public static System.Action<UnitIndex> OnRequireUserInput;
         public static System.Action<UnitIndex> OnCompleteUserInput;
         public static System.Action<UnitIndex, IBattleMove> OnMoveSelected;
 
-        public void Awake()
-        {
-            if (instance == null)
-            {
-                instance = this;
-            }
-        }
-
         public void OnDestroy()
         {
-            if (instance != null && instance == this)
-            {
-                instance = null;
-            }
-
             OnRequireUserInput = null;
             OnCompleteUserInput = null;
             OnMoveSelected = null;
@@ -87,12 +64,12 @@ namespace TurnBased.Intention
 
 
 
-        public void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
+        private void ProcessMoveSelector(UnitIndex unitIndex, MoveSelection.IMoveSelector moveSelector)
         {
             if (moveSelector == null) { UnityEngine.Debug.Log("Move selector is null?"); return; }
 
             /*  Create the scene data for this unit.    */
-            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn sceneData)) {  return; }
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData sceneData)) {  return; }
             IBattleMove selectedMove = moveSelector.SelectMove(sceneData);
 
             /*  Notify CombatRoundIntentionManager that a move has been selected by this UnitIndex. */

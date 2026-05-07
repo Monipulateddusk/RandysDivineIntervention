@@ -67,6 +67,8 @@ namespace TurnBased.LoaderUnloader
             this.AllLevelData = levelData;
             this.currentLevelIndex = selectedLevelIndex;
 
+            if (this.AllLevelData == null || this.AllLevelData.Count <= 0) { UnityEngine.SceneManagement.SceneManager.LoadScene("MainScene"); }
+
             this.currentLevelData = this.AllLevelData[this.currentLevelIndex];
 
             if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex == UnityEngine.SceneManagement.SceneManager.GetSceneByName("LevelSelect").buildIndex)

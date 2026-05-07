@@ -141,11 +141,6 @@ namespace TurnBased
         private void Update()
         {
             this.CombatTurnOrchestrator.Update();
-
-            this.CombatEnvironmentController.Update();
         }
-
-
-
     }
 }

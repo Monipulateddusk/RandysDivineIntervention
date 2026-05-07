@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 
 namespace TurnBased.TargetSelection
 {
     public interface ITargetSelector
     {
-        public abstract System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove);
+        public abstract System.Collections.Generic.List<StationIndex> SelectTargets(UnitTurnStationIndexesSceneData data, IBattleMove selectedMove);
     }
 
     public class SequentialTargetSelector : ITargetSelector
@@ -14,7 +13,7 @@ namespace TurnBased.TargetSelection
         // Yes, small bug is that if the unit selects to target their allies, it will increment their selection index, and then if they switch to enemies, it will carry over their selection index.
         int curSelectionIndex = 0;
 
-        System.Collections.Generic.List<StationIndex> ITargetSelector.SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
+        System.Collections.Generic.List<StationIndex> ITargetSelector.SelectTargets(UnitTurnStationIndexesSceneData data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
@@ -69,7 +68,7 @@ namespace TurnBased.TargetSelection
 
     public class RandomTargetSelector : ITargetSelector
     {
-        public System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
+        public System.Collections.Generic.List<StationIndex> SelectTargets(UnitTurnStationIndexesSceneData data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
@@ -106,7 +105,7 @@ namespace TurnBased.TargetSelection
 
     public class HighestHPTargetSelector : ITargetSelector
     {
-        public List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
+        public List<StationIndex> SelectTargets(UnitTurnStationIndexesSceneData data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);
@@ -162,7 +161,7 @@ namespace TurnBased.TargetSelection
         /// Can contain multiple targets or just one. By peeking at the selected move, we will know what to do with this List. I.e. Get the first index, or all targets. 
         /// </summary>
         public System.Collections.Generic.List<StationIndex> SelectedTarget { private get; set; }
-        public System.Collections.Generic.List<StationIndex> SelectTargets(SceneData_UnitTurn data, IBattleMove selectedMove)
+        public System.Collections.Generic.List<StationIndex> SelectTargets(UnitTurnStationIndexesSceneData data, IBattleMove selectedMove)
         {
             MoveTarget moveTargetType = selectedMove.GetMoveTargetType();
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(data, moveTargetType);

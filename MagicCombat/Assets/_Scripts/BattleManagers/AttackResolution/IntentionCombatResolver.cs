@@ -9,9 +9,9 @@ namespace TurnBased.Combat
             public UnitData SourceUnitData { get; }
             public System.Collections.Generic.List<UnitData> AllyUnitData { get; }
             public System.Collections.Generic.List<UnitData> TargetUnitData { get; }
-            public SceneData_UnitTurn SceneUnitData { get; }
+            public UnitTurnStationIndexesSceneData SceneUnitData { get; }
 
-            public UnitDataForCombatResolution(SceneData_UnitTurn sceneData, UnitData sourceData, System.Collections.Generic.List<UnitData> allyData, System.Collections.Generic.List<UnitData> targetData)
+            public UnitDataForCombatResolution(UnitTurnStationIndexesSceneData sceneData, UnitData sourceData, System.Collections.Generic.List<UnitData> allyData, System.Collections.Generic.List<UnitData> targetData)
             {
                 this.SceneUnitData = sceneData;
                 this.SourceUnitData = sourceData;
@@ -29,7 +29,7 @@ namespace TurnBased.Combat
 
             /*  Obtain the Unit Data for resolving this attack. */
             if (!TryGetUnitDataForCombatResolution(unitIndex, out var UnitDataForCombatResolution)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO OBTAIN UNIT DATA FOR UNIT_INDEX!"); return; }
-            SceneData_UnitTurn sceneData = UnitDataForCombatResolution.SceneUnitData;
+            UnitTurnStationIndexesSceneData sceneData = UnitDataForCombatResolution.SceneUnitData;
 
             /*  Execute the selected move by the User.  */
             if (!ExecuteMove(intention, UnitDataForCombatResolution, out AttackResolutionInfo exectutedMoveResolutionInfo)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO EXECUTE SELECTED MOVE!"); return; }
@@ -74,7 +74,7 @@ namespace TurnBased.Combat
             outUnitDataForCombatResolution = default;
 
             /*  Get the unit data for the User, their Allies, their enemies.    */
-            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(sourceUnitIndex, out SceneData_UnitTurn sceneUnitData)) { return false; }
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(sourceUnitIndex, out UnitTurnStationIndexesSceneData sceneUnitData)) { return false; }
 
             if (!StationManager.Instance.TryGetUnitDataOnStation(sceneUnitData.SourceStationIndex, out UnitData unitDataSource)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE SCENE UNIT DATA OF USER!"); return false; }
             System.Collections.Generic.List<UnitData> ally_UnitData = StationManagerUtilities.GetUnitDataOfStationIndexes(sceneUnitData.AllyStationIndexes);

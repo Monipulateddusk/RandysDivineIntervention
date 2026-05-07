@@ -65,7 +65,7 @@ namespace TurnBased.Phases
             Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
 
             Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
-            Intention.MoveSelectionResolver.Instance.ProcessIntentionMoveSelection(this.currentUnitIndex);
+            Intention.IntentionResolverManager.Instance.ProcessMoveSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -100,7 +100,8 @@ namespace TurnBased.Phases
         public override void OnEnter()
         {
             Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
-            Intention.TargetSelectionResolver.Instance.ProcessIntentionTargetSelection(this.currentUnitIndex);
+
+            Intention.IntentionResolverManager.Instance.ProcessIntentionTargetSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()

@@ -95,7 +95,7 @@ namespace TurnBased.AttackResolution
         public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"Do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"Do nothing."; }
             AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
 
@@ -128,7 +128,7 @@ namespace TurnBased.AttackResolution
         public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMoveAction elementalMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
 
             AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
@@ -184,7 +184,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogError($"Getting UnitIntentionIntentionString");
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitData_SceneData_UnitTurn unitDataSceneData)) { return $"{unitData.name} is going to do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"{unitData.name} is going to do nothing."; }
 
             UnityEngine.Debug.LogError($"Created unit data for unit index");
 

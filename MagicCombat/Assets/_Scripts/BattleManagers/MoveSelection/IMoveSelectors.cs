@@ -2,12 +2,12 @@ namespace TurnBased.MoveSelection
 {
     public interface IMoveSelector
     {
-        public abstract IBattleMove SelectMove(SceneData_UnitTurn data);
+        public abstract IBattleMove SelectMove(UnitTurnStationIndexesSceneData data);
     }
 
     public class RandomMoveSelector : IMoveSelector
     {
-        public IBattleMove SelectMove(SceneData_UnitTurn data)
+        public IBattleMove SelectMove(UnitTurnStationIndexesSceneData data)
         {
             /*  Try get the Unit from the source Index. */
             if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }
@@ -29,7 +29,7 @@ namespace TurnBased.MoveSelection
     {
         int curMoveIndex = 0;
 
-        public IBattleMove SelectMove(SceneData_UnitTurn data)
+        public IBattleMove SelectMove(UnitTurnStationIndexesSceneData data)
         {
             /*  Try get the Unit from the source Index. */
             if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }
@@ -59,7 +59,7 @@ namespace TurnBased.MoveSelection
     public class PlayerDrivenMoveSelector : IMoveSelector
     {
         public IBattleMove SelectedMove { private get; set; }
-        public IBattleMove SelectMove(SceneData_UnitTurn data)
+        public IBattleMove SelectMove(UnitTurnStationIndexesSceneData data)
         {
             /*  Try get the Unit from the source Index. */
             if (!SelectorUtility.TryGetBattleUnitOnStation(data.SourceStationIndex, out BaseBattleUnit unit)) { return null; }

@@ -2,36 +2,14 @@ namespace TurnBased.Intention
 {
     public class TargetSelectionResolver
     {
-        private static TargetSelectionResolver instance;
-        public static TargetSelectionResolver Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-
 
         public static System.Action<UnitIndex> OnRequireUserInput;
         public static System.Action<UnitIndex> OnCompleteUserInput;
         public static System.Action<UnitIndex, System.Collections.Generic.List<StationIndex>> OnTargetSelected;
 
-        public void Awake()
-        {
-            if (instance == null)
-            {
-                instance = this;
-            }
-        }
 
         public void OnDestroy()
         {
-            if (instance != null && instance == this)
-            {
-                instance = null;
-            }
-
             OnRequireUserInput = null;
             OnCompleteUserInput = null;
             OnTargetSelected = null;
@@ -82,12 +60,12 @@ namespace TurnBased.Intention
 
         /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-        public bool ProcessTargetSelector(UnitIndex unitIndex, TargetSelection.ITargetSelector targetSelector)
+        private bool ProcessTargetSelector(UnitIndex unitIndex, TargetSelection.ITargetSelector targetSelector)
         {
             if (targetSelector == null) { UnityEngine.Debug.Log("Target selector is null?"); return false; }
 
             /*  Create the scene data for this unit.    */
-            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out SceneData_UnitTurn sceneData)){ return false; }
+            if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData sceneData)){ return false; }
 
             /*  Get the move data for the target selection. */
             if(!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out UnitIntention intention)) {  return false; } 

@@ -30,7 +30,7 @@ namespace TurnBased.TargetSelection
                 _ => false,
             };
         }
-        public static System.Collections.Generic.List<StationIndex> GetAllStationsOnField(SceneData_UnitTurn data, bool includeSource = true)
+        public static System.Collections.Generic.List<StationIndex> GetAllStationsOnField(UnitTurnStationIndexesSceneData data, bool includeSource = true)
         {
             System.Collections.Generic.List<StationIndex> allStations = new();
 

@@ -2,23 +2,83 @@ namespace TurnBased.Intention
 {
     public class IntentionResolverManager
     {
+        private static IntentionResolverManager instance;
+        public static IntentionResolverManager Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
         private MoveSelectionResolver MoveSelectionResolver = new();
         private TargetSelectionResolver TargetSelectionResolver = new();
 
+        AttackAction currentlyResolvingAttackActon; 
+
+
         public void Awake()
         {
+            if (instance == null)
+            {
+                instance = this;
+            }
+
             this.MoveSelectionResolver = new();
             this.TargetSelectionResolver = new();
-
-            this.MoveSelectionResolver.Awake();
-            this.TargetSelectionResolver.Awake();
+            this.currentlyResolvingAttackActon = null;
         }
 
         public void OnDestroy()
         {
+            if (instance != null && instance == this)
+            {
+                instance = null;
+            }
+
             this.MoveSelectionResolver.OnDestroy();
             this.TargetSelectionResolver.OnDestroy();
+
+            this.currentlyResolvingAttackActon = null;
         }
+
+        #region Move Selection
+
+        public void ProcessMoveSelection(UnitIndex unitIndex)
+        {
+            if (this.MoveSelectionResolver == null) { return; }
+
+            this.MoveSelectionResolver.ProcessIntentionMoveSelection(unitIndex);
+        }
+
+
+        public void OnPlayerDrivenMoveSelection(UnitIndex unitIndex, IBattleMove selectedMove)
+        {
+            if (this.MoveSelectionResolver == null) { return; }
+
+            this.MoveSelectionResolver.OnPlayerDrivenSelection(unitIndex, selectedMove);
+        }
+
+        #endregion
+
+        #region Target Selection
+
+        public void ProcessIntentionTargetSelection(UnitIndex unitIndex)
+        {
+            if (this.MoveSelectionResolver == null) { return; }
+
+            this.TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
+        }
+
+
+        public void OnPlayerDrivenTargetSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> targets)
+        {
+            if (this.TargetSelectionResolver == null) { return; }
+
+            this.TargetSelectionResolver.OnPlayerDrivenSelection(unitIndex, targets);
+        }
+
+        #endregion
 
     }
 

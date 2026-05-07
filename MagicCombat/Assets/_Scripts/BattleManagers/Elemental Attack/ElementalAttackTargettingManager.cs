@@ -36,17 +36,6 @@ namespace TurnBased.Elements
             this.ElementalMoveTargetSelectionDictionary = null;
         }
 
-        public void Update()
-        {
-            if (UnityEngine.Input.GetKeyDown(UnityEngine.KeyCode.V))
-            {
-                foreach (var kvp in this.ElementalMoveTargetSelectionDictionary)
-                {
-                    UnityEngine.Debug.LogError($"Key: {kvp.Key} : Value is: {kvp.Value}");
-                }
-            }
-        }
-
         private void InitialiseMoveTargetSelectors(IElementalMoveAction[,] elementalLookUpTable)
         {
             foreach (IElementalMoveAction elementMoveAction in elementalLookUpTable)

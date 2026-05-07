@@ -56,7 +56,7 @@ namespace TurnBased.UI
         {
             if (this.selectedUnit.HasValue)
             {
-                Intention.MoveSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedMove);
+                Intention.IntentionResolverManager.Instance.OnPlayerDrivenMoveSelection(this.selectedUnit.Value, selectedMove);
             }
         }
 
@@ -64,7 +64,7 @@ namespace TurnBased.UI
         {
             if (this.selectedUnit.HasValue)
             {
-                Intention.TargetSelectionResolver.Instance.OnPlayerDrivenSelection(this.selectedUnit.Value, selectedTarget);
+                Intention.IntentionResolverManager.Instance.OnPlayerDrivenTargetSelection(this.selectedUnit.Value, selectedTarget);
             }
         }
 
