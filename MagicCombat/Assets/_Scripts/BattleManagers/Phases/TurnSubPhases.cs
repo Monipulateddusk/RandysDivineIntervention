@@ -117,7 +117,7 @@ namespace TurnBased.Phases
         private void OnTargetSelected(UnitIndex selectedUnitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
         {
             /*  Add this selected move to intentionManager. */
-            Intention.UnitIntentionManager.Instance.SetTargetIntention(selectedUnitIndex, selectedTarget);
+            
 
             OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
         }

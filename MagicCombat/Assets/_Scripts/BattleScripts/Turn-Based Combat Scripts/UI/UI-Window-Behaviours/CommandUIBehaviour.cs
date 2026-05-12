@@ -29,22 +29,22 @@ namespace TurnBased.UI
 
         private void Awake()
         {
-            StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
+            //StationSelectorManager.OnSelectionChange                += StationSelectorManager_OnSelectionChange;
 
-            Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
+            //Intention.UnitIntentionManager.OnUnitIntentionChanged   += UnitIntentionManager_OnUnitIntentionChanged;
         }
 
         private void OnDestroy()
         {
-            StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
+            //StationSelectorManager.OnSelectionChange                -= StationSelectorManager_OnSelectionChange;
 
-            Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
+            //Intention.UnitIntentionManager.OnUnitIntentionChanged   -= UnitIntentionManager_OnUnitIntentionChanged;
 
         }
 
         private void Start()
         {
-            VisualiseSelectedUnitOnStart();
+            //VisualiseSelectedUnitOnStart();
         }
 
         private void VisualiseSelectedUnitOnStart()
@@ -86,8 +86,6 @@ namespace TurnBased.UI
 
 
             SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
-
-            //SetStateIfAwaitingUserInput(unitIndex);
         }
 
         private void SetStateBasedOnUnitIntention(Intention.UnitIntention intentionOfTheUnitIndex)
@@ -175,7 +173,7 @@ namespace TurnBased.UI
 
             /*  Get the currently selected Unit's intention to visualise it.    */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
-            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(unitIndex, intention.MoveSelection.GetMoveTargetType());
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(unitIndex, MoveTarget.SingleEnemy);
             SetTargets(selectorInfo);
             SetMovesSelectedState(intention.MoveSelection);
         }
@@ -218,15 +216,15 @@ namespace TurnBased.UI
 
         private string GetIntentionText(BaseBattleUnit battleUnit, Intention.UnitIntention unitIntention)
         {
-            if (!StationManager.Instance.TryGetUnitDataOnStation(unitIntention.TargetIndexList.FirstOrDefault(), out UnitData targetUnitData)) { return string.Empty; }
-            if (unitIntention.ResolutionState == UnitIntentionResolutionState.COMPLETED_INTENTION)
-            {
-                return $"{battleUnit.GetBaseUnit().name} is intending to attack {targetUnitData.name} with a {unitIntention.MoveSelection.GetMoveName()}";
-            }
-            else
-            {
+            //if (!StationManager.Instance.TryGetUnitDataOnStation(unitIntention.DeclaredTargetGroups.FirstOrDefault().Value.FirstOrDefault(), out UnitData targetUnitData)) { return string.Empty; }
+            //if (unitIntention.ResolutionState == UnitIntentionResolutionState.COMPLETED_INTENTION)
+            //{
+            //    return $"{battleUnit.GetBaseUnit().name} is intending to attack {targetUnitData.name} with a {unitIntention.MoveSelection.GetMoveName()}";
+            //}
+            //else
+            //{
                 return string.Empty;
-            }       
+            //}
         }
 
         private void SetImage(BaseBattleUnit battleUnit)

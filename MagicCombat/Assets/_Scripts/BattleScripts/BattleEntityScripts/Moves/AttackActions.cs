@@ -2,11 +2,10 @@ namespace TurnBased
 {
     public abstract class AttackAction
     {
-        public MoveTarget AttackTarget { get; private set; }
-
-        protected AttackAction(MoveTarget moveTarget)
+        public int TargetGroupID { get; }
+        protected AttackAction(int groupID)
         {
-            this.AttackTarget = moveTarget;
+            this.TargetGroupID = groupID;
         }
 
         public abstract System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex);
@@ -18,7 +17,7 @@ namespace TurnBased
         public int DamageAmount { get; }
         public int HitsAmount { get; }
 
-        public DamageAttackAction(int damageAmount, int hitsAmount, MoveTarget moveTarget) : base(moveTarget)
+        public DamageAttackAction(int damageAmount, int hitsAmount, int groupID) : base(groupID)
         {
             this.DamageAmount = damageAmount;
             this.HitsAmount = hitsAmount;
@@ -46,7 +45,7 @@ namespace TurnBased
     {
         public Element ElementEffect { get; private set; }
 
-        public ElementalDamageAttackAction(Element element, int damageAmount, int hitsAmount, MoveTarget moveTarget) : base(damageAmount, hitsAmount, moveTarget)
+        public ElementalDamageAttackAction(Element element, int damageAmount, int hitsAmount, int groupID) : base(damageAmount, hitsAmount, groupID)
         {
             this.ElementEffect = element;
         }
@@ -88,7 +87,7 @@ namespace TurnBased
     {
         public int HealingAmount { get; }
 
-        public HealingAttackAction(int healingAmount, MoveTarget moveTarget) : base(moveTarget)
+        public HealingAttackAction(int healingAmount, int groupID) : base(groupID)
         {
             this.HealingAmount = healingAmount;
         }
@@ -108,7 +107,7 @@ namespace TurnBased
     {
         public Element ElementEffect { get; private set; }
 
-        public ImbueEnvironmentAttackAction(Element element, MoveTarget moveTarget) : base(moveTarget)
+        public ImbueEnvironmentAttackAction(Element element, int groupID) : base(groupID)
         {
             this.ElementEffect = element;
         }

@@ -31,35 +31,32 @@ namespace TurnBased.Combat
             if (!TryGetUnitDataForCombatResolution(unitIndex, out var UnitDataForCombatResolution)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO OBTAIN UNIT DATA FOR UNIT_INDEX!"); return; }
             UnitTurnStationIndexesSceneData sceneData = UnitDataForCombatResolution.SceneUnitData;
 
-            /*  Execute the selected move by the User.  */
-            if (!ExecuteMove(intention, UnitDataForCombatResolution, out AttackResolutionInfo exectutedMoveResolutionInfo)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO EXECUTE SELECTED MOVE!"); return; }
-
-            UnityEngine.Debug.LogWarning($"Executing move inside process attack. Is there a valid target?    ");
-
-            /*  If there is a targeted unit, proceed */
-            if (StationManagerUtilities.DoesStationIndexListContainExistantTarget(intention.TargetIndexList))
-            {
-                UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
-
-                /*  Determine if the Attack moves the user or not.  */
-                await BattlePresentationManager.Instance.MoveUnitToTarget(sceneData.SourceStationIndex, intention.TargetIndexList.FirstOrDefault());
-
-                UnityEngine.Debug.LogWarning($"Processing attack step");
+            UnityEngine.Debug.LogWarning($"Executing attack action in order inside process attack. Is there a valid target?    ");
 
 
-                /*  Process each step individually   */
-     
-                await AttackResolution.CombatAttackHandler.ProcessAttackStep(exectutedMoveResolutionInfo, intention);
-                
 
-                UnityEngine.Debug.LogWarning($"Moving back to station");
+            /*  If there is a targeted unit, proceed */            
+            UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
 
-                /*  Move the user back.  */
-                await BattlePresentationManager.Instance.MoveUnitToStation(sceneData.SourceStationIndex);
+            /*  Determine if the Attack moves the user or not.  */
+            //await BattlePresentationManager.Instance.MoveUnitToTarget(sceneData.SourceStationIndex, intention.DeclaredTargetGroups.FirstOrDefault().Value.FirstOrDefault());
 
-                UnityEngine.Debug.LogWarning($"Clearing intention");
+            UnityEngine.Debug.LogWarning($"Processing attack step");
 
-            }
+
+            /*  Process each step individually   */
+
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(intention);
+
+
+            UnityEngine.Debug.LogWarning($"Moving back to station");
+
+            /*  Move the user back.  */
+            //await BattlePresentationManager.Instance.MoveUnitToStation(sceneData.SourceStationIndex);
+
+            UnityEngine.Debug.LogWarning($"Clearing intention");
+
+            
 
             /*  Clear the intention of the attack once done.    */
             Intention.UnitIntentionManager.Instance.ClearIntention(unitIndex);
@@ -84,16 +81,5 @@ namespace TurnBased.Combat
             outUnitDataForCombatResolution = new UnitDataForCombatResolution(sceneUnitData, unitDataSource, ally_UnitData, enemyUnitData);
             return true;
         }
-
-        public static bool ExecuteMove(UnitIntention userIntention, UnitDataForCombatResolution unitDataForCombatResolution, out AttackResolutionInfo exectutedMoveResolutionInfo)
-        {
-            /*  Process the move based on the information for that UnitIndex.   */
-            exectutedMoveResolutionInfo = userIntention.MoveSelection.ExecuteMove(unitDataForCombatResolution.SourceUnitData, unitDataForCombatResolution.AllyUnitData, unitDataForCombatResolution.TargetUnitData);
-            if (exectutedMoveResolutionInfo == null) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: RESOLUTION INFO OF MOVE IS NULL!"); return false; }
-
-            UnityEngine.Debug.LogWarning($"Executing Move: {userIntention.MoveSelection.GetMoveName()}! ");
-            return true;
-        }
-
     }
 }

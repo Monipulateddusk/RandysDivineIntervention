@@ -98,16 +98,12 @@ namespace TurnBased.AttackResolution
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"Do nothing."; }
             AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
+            /*  Get the target groups of the move.  */
+            System.Collections.Generic.Dictionary<int, MoveTarget> targetGroupToMoveTargetDictionary = GetMoveTargetTargetGroupDictionaryFromMoveResolutionInfo(resolutionInfo);
 
             /*  Get a full list of all actions so we can format the string properly.    */
-            List<AttackAction> actions = new();
-            foreach (AttackStep step in resolutionInfo.Steps)
-            {
-                foreach (AttackAction action in step.Actions)
-                {
-                    actions.Add(action);
-                }
-            }
+            List<AttackAction> actions = GetAttackActionsOfExecutedMove(resolutionInfo);
+
             /*  If something went wrong, complete the string.   */
             if (actions.Count <= 0) { return $"Do nothing."; }
 
@@ -120,9 +116,37 @@ namespace TurnBased.AttackResolution
                     intentionText += (i == actions.Count - 1) ? " then, " : ", ";
                 }
 
-                intentionText += $"{actions[i].GetDescription()} to {GetTargettingString(actions[i])}";
+                MoveTarget moveTarget = targetGroupToMoveTargetDictionary[actions[i].TargetGroupID];
+                intentionText += $"{actions[i].GetDescription()} to {GetTargettingStringFromMoveTarget(moveTarget)}";
             }
             return intentionText;
+        }
+
+
+        /// <returns>A populated dictionary of Target Group to Move Target if valid. Returns null if Targets are not declared. </returns>
+        public static System.Collections.Generic.Dictionary<int, MoveTarget> GetMoveTargetTargetGroupDictionaryFromMoveResolutionInfo(AttackResolutionInfo attackResolutionInfo)
+        {
+            if (attackResolutionInfo == null || attackResolutionInfo.TargetDeclarationGroups.Count == 0) { return null; }
+            System.Collections.Generic.Dictionary<int, MoveTarget> targetGroupToMoveTargetDictionary = new();
+
+            foreach (TargetDeclarationGroup group in attackResolutionInfo.TargetDeclarationGroups)
+            {
+                targetGroupToMoveTargetDictionary.Add(group.TargetGroupID, group.GroupMoveTargetType);
+            }
+            return targetGroupToMoveTargetDictionary;
+        }
+
+        public static List<AttackAction> GetAttackActionsOfExecutedMove(AttackResolutionInfo resolutionInfo)
+        {
+            List<AttackAction> actions = new();
+            foreach (AttackStep step in resolutionInfo.Steps)
+            {
+                foreach (AttackAction action in step.Actions)
+                {
+                    actions.Add(action);
+                }
+            }
+            return actions;
         }
 
         public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMoveAction elementalMove)
@@ -132,15 +156,11 @@ namespace TurnBased.AttackResolution
 
             AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
 
+            /*  Get the target groups of the move.  */
+            System.Collections.Generic.Dictionary<int, MoveTarget> targetGroupToMoveTargetDictionary = GetMoveTargetTargetGroupDictionaryFromMoveResolutionInfo(resolutionInfo);
+
             /*  Get a full list of all actions so we can format the string properly.    */
-            List<AttackAction> actions = new();
-            foreach (AttackStep step in resolutionInfo.Steps)
-            {
-                foreach (AttackAction action in step.Actions)
-                {
-                    actions.Add(action);
-                }
-            }
+            List<AttackAction> actions = GetAttackActionsOfExecutedMove(resolutionInfo);
 
             /*  If something went wrong, complete the string.   */
             if (actions.Count <= 0) { return $"Elemental Move is going to do nothing."; }
@@ -153,15 +173,16 @@ namespace TurnBased.AttackResolution
                     intentionText += (i == actions.Count - 1) ? " then, " : ", ";
                 }
 
-                intentionText += $"{actions[i].GetDescription()}"; // To Whom!?
+                MoveTarget moveTarget = targetGroupToMoveTargetDictionary[actions[i].TargetGroupID];
+                intentionText += $"{actions[i].GetDescription()} to {GetTargettingStringFromMoveTarget(moveTarget)}";
             }
 
             return intentionText;
         }
 
-        private static string GetTargettingString(AttackAction action)
+        private static string GetTargettingStringFromMoveTarget(MoveTarget moveTarget)
         {
-            switch (action.AttackTarget)
+            switch (moveTarget)
             {
                 default:
                 case MoveTarget.Self:
@@ -181,46 +202,68 @@ namespace TurnBased.AttackResolution
 
         public static string GetUnitIntentionIntentionString(UnitIndex unitIndex, UnitData unitData, Intention.UnitIntention intention)
         {
-
-            UnityEngine.Debug.LogError($"Getting UnitIntentionIntentionString");
-            /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"{unitData.name} is going to do nothing."; }
-
             UnityEngine.Debug.LogError($"Created unit data for unit index");
 
-            AttackResolutionInfo resolutionInfo = intention.MoveSelection.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention unitIntention)) { return $"{unitData.name} is intending to do nothing."; }
 
-            UnityEngine.Debug.LogError($"Executed move");
-
-            /*  Determine who the attack is going to.   There is a limitation here, each attack action can go to multiple targets. So we would need to fix this up to account for different targets for each attack action.   */
-            if (!UserInterfaceUtility.TryGetIntentionTargetText(intention, out string unitName)) { return $"{unitData.name} is intending to do nothing."; }
-
-            /*  Get a full list of all actions so we can format the string properly.    */
-            List<AttackAction> actions = new();
-            foreach (AttackStep step in resolutionInfo.Steps)
-            {
-                foreach (AttackAction action in step.Actions)
-                {
-                    actions.Add(action);
-                }
-            }
-
-            /*  If something went wrong, complete the string.   */
-            if (actions.Count <= 0) { return $"{unitData.name} is going to do nothing."; }
-
+            Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(unitIntention);
 
             string intentionText = $"{unitData.name} is going to ";
-            for (int i = 0; i < actions.Count; i++)
+            for (int i = 0; i < intention.ActionResolvingStates.Count; i++)
             {
-                if (i != 0) 
-                { 
-                    intentionText += (i == actions.Count - 1) ? " then, " : ", "; 
+                if (i != 0)
+                {
+                    intentionText += (i == intention.ActionResolvingStates.Count - 1) ? " then, " : ", ";
                 }
-           
-                intentionText += $"{actions[i].GetDescription()} to {unitName}";
+
+                /*  Get Target Group Text   */
+                int groupID = intention.ActionResolvingStates[i].Action.TargetGroupID;
+                if (!TryGetTargetTextOfGroupID(intention, groupIDMoveTargetDict, groupID, out string targetText)) { targetText = "a target"; }
+
+                intentionText += $"{intention.ActionResolvingStates[i].Action.GetDescription()} to {targetText}";
             }
 
             return intentionText;
+        }
+
+
+        private static Dictionary<int, MoveTarget> CreateMoveTargetGroupIdentifierDictionary(Intention.UnitIntention unitIntention)
+        {
+            Dictionary<int, MoveTarget> GroupIDMoveTargetDict = new();
+
+            foreach (Intention.TargetGroupResolvingState groupState in unitIntention.TargetGroupResolvingStates)
+            {
+                GroupIDMoveTargetDict.Add(groupState.GroupID, groupState.MoveTarget);
+            }
+
+            return GroupIDMoveTargetDict;   
+        }
+
+        private static bool TryGetTargetTextOfGroupID(Intention.UnitIntention intention, Dictionary<int, MoveTarget> groupIDMoveTargetDict, int groupId, out string targetText)
+        {
+            targetText = default;
+
+            if (!groupIDMoveTargetDict.TryGetValue(groupId, out MoveTarget target)) { return false; }
+
+            if (!TryGetDeclaredTargetsOfGroupID(intention, groupId, out System.Collections.Generic.List<StationIndex> selectedTargets)) {  return false; }
+
+            if (!UserInterfaceUtility.TryGetIntentionTargetText(selectedTargets, target, out targetText)) { return false; }
+
+            return true;
+        }
+
+        private static bool TryGetDeclaredTargetsOfGroupID(Intention.UnitIntention intention, int groupID, out System.Collections.Generic.List<StationIndex> selectedTargets)
+        {
+            selectedTargets = default;
+            foreach (Intention.TargetGroupResolvingState state in intention.TargetGroupResolvingStates)
+            {
+                if (state.GroupID == groupID)
+                {
+                    selectedTargets = state.DeclaredTargets;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

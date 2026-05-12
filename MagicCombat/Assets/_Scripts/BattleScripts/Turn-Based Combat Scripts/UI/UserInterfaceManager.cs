@@ -296,9 +296,9 @@ namespace TurnBased.UI
             return (current - minimum) / (maximum - minimum);
         }
 
-        public static string GetMoveTargetText(IBattleMove move)
+        public static string GetMoveTargetText(MoveTarget moveTarget)
         {
-            return move.GetMoveTargetType() switch
+            return moveTarget switch
             {
                 MoveTarget.SingleEnemy => "a Single Enemy",
                 MoveTarget.SingleAlly => "a Single Ally",
@@ -314,18 +314,14 @@ namespace TurnBased.UI
         /// </summary>
         /// <param name="intention"></param>
         /// <returns></returns>
-        public static bool TryGetIntentionTargetText(Intention.UnitIntention intention, out string text)
+        public static bool TryGetIntentionTargetText(System.Collections.Generic.List<StationIndex> selectedTargets, MoveTarget moveTarget, out string text)
         {
             text = string.Empty;
 
-            if (intention.TargetIndexList.Count <= 0)   { return false; }
-            if (intention.MoveSelection == null)        { return false; }
-
-            MoveTarget targetType = intention.MoveSelection.GetMoveTargetType();
-            if (targetType == MoveTarget.SingleEnemy  || targetType == MoveTarget.SingleAlly)
+            if (moveTarget == MoveTarget.SingleEnemy  || moveTarget == MoveTarget.SingleAlly)
             {
                 /*  Get the 0-Index of the Targetting list and return it's name.    */
-                StationIndex firstStationIndex = intention.TargetIndexList[0];
+                StationIndex firstStationIndex = selectedTargets.FirstOrDefault();
                 if (!StationManager.Instance.TryGetUnitDataOnStation(firstStationIndex, out UnitData unitData)) {  return false; }
 
                 text = unitData.name;
@@ -333,7 +329,7 @@ namespace TurnBased.UI
             }
             else
             {
-                text = GetMoveTargetText(intention.MoveSelection);
+                text = GetMoveTargetText(moveTarget);
                 return true;
             }
         }

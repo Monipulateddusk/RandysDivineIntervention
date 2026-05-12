@@ -1,5 +1,4 @@
 using System.Linq;
-using TurnBased.Combat;
 using UnityEngine;
 
 namespace TurnBased.AttackResolution
@@ -9,39 +8,37 @@ namespace TurnBased.AttackResolution
     /// </summary>
     public static class CombatAttackHandler
     {
-        public async static System.Threading.Tasks.Task ProcessAttackStep(AttackResolutionInfo currentAttackInfo, TurnBased.Intention.UnitIntention intentInfo)
+        public async static System.Threading.Tasks.Task ProcessAttackStep(TurnBased.Intention.UnitIntention unitIntention)
         {
-            if (currentAttackInfo.Steps.Count < 0)
+            if (unitIntention.ActionResolvingStates.Count <= 0)
             {
-                Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process Attack Step! Steps List is Empty!");
+                Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process ActionResolvingStates! List is Empty!");
                 return;
             }
 
-            foreach (AttackStep step in currentAttackInfo.Steps)
+            foreach (Intention.AttackActionResolvingState actionResolvingState in unitIntention.ActionResolvingStates)
             {
-                foreach (AttackAction action in step.Actions)
-                {
-                    UnityEngine.Debug.LogWarning($"Processing attack Action");
+                /*  Get the Declared Units in this Attack Action's Targetting Group.    */
+                if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(unitIntention, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
 
-                    await ProcessAttackAction(intentInfo, action);
-                }
+                await ProcessAttackAction(unitIntention, actionResolvingState.Action, declaredTargets);
+
+                actionResolvingState.IsResolved = true;
             }
         }
 
 
-        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, Elements.CombatEnvironmentController environmentController = null)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
         {
+            if (!StationManagerUtilities.DoesStationIndexListContainExistantTarget(declaredTargets)) { return; }
+
             System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict = new();
 
-            foreach (StationIndex targetStation in intentInfo.TargetIndexList)
+            foreach (StationIndex targetStation in declaredTargets)
             {
                 if (!StationManager.Instance.TryGetUnitIndexOnStation(targetStation, out UnitIndex unitIndexOnStation)) { Debug.LogWarning($"COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE UNIT INDEX OF TARGET. TARGET STATION INDEX IS: {targetStation.Index}"); continue; }
 
-                UnityEngine.Debug.LogWarning($"Processing attack Action for target station: {targetStation.Index}");
-
                 System.Collections.Generic.List<AttackEvent> attackEvents = attackAction.Execute(unitIndexOnStation);
-
-                UnityEngine.Debug.LogWarning($"Got attack events. Events count is: {attackEvents.Count}");
 
                 /*  Execute the attack for this UnitIndex and store it. */
                 if (!unitIndexTargetPerAttackEventDict.ContainsKey(unitIndexOnStation))
@@ -50,6 +47,7 @@ namespace TurnBased.AttackResolution
                 }
 
                 unitIndexTargetPerAttackEventDict[unitIndexOnStation].AddRange(attackEvents);
+                
             }
 
             UnityEngine.Debug.LogWarning($"Converting to timeline");
@@ -98,7 +96,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Processing Timeline");
 
-            await AttackTimelineManager.ResolveCombatAttackTimeline(attackEventTimeline);
+            await Combat.AttackTimelineManager.ResolveCombatAttackTimeline(attackEventTimeline);
         }
     }
 }

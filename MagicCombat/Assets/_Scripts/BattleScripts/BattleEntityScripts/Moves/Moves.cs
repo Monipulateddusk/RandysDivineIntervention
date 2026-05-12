@@ -16,23 +16,38 @@ namespace TurnBased
             this.Actions = actions; 
         }
     }
+    public class TargetDeclarationGroup
+    {
+        public int TargetGroupID { get; }
+        public MoveTarget GroupMoveTargetType { get; }
 
+        public TargetDeclarationGroup(int groupID, MoveTarget targetType)
+        {
+            this.TargetGroupID = groupID;
+            this.GroupMoveTargetType = targetType;
+        }
+    }
 
     public class AttackResolutionInfo
     {
+        public System.Collections.Generic.List<TargetDeclarationGroup> TargetDeclarationGroups { get; }
         public System.Collections.Generic.List<AttackStep> Steps { get; private set; }
 
         public AttackResolutionInfo()
         {
-            Steps = new System.Collections.Generic.List<AttackStep>();
+            this.Steps = new();
+            this.TargetDeclarationGroups = new();
         }
     }
+
+
+
     #endregion
 
     public interface IBattleMove
     {
         public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
-        public MoveTarget GetMoveTargetType();
+        public MoveResolutionTiming GetResolutionTiming();
         public int GetMaxTargets();
         public bool DoesSourceUnitMove();
         public string GetMoveName();
@@ -47,13 +62,15 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new DamageAttackAction(userInfo.attack, 1, MoveTarget.SingleEnemy),
+                            new DamageAttackAction(userInfo.attack, 1, groupID: 0),
                         }
                     },
                 }
@@ -62,10 +79,11 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 1;
-        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
         public bool DoesSourceUnitMove() => true;
 
         public string GetMoveName() => "HeavyAttack";
+
+        public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
 
     /// <summary>
@@ -77,21 +95,23 @@ namespace TurnBased
         {
             int damage = userInfo.attack / 3;
             AttackResolutionInfo resolutionInfo = new()
-            { 
+            {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damageAmount: 1, 2, MoveTarget.SingleEnemy)         
+                            new DamageAttackAction(damageAmount: 1, 2, groupID: 0)
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damage, 1, MoveTarget.SingleEnemy)
+                            new DamageAttackAction(damageAmount: damage, 1, groupID: 0)
                         }
                     },
                 }
@@ -101,10 +121,10 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 1;
-        public MoveTarget GetMoveTargetType() => MoveTarget.SingleEnemy;
         public bool DoesSourceUnitMove() => true;
 
         public string GetMoveName() => "LightAttack";
+        public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
 
     /// <summary>
@@ -116,13 +136,15 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Area) },
+
                 Steps =
                 {
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new ImbueEnvironmentAttackAction(userInfo.element, MoveTarget.Area)
+                            new ImbueEnvironmentAttackAction(userInfo.element, groupID: 0)
                         },
                     }
                 }
@@ -132,9 +154,9 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 0;
-        public MoveTarget GetMoveTargetType() => MoveTarget.Area;
         public bool DoesSourceUnitMove() => false;
         public string GetMoveName() => "ImbueEnvironment";
+        public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
     
 }

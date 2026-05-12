@@ -127,10 +127,6 @@ namespace TurnBased
 
 
 
-            this.IntentionVisualiserManager.SetTextPrefab(textPrefab);
-
-
-
             this.StationHandler.DeployUnitsForStartOfBattle();
             this.StationSelectorManager.Start();
 

@@ -303,7 +303,7 @@ namespace TurnBased.UI
 
             /*  Get the currently selected Unit's intention to visualise it.    */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
-            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, intention.MoveSelection.GetMoveTargetType());
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, MoveTarget.SingleEnemy);
 
 
             /*  Assign the Move reminder text with the selected move's description. */

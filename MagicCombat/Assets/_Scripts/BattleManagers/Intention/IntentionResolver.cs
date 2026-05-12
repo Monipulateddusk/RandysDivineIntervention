@@ -14,8 +14,6 @@ namespace TurnBased.Intention
         private MoveSelectionResolver MoveSelectionResolver = new();
         private TargetSelectionResolver TargetSelectionResolver = new();
 
-        AttackAction currentlyResolvingAttackActon; 
-
 
         public void Awake()
         {
@@ -26,7 +24,6 @@ namespace TurnBased.Intention
 
             this.MoveSelectionResolver = new();
             this.TargetSelectionResolver = new();
-            this.currentlyResolvingAttackActon = null;
         }
 
         public void OnDestroy()
@@ -39,7 +36,6 @@ namespace TurnBased.Intention
             this.MoveSelectionResolver.OnDestroy();
             this.TargetSelectionResolver.OnDestroy();
 
-            this.currentlyResolvingAttackActon = null;
         }
 
         #region Move Selection
@@ -67,7 +63,7 @@ namespace TurnBased.Intention
         {
             if (this.MoveSelectionResolver == null) { return; }
 
-            this.TargetSelectionResolver.ProcessIntentionTargetSelection(unitIndex);
+            this.TargetSelectionResolver.ProcessTargetSelection(unitIndex);
         }
 
 

@@ -21,6 +21,8 @@ namespace TurnBased
 
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -29,7 +31,7 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  groupID: 0)
                         }
                     }
                 }
@@ -57,6 +59,8 @@ namespace TurnBased
 
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -66,7 +70,7 @@ namespace TurnBased
                         
                             // Afflicting status: Burned to enemies
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.WATER, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, groupID: 0)
                         }
                     }
                 }
@@ -91,6 +95,8 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -100,7 +106,7 @@ namespace TurnBased
                         
                             // Afflicting status: Frostburn to enemies & Slippery
                            // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.WATER, 3, 1,  MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.WATER, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -123,20 +129,12 @@ namespace TurnBased
     {
         public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
-            int totalAttackValue = 0;
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.EARTH)
-                {
-                    totalAttackValue = +unit.attack;
-                }
-            }
-
-            // Give a multiplier to the attack to make it slightly better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.25f);
+            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.EARTH);
 
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0,  MoveTarget.SingleEnemy)},
+
                 Steps =
                 {
                     new AttackStep()
@@ -146,7 +144,7 @@ namespace TurnBased
                         
                             // Afflicting status: Burned to enemies
                            // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                           new ElementalDamageAttackAction(Element.EARTH, 1, totalAttackValue,  MoveTarget.SingleEnemy)
+                           new ElementalDamageAttackAction(Element.EARTH, 1, totalEarthAttack,  groupID: 0)
                         }
                     }
 
@@ -174,27 +172,19 @@ namespace TurnBased
     {
         public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
-            int totalAttackValue = 0;
-
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.WATER)
-                {
-                    totalAttackValue = +unit.attack;
-                }
-            }
-            // Give a multiplier to the attack to make it better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.5f);
+            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.WATER);
 
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new ElementalDamageAttackAction (Element.WATER, 1, totalAttackValue, MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction (Element.WATER, 1, totalWaterAttack, groupID: 0)
                         }
                     }
 
@@ -220,6 +210,8 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.AllAllies) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -227,7 +219,7 @@ namespace TurnBased
                         Actions =
                         {
                             // All allies are healed for 2 HP
-                            new HealingAttackAction(2, MoveTarget.AllAllies)
+                            new HealingAttackAction(2, groupID: 0)
                         }
                     }
 
@@ -256,33 +248,24 @@ namespace TurnBased
     {
         public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
-
-            int totalAttackValue = 0;
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.ICE)
-                {
-                    totalAttackValue = +unit.attack;
-                }
-            }
-
-            // Give a multiplier to the attack to make it better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.5f);
+            int totalIceAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.ICE);
 
             AttackResolutionInfo resolutionInfo = new()
             {
-                Steps =
-            {
-                new AttackStep()
-                {
-                    Actions =
-                    {
-                        //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
-                        new ElementalDamageAttackAction(Element.ICE, 1, totalAttackValue,  MoveTarget.SingleEnemy)
-                    }
-                }
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
 
-            }
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.ICE, 1, totalIceAttack,  groupID: 0)
+                        }
+                    }
+
+                }
             };
             return resolutionInfo;
         }
@@ -303,6 +286,7 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
                 Steps =
                 {
                     new AttackStep()
@@ -311,7 +295,7 @@ namespace TurnBased
                         {
                             // All allies are granted Hailcloak
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
-                            new ElementalDamageAttackAction(Element.ICE, 3, 1,  MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.ICE, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -338,21 +322,12 @@ namespace TurnBased
     {
         public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
         {
-
-            int totalAttackValue = 0;
-            foreach (var unit in usersInfo)
-            {
-                if (unit.element == Element.EARTH)
-                {
-                    totalAttackValue = +unit.attack;
-                }
-            }
-
-            // Give a multiplier to the attack to make it better than the sum of it's parts
-            totalAttackValue = (int)(totalAttackValue * 1.5f);
+            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.EARTH);
 
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -360,7 +335,7 @@ namespace TurnBased
                         Actions =
                         {
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.EARTH, totalEarthAttack, 1,  groupID: 0)
                         }
                     }
 
@@ -387,6 +362,8 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
                 Steps =
                 {
                     new AttackStep()
@@ -395,7 +372,7 @@ namespace TurnBased
                         {
                             // Afflict targets with frost lock
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Frost Lock", attackTarget: MoveTarget.AllEnemies)
-                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  MoveTarget.SingleEnemy)
+                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  groupID: 0)
 
                         }
                     }
