@@ -171,9 +171,9 @@ namespace TurnBased.Intention {
             /*  Peek at the current Unit's intention state. Tell the Orchestrator to move into that state.  */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentResolvingUnit.Value, out UnitIntention intention)) { GetNextUnitInList(CurrentResolvingUnit.Value); }
 
-            Debug.LogWarning($"Intention res state is: {intention.ResolutionState}");
+            Debug.LogWarning($"Intention res state is: {intention.IntentionResolutionState}");
 
-            switch (intention.ResolutionState)
+            switch (intention.IntentionResolutionState)
             {
                 case UnitIntentionResolutionState.NONE:
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
@@ -213,10 +213,6 @@ namespace TurnBased.Intention {
             if (IntentionResolverUtility.DoesListContainUnitIndex(previousUnit, this.ProcessingUnitIndexes) && CurrentResolvingUnit.HasValue && CurrentResolvingUnit.Value.Index == previousUnit.Index)
             {
                 if (!this.ProcessingUnitIndexes.Remove(previousUnit)) { throw new System.IndexOutOfRangeException("ERROR — INTENTION MANAGER: UNABLE TO REMOVE THE PREVIOUS UNIT WHEN SELECTING NEW UNIT! UNIT DOES NOT EXIST IN COLLECTION"); }
-                else
-                {
-                    UnityEngine.Debug.LogWarning($"Removed previous unit: {previousUnit.Index}");
-                }
             }
 
 

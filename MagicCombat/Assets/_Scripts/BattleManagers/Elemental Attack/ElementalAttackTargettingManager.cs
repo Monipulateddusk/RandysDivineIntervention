@@ -14,7 +14,7 @@ namespace TurnBased.Elements
         private System.Collections.Generic.Dictionary<string, TargetSelection.ITargetSelector> ElementalMoveTargetSelectionDictionary = new();
 
 
-        public void Awake(IElementalMoveAction[,] elementalLookUpTable)
+        public void Awake(IElementalMove[,] elementalLookUpTable)
         {
             if (instance == null)
             {
@@ -36,9 +36,9 @@ namespace TurnBased.Elements
             this.ElementalMoveTargetSelectionDictionary = null;
         }
 
-        private void InitialiseMoveTargetSelectors(IElementalMoveAction[,] elementalLookUpTable)
+        private void InitialiseMoveTargetSelectors(IElementalMove[,] elementalLookUpTable)
         {
-            foreach (IElementalMoveAction elementMoveAction in elementalLookUpTable)
+            foreach (IElementalMove elementMoveAction in elementalLookUpTable)
             {
                 if (elementMoveAction == null) { continue; }
 
@@ -53,7 +53,6 @@ namespace TurnBased.Elements
 
             /*  When called, retrieve the IMoveSelector type.   */
             if (!TargetSelection.TargetSelectorHandler.TryGetSelector(targetSelectorType, out TargetSelection.ITargetSelector targetSelector)) { return false; }
-
 
             if (TargetSelection.TargetSelectorHandler.IsSelectorTypeInstanciatable(targetSelectorType))
             {

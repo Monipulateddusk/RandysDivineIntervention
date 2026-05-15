@@ -82,7 +82,7 @@ namespace TurnBased.UI
              */
             if (stationIndexOfUnitIndex.Index != StationSelectorManager.Instance.GetSelectedStationIndex().Index) { return; }
 
-            Debug.LogError($"On Unit Selection Changed UI fired. ResolutionState: {intentionOfTheUnitIndex.ResolutionState.ToString()}");
+            Debug.LogError($"On Unit Selection Changed UI fired. ResolutionState: {intentionOfTheUnitIndex.IntentionResolutionState.ToString()}");
 
 
             SetStateBasedOnUnitIntention(intentionOfTheUnitIndex);
@@ -90,7 +90,7 @@ namespace TurnBased.UI
 
         private void SetStateBasedOnUnitIntention(Intention.UnitIntention intentionOfTheUnitIndex)
         {
-            switch (intentionOfTheUnitIndex.ResolutionState)
+            switch (intentionOfTheUnitIndex.IntentionResolutionState)
             {
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:       
                     SetState(CommandUIBehaviourStates.MoveSelection);

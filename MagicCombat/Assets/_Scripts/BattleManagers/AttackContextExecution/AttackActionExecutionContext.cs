@@ -2,7 +2,7 @@ namespace TurnBased
 {
     public class AttackActionExecutionContext
     {
-        public void HandleAttackEvent(AttackEvent ev)
+        public async System.Threading.Tasks.Task HandleAttackEvent(AttackEvent ev)
         {
             if (ev == null) { return; }
 
@@ -20,7 +20,7 @@ namespace TurnBased
             }
             else if (ev is ImbueElementEvent imbueElementEvent)
             {
-                ImbueEnvironment(imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
+                await ImbueEnvironment(imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
             }
             else
             {
@@ -40,9 +40,10 @@ namespace TurnBased
             Health.UnitHealthManager.Instance.HealUnitByHealAmount(targetUnitIndex, healingAmount);
         }
 
-        private void ImbueEnvironment(UnitIndex targetUnitIndex, Element imbuedElement)
+        private async System.Threading.Tasks.Task ImbueEnvironment(UnitIndex targetUnitIndex, Element imbuedElement)
         {
-
+            UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(targetUnitIndex);
+            await Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbuedElement, team);
         }
     }
 }

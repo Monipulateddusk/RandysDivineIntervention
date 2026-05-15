@@ -22,12 +22,16 @@ MonoBehaviour:
   moves:
   - rid: 5303009852325101568
   - rid: 5544377919140265986
+  - rid: 618058911503876097
   moveSelectorType: 2
   targetSelectorType: 2
   unitAnimator: {fileID: 9100000, guid: 212fd75ee11e56848afcb4a2c3d4fc0c, type: 2}
   references:
     version: 2
     RefIds:
+    - rid: 618058911503876097
+      type: {class: ImbueEnvrionment, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
     - rid: 5303009852325101568
       type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
       data: 

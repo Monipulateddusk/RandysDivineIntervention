@@ -8,27 +8,27 @@ namespace TurnBased.AttackResolution
     /// </summary>
     public static class CombatAttackHandler
     {
-        public async static System.Threading.Tasks.Task ProcessAttackStep(TurnBased.Intention.UnitIntention unitIntention)
+        public async static System.Threading.Tasks.Task ProcessAttackStep(Intention.ResolvingState resolvingState)
         {
-            if (unitIntention.ActionResolvingStates.Count <= 0)
+            if (resolvingState.ActionResolvingStates.Count <= 0)
             {
                 Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process ActionResolvingStates! List is Empty!");
                 return;
             }
 
-            foreach (Intention.AttackActionResolvingState actionResolvingState in unitIntention.ActionResolvingStates)
+            foreach (Intention.AttackActionResolvingState actionResolvingState in resolvingState.ActionResolvingStates)
             {
                 /*  Get the Declared Units in this Attack Action's Targetting Group.    */
-                if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(unitIntention, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
+                if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(resolvingState, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
 
-                await ProcessAttackAction(unitIntention, actionResolvingState.Action, declaredTargets);
+                await ProcessAttackAction(actionResolvingState.Action, declaredTargets);
 
                 actionResolvingState.IsResolved = true;
             }
         }
 
 
-        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.UnitIntention intentInfo, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
         {
             if (!StationManagerUtilities.DoesStationIndexListContainExistantTarget(declaredTargets)) { return; }
 

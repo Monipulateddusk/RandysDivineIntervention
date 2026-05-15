@@ -59,13 +59,19 @@ namespace TurnBased.Intention
 
         #region Target Selection
 
-        public void ProcessIntentionTargetSelection(UnitIndex unitIndex)
+        public void ProcessUnitIntentionTargetSelection(UnitIndex unitIndex)
         {
-            if (this.MoveSelectionResolver == null) { return; }
+            if (this.TargetSelectionResolver == null) { return; }
 
             this.TargetSelectionResolver.ProcessTargetSelection(unitIndex);
         }
 
+        public void ProcessResolvingStateTargetSeleciton(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
+        {
+            if (this.TargetSelectionResolver == null) { return; }
+
+            this.TargetSelectionResolver.ProcessEnvironmentTargetSelection(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
+        }
 
         public void OnPlayerDrivenTargetSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> targets)
         {

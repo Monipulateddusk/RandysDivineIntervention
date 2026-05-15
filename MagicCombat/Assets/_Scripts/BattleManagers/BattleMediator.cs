@@ -16,7 +16,7 @@ namespace TurnBased
 
             this.requiresMovement = requiresMovement;
         }
-        public CombatReturnData(IElementalMoveAction elementalBattleMoveAction, UnitTeam source, BaseBattleUnit unitSource, System.Collections.Generic.List<BaseBattleUnit> users, System.Collections.Generic.List<BaseBattleUnit> targets, bool requiresMovement = false)
+        public CombatReturnData(IElementalMove elementalBattleMoveAction, UnitTeam source, BaseBattleUnit unitSource, System.Collections.Generic.List<BaseBattleUnit> users, System.Collections.Generic.List<BaseBattleUnit> targets, bool requiresMovement = false)
         {
             this.battleMoveAction = null;
             this.battleElementalMoveAction = elementalBattleMoveAction;
@@ -33,7 +33,7 @@ namespace TurnBased
         public System.Collections.Generic.List<BaseBattleUnit> targets;
         public UnitTeam teamSource;
         public IBattleMove battleMoveAction;
-        public IElementalMoveAction battleElementalMoveAction;
+        public IElementalMove battleElementalMoveAction;
         public bool requiresMovement;
     }
 

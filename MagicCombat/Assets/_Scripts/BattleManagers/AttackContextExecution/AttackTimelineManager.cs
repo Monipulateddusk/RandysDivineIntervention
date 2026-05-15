@@ -13,7 +13,7 @@ namespace TurnBased.Combat
                 foreach (AttackEvent attackEvent in listOfEvents)
                 {
                     UnityEngine.Debug.LogError("Processing Attack");
-                    executionContext.HandleAttackEvent(attackEvent);
+                    await executionContext.HandleAttackEvent(attackEvent);
                 }
                 await System.Threading.Tasks.Task.Delay(500);
             }

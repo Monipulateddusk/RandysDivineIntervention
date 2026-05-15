@@ -247,6 +247,16 @@ public class SceneUnitData
         return true;
     }
 
+    public bool TryGetTeamOfUnitIndex(UnitIndex unitIndex, out UnitTeam team)
+    {
+        team = UnitTeam.NULL;
+        /*  Find if this UnitIndex is related to a Unit we have information on. If not, exit out.   */
+        if (!this.Units.ContainsKey(unitIndex.Index)) { return false; }
+
+        BaseBattleUnit unit = this.Units[unitIndex.Index];
+        return unit.GetTeam() == team;
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -599,6 +609,7 @@ public class StationManager
     public List<UnitIndex>      GetAllActiveUnits()                                                                         => this.SceneUnitData.GetAllActiveUnits();
     public List<UnitIndex>      GetUnitsOnTeam              (UnitTeam team)                                                 => this.SceneUnitData.GetUnitsOnTeam(team);
     public bool                 TryGetUnitIndexesOfTeam     (UnitTeam team, out List<UnitIndex> unitIndexesOnTeam)          => this.SceneUnitData.TryGetUnitIndexesOfTeam(team, out unitIndexesOnTeam);
+    public bool                 TryGetTeamOfUnitIndex       (UnitIndex unitIndex, out UnitTeam team)                        => this.SceneUnitData.TryGetTeamOfUnitIndex(unitIndex, out team);
     public List<StationIndex>   GetStationsIndex()                                                                          => this.SceneUnitData.GetStationIndexes();
     public List<StationIndex>   GetPopulatedStationIndexes()                                                                => this.SceneUnitData.GetPopulatedStationIndexes();
     public bool                 TryGetUnitIndexOnStation    (StationIndex stationIndex, out UnitIndex unitIndexOnStation)   => this.SceneUnitData.TryGetUnitIndexOfStationIndex(stationIndex, out unitIndexOnStation);
@@ -928,14 +939,14 @@ public static class StationManagerUtilities
 
         foreach (UnitIndex unitIndex in unitIndexesOnTeam)
         {
-            if (StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndex)) { continue; }
+            if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndex)) { continue; }
 
             teamedStationIndexes.Add(stationIndex);
         }
 
         foreach (UnitIndex unitIndex in unitIndexesOnOppositeTeam)
         {
-            if (StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndex)) { continue; }
+            if (!StationManager.Instance.TryGetStationIndexOfIndex(unitIndex, out StationIndex stationIndex)) { continue; }
 
             oppositeTeamedStationIndexes.Add(stationIndex);
         }

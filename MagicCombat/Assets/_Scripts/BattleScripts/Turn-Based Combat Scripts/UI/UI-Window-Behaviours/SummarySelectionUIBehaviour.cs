@@ -1,5 +1,3 @@
-using TurnBased.AttackResolution;
-using TurnBased.TurnOrder;
 using UnityEngine;
 
 namespace TurnBased.UI
@@ -92,7 +90,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex unitIndex)) { return; }
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
 
-            switch (intention.ResolutionState)
+            switch (intention.IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -119,7 +117,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) {  return; }
             if (selectedUnitIndex.Index != index.Index) { return; }
 
-            switch (intention.ResolutionState)
+            switch (intention.IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -268,7 +266,7 @@ namespace TurnBased.UI
             /*  Retrieve the current intention state of the Unit.   */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
 
-            if (intention.ResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
+            if (intention.IntentionResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
             {
                 this.UnitIntentionText.text = $"{unitData.name} is Twiddling their Metaphysical thumbs.";
             }
@@ -303,12 +301,15 @@ namespace TurnBased.UI
 
             /*  Get the currently selected Unit's intention to visualise it.    */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
-            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, MoveTarget.SingleEnemy);
+            if (!AttackResolution.CombatDamageUtility.TryGetMoveTargetOfCurrentTargetGroup(intention, out MoveTarget moveTarget)) {  return; }  
+
+
+            TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, moveTarget);
 
 
             /*  Assign the Move reminder text with the selected move's description. */
             this.TargetSelectionMoveReminderText.text = string.Empty;
-            this.TargetSelectionMoveReminderText.text = $"{intention.MoveSelection.GetMoveName()} — {CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.MoveSelection)}";
+            this.TargetSelectionMoveReminderText.text = $"{intention.MoveSelection.GetMoveName()} — {AttackResolution.CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.MoveSelection)}";
 
             /*  If we do not require individual targets, we amalgamate all the options to 'All Allies' or 'Area'.   */
             if (!selectorInfo.DoesRequireTargettingSelectorSelection)
@@ -335,7 +336,7 @@ namespace TurnBased.UI
             foreach (IBattleMove move in unitData.moves)
             {
                 GameObject instanciatedObj = GameObject.Instantiate(this.MoveUIPrefab, this.MoveSelectionContentTransform);
-                if (instanciatedObj != null && instanciatedObj.gameObject.TryGetComponent(out InspectionMoveUIPrefab instanciatedMove))
+                if (instanciatedObj != null && instanciatedObj.TryGetComponent(out InspectionMoveUIPrefab instanciatedMove))
                 {
                     instanciatedMove.Initalise(selectedUnitIndex, move);
                     instanciatedMove.OnButtonClicked += OnMoveButtonClick;

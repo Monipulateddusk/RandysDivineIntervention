@@ -101,7 +101,7 @@ namespace TurnBased.Phases
         {
             Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
 
-            Intention.IntentionResolverManager.Instance.ProcessIntentionTargetSelection(this.currentUnitIndex);
+            Intention.IntentionResolverManager.Instance.ProcessUnitIntentionTargetSelection(this.currentUnitIndex);
         }
 
         public override void OnExit()
@@ -114,11 +114,8 @@ namespace TurnBased.Phases
 
         }
 
-        private void OnTargetSelected(UnitIndex selectedUnitIndex, System.Collections.Generic.List<StationIndex> selectedTarget)
+        private void OnTargetSelected()
         {
-            /*  Add this selected move to intentionManager. */
-            
-
             OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
         }
 

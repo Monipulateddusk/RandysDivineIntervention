@@ -136,7 +136,7 @@ namespace TurnBased
         {
             AttackResolutionInfo resolutionInfo = new()
             {
-                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Area) },
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Self) },
 
                 Steps =
                 {

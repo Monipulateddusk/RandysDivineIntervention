@@ -2,22 +2,32 @@ using UnityEngine;
 
 namespace TurnBased.Intention
 {
+    public class ResolvingState
+    {
+        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
+
+        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
+
+        public ResolvingState()
+        {
+            this.ActionResolvingStates = new();
+            this.TargetGroupResolvingStates = new();    
+        }
+    }
+
     public class UnitIntention
     {
         public IBattleMove MoveSelection { get; set; }
-        public UnitIntentionResolutionState ResolutionState { get; set; }
-        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; }
-
-        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; }
+        public UnitIntentionResolutionState IntentionResolutionState { get; set; }
+        public ResolvingState ResolvingState { get; set; }
 
         public int CurrentProcessingTargetGroupIndex;
 
         public UnitIntention()
         {
             this.MoveSelection = null;
-            this.ResolutionState = UnitIntentionResolutionState.NONE;
-            this.ActionResolvingStates = new();
-            this.TargetGroupResolvingStates = new();
+            this.IntentionResolutionState = UnitIntentionResolutionState.NONE;
+            this.ResolvingState = new();
             this.CurrentProcessingTargetGroupIndex = 0;
         }
     }
@@ -25,17 +35,34 @@ namespace TurnBased.Intention
     public class AttackActionResolvingState
     {
         public AttackAction Action { get; }
+        /// <summary>
+        /// A referance to the source Unit Move. Can be Null if the Attack Action did not originate from a Unit Move.
+        /// </summary>
         public IBattleMove SourceMove { get; }
+        /// <summary>
+        /// A referance to the source Elemental Move. Can be Null if the Attack Action did not originate from an Elemental Move.
+        /// </summary>
+        public IElementalMove SourceElementalMove { get; }
         public MoveResolutionTiming Timing { get; }
 
         public bool IsResolved;
 
-        public AttackActionResolvingState(AttackAction attackAction, IBattleMove move, MoveResolutionTiming timing)
+        public AttackActionResolvingState(AttackAction attackAction, IBattleMove unitMove, MoveResolutionTiming timing)
         {
             this.Action = attackAction;
-            this.SourceMove = move;
+            this.SourceMove = unitMove;
             this.Timing = timing;
 
+            this.SourceElementalMove = null;
+            this.IsResolved = false;
+        }
+        public AttackActionResolvingState(AttackAction attackAction, IElementalMove elementalMove, MoveResolutionTiming timing)
+        {
+            this.Action = attackAction;
+            this.SourceElementalMove = elementalMove;
+            this.Timing = timing;
+
+            this.SourceMove = null;
             this.IsResolved = false;
         }
 
@@ -200,7 +227,7 @@ namespace TurnBased.Intention
         {
             return new UnitIntention()
             {
-                ResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION
+                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION
             };
         }
 
@@ -209,7 +236,7 @@ namespace TurnBased.Intention
             UnitIntention intention = new()
             {
                 MoveSelection = move,
-                ResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION
+                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION
             };
 
             if (!BuildAttackActionResolvingStatesFromMove(unitIndex, intention, move)) { return intention; }
@@ -227,24 +254,57 @@ namespace TurnBased.Intention
 
             AttackResolutionInfo info = move.ExecuteMove(SceneData.SourceUnitData, SceneData.AllyUnitData, SceneData.EnemyUnitData);
 
-            CreateTargetGroupResolvingStatesForIntention(unitIntention, info, unitData);
+            CreateTargetGroupResolvingStatesForIntention(unitIntention.ResolvingState, info, unitData.targetSelectorType);
 
-            CreateActionResolvingStatesForIntention(unitIntention, info, move);
+            CreateActionResolvingStatesForIntention(unitIntention.ResolvingState, info, move);
+            return true;
+        }
+
+        public static bool BuildAttackActionResolvingStatesFromElementalMove(UnitDataUnitTurnSceneData sceneData, ResolvingState resolvingState, IElementalMove elementalMove)
+        {
+            if (elementalMove == null) { return false; }
+
+            UnityEngine.Debug.LogError($"Move is not null");
+
+            /*  Process the elemental move and determine the targeting groups and action resolving states for it.   */
+            AttackResolutionInfo info = elementalMove.ExecuteElementalMove(sceneData.AllyUnitData, sceneData.EnemyUnitData);
+
+            UnityEngine.Debug.LogError($"Executed elemental move");
+
+            CreateTargetGroupResolvingStatesForIntention(resolvingState, info, elementalMove.GetTargetSelectorType());
+
+            UnityEngine.Debug.LogError($"Declared target group resolving state for elem move");
+
+            CreateActionResolvingStatesForIntention(resolvingState, info, elementalMove);
+
+            UnityEngine.Debug.LogError($"created action resolving state");
+
+
+
             return true;
         }
 
 
-        private static void CreateTargetGroupResolvingStatesForIntention(UnitIntention intention, AttackResolutionInfo resolutionInfo, UnitData unitData)
+        private static void CreateTargetGroupResolvingStatesForIntention(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, UnitTargetSelectorType selectorType)
         {
-            intention.TargetGroupResolvingStates.Clear();
+            UnityEngine.Debug.LogError($"Clearing target group resolving states for resolving state.    ");
+
+            resolvingState.TargetGroupResolvingStates.Clear();
             foreach (TargetDeclarationGroup declarationGroup in resolutionInfo.TargetDeclarationGroups)
             {
-                TargetGroupResolvingState targetGroupResolvingState = new(declarationGroup.TargetGroupID, declarationGroup.GroupMoveTargetType, unitData.targetSelectorType);
-                intention.TargetGroupResolvingStates.Add(targetGroupResolvingState);
+                UnityEngine.Debug.LogError($"Foreach iteration.    ");
+
+                TargetGroupResolvingState targetGroupResolvingState = new(declarationGroup.TargetGroupID, declarationGroup.GroupMoveTargetType, selectorType);
+
+                UnityEngine.Debug.LogError($"Adding {targetGroupResolvingState} to resolving states.    ");
+
+                resolvingState.TargetGroupResolvingStates.Add(targetGroupResolvingState);
             }
+
+            UnityEngine.Debug.LogError($"Done Creating target group resolving states    ");
         }
 
-        private static void CreateActionResolvingStatesForIntention(UnitIntention intention, AttackResolutionInfo resolutionInfo, IBattleMove move)
+        private static void CreateActionResolvingStatesForIntention(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, IBattleMove unitMove)
         {
             for (int stepIndex = 0; stepIndex < resolutionInfo.Steps.Count; stepIndex++)
             {
@@ -254,40 +314,83 @@ namespace TurnBased.Intention
                 {
                     AttackAction action = step.Actions[actionIndex];
 
-                    AttackActionResolvingState resolvingState = new(action, move, move.GetResolutionTiming());
-                    intention.ActionResolvingStates.Add(resolvingState);
+                    AttackActionResolvingState attackActionResolvingState = new(action, unitMove, unitMove.GetResolutionTiming());
+                    resolvingState.ActionResolvingStates.Add(attackActionResolvingState);
+                }
+            }
+        }
+
+        private static void CreateActionResolvingStatesForIntention(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, IElementalMove elementalMove)
+        {
+            for (int stepIndex = 0; stepIndex < resolutionInfo.Steps.Count; stepIndex++)
+            {
+                AttackStep step = resolutionInfo.Steps[stepIndex];
+
+                for (int actionIndex = 0; actionIndex < step.Actions.Count; actionIndex++)
+                {
+                    AttackAction action = step.Actions[actionIndex];
+
+                    AttackActionResolvingState attackActionResolvingState = new(action, elementalMove, elementalMove.GetResolutionTiming());
+                    resolvingState.ActionResolvingStates.Add(attackActionResolvingState);
                 }
             }
         }
 
 
         /// <returns>True if all Target Groups are Resolved.</returns>
-        public static bool TryAssignTargetsToCurrentProcessingTargetGroup(UnitIntention intention, System.Collections.Generic.List<StationIndex> targets)
+        public static bool AssignTargetsToCurrentProcessingTargetGroup(UnitIntention intention, System.Collections.Generic.List<StationIndex> targets)
         {
-            intention.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].AssignTargets(targets);
+            if (intention.CurrentProcessingTargetGroupIndex < 0 || intention.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
+
+            intention.ResolvingState.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].AssignTargets(targets);
 
             /*  Determine if all resolving states are resolved. */
-            foreach (TargetGroupResolvingState targetGroupResolvingState in intention.TargetGroupResolvingStates)
+            foreach (TargetGroupResolvingState targetGroupResolvingState in intention.ResolvingState.TargetGroupResolvingStates)
             {
                 if (!targetGroupResolvingState.IsResolved) { return false; }
             }
 
-            intention.ResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
+            intention.IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
+            return true;
+        }
+
+        public static bool AssignTargetsToCurrentProcessingTargetGroup(ResolvingState resolvingState, int currentProcessingTargetGroupIndex, System.Collections.Generic.List<StationIndex> targets)
+        {
+            if (currentProcessingTargetGroupIndex < 0 ||  currentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+
+            resolvingState.TargetGroupResolvingStates[currentProcessingTargetGroupIndex].AssignTargets(targets);
+
+            /*  Determine if all resolving states are resolved. */
+            foreach (TargetGroupResolvingState targetGroupResolvingState in resolvingState.TargetGroupResolvingStates)
+            {
+                if (!targetGroupResolvingState.IsResolved) { return false; }
+            }
+
             return true;
         }
 
         public static bool TryGetMoveTargetOfCurrentTargetGroup(UnitIntention intention, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (intention.CurrentProcessingTargetGroupIndex < 0 || intention.CurrentProcessingTargetGroupIndex >= intention.TargetGroupResolvingStates.Count) { return false; }
+            if (intention.CurrentProcessingTargetGroupIndex < 0 || intention.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = intention.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
-        public static bool TryGetDeclaredTargetsForTargetGroup(UnitIntention intention, int targetGroupIndex, out System.Collections.Generic.List<StationIndex> declaredTargets)
+
+        public static bool TryGetMoveTargetOfCurrentTargetGroup(ResolvingState resolvingState, int currentProcessingTargetGroupIndex, out MoveTarget moveTarget)
+        {
+            moveTarget = default;
+            if (currentProcessingTargetGroupIndex < 0 || currentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+
+            moveTarget = resolvingState.TargetGroupResolvingStates[currentProcessingTargetGroupIndex].MoveTarget;
+            return true;
+        }
+
+        public static bool TryGetDeclaredTargetsForTargetGroup(Intention.ResolvingState resolvingState, int targetGroupIndex, out System.Collections.Generic.List<StationIndex> declaredTargets)
         {
             declaredTargets = default;
-            foreach (TargetGroupResolvingState targetGroup in intention.TargetGroupResolvingStates)
+            foreach (TargetGroupResolvingState targetGroup in resolvingState.TargetGroupResolvingStates)
             {
                 if (targetGroup.GroupID == targetGroupIndex)
                 {
