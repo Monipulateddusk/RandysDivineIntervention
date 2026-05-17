@@ -139,8 +139,9 @@ namespace TurnBased.Elements
 
             UnityEngine.Debug.LogError($"Attack Res for elemental Attack is not null");
 
+            Intention.ResolvingSource resolvingSource = new(elementalAttackMoveAction);
 
-            Intention.ResolvingState elementalMoveResolvingState = new();
+            Intention.ResolvingState elementalMoveResolvingState = new(resolvingSource);
 
             if (!Intention.UnitIntentionFactory.BuildAttackActionResolvingStatesFromElementalMove(unitDataSceneData, elementalMoveResolvingState, elementalAttackMoveAction)) { return; }
 

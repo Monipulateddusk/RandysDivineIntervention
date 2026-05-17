@@ -4,14 +4,14 @@ namespace TurnBased
 
     public class AttackStep
     {
-        public System.Collections.Generic.List<AttackAction> Actions = new();
+        public System.Collections.Generic.List<AttackResolution.AttackAction> Actions = new();
 
         public AttackStep()
         {
             Actions = new();
         }
 
-        public AttackStep(System.Collections.Generic.List<AttackAction> actions)
+        public AttackStep(System.Collections.Generic.List<AttackResolution.AttackAction> actions)
         {
             this.Actions = actions; 
         }
@@ -70,7 +70,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new DamageAttackAction(userInfo.attack, 1, groupID: 0),
+                            new AttackResolution.DamageAttackAction(userInfo.attack, 1, groupID: 0),
                         }
                     },
                 }
@@ -104,14 +104,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damageAmount: 1, 2, groupID: 0)
+                            new AttackResolution.DamageAttackAction(damageAmount: 1, 2, groupID: 0)
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damageAmount: damage, 1, groupID: 0)
+                            new AttackResolution.DamageAttackAction(damageAmount: damage, 1, groupID: 0)
                         }
                     },
                 }
@@ -144,7 +144,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ImbueEnvironmentAttackAction(userInfo.element, groupID: 0)
+                            new AttackResolution.ImbueEnvironmentAttackAction(userInfo.element, groupID: 0)
                         },
                     }
                 }

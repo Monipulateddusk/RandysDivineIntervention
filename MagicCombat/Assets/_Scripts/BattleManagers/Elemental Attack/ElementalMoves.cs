@@ -32,7 +32,7 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  groupID: 0)
                         }
                     }
                 }
@@ -70,7 +70,7 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, groupID: 0)
                         }
                     }
                 }
@@ -107,7 +107,7 @@ namespace TurnBased
                         
                             // Afflicting status: Frostburn to enemies & Slippery
                            // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.WATER, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -146,7 +146,7 @@ namespace TurnBased
                         
                             // Afflicting status: Burned to enemies
                            // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                           new ElementalDamageAttackAction(Element.EARTH, 1, totalEarthAttack,  groupID: 0)
+                           new AttackResolution.ElementalDamageAttackAction(Element.EARTH, 1, totalEarthAttack,  groupID: 0)
                         }
                     }
 
@@ -187,7 +187,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new HealingAttackAction (totalWaterAttack, groupID: 0)
+                            new AttackResolution.HealingAttackAction (totalWaterAttack, groupID: 0)
                         }
                     }
 
@@ -223,7 +223,7 @@ namespace TurnBased
                         Actions =
                         {
                             // All allies are healed for 2 HP
-                            new HealingAttackAction(2, groupID: 0)
+                            new AttackResolution.HealingAttackAction(2, groupID: 0)
                         }
                     }
 
@@ -266,7 +266,7 @@ namespace TurnBased
                         Actions =
                         {
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.ICE, 1, totalIceAttack,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.ICE, 1, totalIceAttack,  groupID: 0)
                         }
                     }
 
@@ -301,7 +301,7 @@ namespace TurnBased
                         {
                             // All allies are granted Hailcloak
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
-                            new ElementalDamageAttackAction(Element.ICE, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.ICE, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -342,7 +342,7 @@ namespace TurnBased
                         Actions =
                         {
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.EARTH, totalEarthAttack, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.EARTH, totalEarthAttack, 1,  groupID: 0)
                         }
                     }
 
@@ -380,7 +380,7 @@ namespace TurnBased
                         {
                             // Afflict targets with frost lock
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Frost Lock", attackTarget: MoveTarget.AllEnemies)
-                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.EARTH, 3, 1,  groupID: 0)
 
                         }
                     }

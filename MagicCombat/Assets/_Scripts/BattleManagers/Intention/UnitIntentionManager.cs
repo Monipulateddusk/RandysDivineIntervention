@@ -6,7 +6,9 @@ namespace TurnBased.Intention
     {
         public DamageOriginType Type { get; }
         public UnitIndex? SourceUnitIndex { get; }
+        public IElementalMove SourceElementalMove { get; }
         public BaseStatus SourceStatus { get; }
+
 
 
         public ResolvingSource(UnitIndex sourceUnit)
@@ -14,6 +16,13 @@ namespace TurnBased.Intention
             this.SourceUnitIndex = sourceUnit;
             this.Type = DamageOriginType.Unit;
             this.SourceStatus = null;
+        }
+        public ResolvingSource(IElementalMove elementalMove)
+        {
+            this.SourceElementalMove = elementalMove;
+            this.Type = DamageOriginType.Environment;
+            this.SourceStatus = null;
+            this.SourceUnitIndex = null;
         }
         public ResolvingSource(BaseStatus sourceStatus)
         {

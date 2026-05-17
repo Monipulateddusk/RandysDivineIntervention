@@ -26,13 +26,6 @@ namespace TurnBased.Status
 
         private System.Collections.Generic.Dictionary<int, UnitStatus> intentionDictionary = new();
 
-        public static event System.Action<UnitIndex> OnUnitIntentionAdded;
-        /// <summary>
-        /// Invoked when a unit's intention changes due to move selection, target selection, switching out
-        /// </summary>
-        public static event System.Action<UnitIndex, Intention.UnitIntention> OnUnitIntentionChanged;
-        public static event System.Action<UnitIndex> OnUnitIntentionRemoved;
-
 
         public void Awake()
         {
@@ -60,10 +53,6 @@ namespace TurnBased.Status
 
             StationManager.OnAddUnit -= AddUnitIndexToDictionary;
             StationManager.OnRemoveUnit -= RemoveUnitIndexFromDictionary;
-
-            OnUnitIntentionAdded = null;
-            OnUnitIntentionChanged = null;
-            OnUnitIntentionRemoved = null;
         }
 
         public void AddUnitIndexToDictionary(UnitIndex unitIndex)
@@ -71,7 +60,6 @@ namespace TurnBased.Status
             if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             intentionDictionary.Add(unitIndex.Index, new());
-            OnUnitIntentionAdded?.Invoke(unitIndex);
         }
 
         private void RemoveUnitIndexFromDictionary(UnitIndex unitIndex, StationIndex? arg2, BaseBattleUnit arg3)
@@ -88,7 +76,6 @@ namespace TurnBased.Status
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
             intentionDictionary.Remove(unitIndex.Index);
-            OnUnitIntentionRemoved?.Invoke(unitIndex);
         }
     }
 }
