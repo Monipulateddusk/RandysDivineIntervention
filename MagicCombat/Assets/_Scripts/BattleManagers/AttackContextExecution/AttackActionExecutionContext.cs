@@ -1,5 +1,66 @@
-namespace TurnBased
+namespace TurnBased.AttackResolution
 {
+    public class DamageRequest
+    {
+        public Intention.ResolvingSource ResolvingSource;
+        public UnitIndex TargetUnit;
+        public Element Element;
+        public int DamageAmount;
+        public bool IsCrit;
+        public bool IsNegated;
+
+        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.TargetUnit = targetIndex;
+            this.DamageAmount = damageValue;
+            this.Element = Element.NULL;
+            this.IsCrit = false;
+            this.IsNegated = false;
+        }
+        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue, Element element)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.TargetUnit = targetIndex;
+            this.DamageAmount = damageValue;
+            this.Element = element;
+            this.IsCrit = false;
+            this.IsNegated = false;
+        }
+    }
+
+    public class HealRequest
+    {
+        public Intention.ResolvingSource ResolvingSource;
+        public UnitIndex TargetUnit;
+        public int HealAmount;
+        public bool IsNegated;
+
+        public HealRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int healValue)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.TargetUnit = targetIndex;
+            this.HealAmount = healValue;
+            this.IsNegated = false;
+        }
+    }
+
+    public class ImbueElementRequest
+    {
+        public Intention.ResolvingSource ResolvingSource;
+        public UnitIndex TargetUnit;
+        public Element ImbuedElementType;
+        public bool IsNegated;
+
+        public ImbueElementRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Element imbuedElementType)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.TargetUnit= targetIndex;
+            this.ImbuedElementType = imbuedElementType;
+            this.IsNegated = false;
+        }
+    }
+
     public class AttackActionExecutionContext
     {
         public async System.Threading.Tasks.Task HandleAttackEvent(AttackEvent ev)
@@ -8,19 +69,26 @@ namespace TurnBased
 
             if (ev is DamageEvent damageEvent)
             {
-                DealDamage(damageEvent.TargetUnitIndex, damageEvent.Damage);
+                DamageRequest damageRequest = new(damageEvent.Source, damageEvent.TargetUnitIndex, damageEvent.Damage);
+                DealDamage(damageRequest);
             }
             else if (ev is ElementalDamageEvent elementalDamageEvent)
             {
-                DealDamage(elementalDamageEvent.TargetUnitIndex, elementalDamageEvent.Damage);
+                DamageRequest damageRequest = new(elementalDamageEvent.Source, elementalDamageEvent.TargetUnitIndex, elementalDamageEvent.Damage, elementalDamageEvent.Element);
+
+                DealDamage(damageRequest);
             }
             else if (ev is HealEvent healEvent)
             {
-                HealDamage(healEvent.TargetUnitIndex, healEvent.HealAmount);
+                HealRequest healRequest = new(healEvent.Source, healEvent.TargetUnitIndex, healEvent.HealAmount);
+
+                HealDamage(healRequest);
             }
             else if (ev is ImbueElementEvent imbueElementEvent)
             {
-                await ImbueEnvironment(imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
+                ImbueElementRequest imbueElementRequest = new(imbueElementEvent.Source, imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
+
+                await ImbueEnvironment(imbueElementRequest);
             }
             else
             {
@@ -30,20 +98,20 @@ namespace TurnBased
         }
 
 
-        private void DealDamage(UnitIndex targetUnitIndex, int damageAmount)
+        private void DealDamage(DamageRequest damageRequest)
         {
-            Health.UnitHealthManager.Instance.DamageUnitByDamageAmount(targetUnitIndex, damageAmount);
+            Health.UnitHealthManager.Instance.DamageUnitByDamageAmount(damageRequest.TargetUnit, damageRequest.DamageAmount);
         }
 
-        public void HealDamage(UnitIndex targetUnitIndex, int healingAmount)
+        public void HealDamage(HealRequest healRequest)
         {
-            Health.UnitHealthManager.Instance.HealUnitByHealAmount(targetUnitIndex, healingAmount);
+            Health.UnitHealthManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
         }
 
-        private async System.Threading.Tasks.Task ImbueEnvironment(UnitIndex targetUnitIndex, Element imbuedElement)
+        private async System.Threading.Tasks.Task ImbueEnvironment(ImbueElementRequest imbueElementRequest)
         {
-            UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(targetUnitIndex);
-            await Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbuedElement, team);
+            UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(imbueElementRequest.TargetUnit);
+            await Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, team);
         }
     }
 }

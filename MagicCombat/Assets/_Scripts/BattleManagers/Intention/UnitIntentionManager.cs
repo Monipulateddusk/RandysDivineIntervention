@@ -2,16 +2,38 @@ using UnityEngine;
 
 namespace TurnBased.Intention
 {
+    public class ResolvingSource
+    {
+        public DamageOriginType Type { get; }
+        public UnitIndex? SourceUnitIndex { get; }
+        public BaseStatus SourceStatus { get; }
+
+
+        public ResolvingSource(UnitIndex sourceUnit)
+        {
+            this.SourceUnitIndex = sourceUnit;
+            this.Type = DamageOriginType.Unit;
+            this.SourceStatus = null;
+        }
+        public ResolvingSource(BaseStatus sourceStatus)
+        {
+            this.SourceStatus = sourceStatus;
+            this.Type = DamageOriginType.Status;
+            this.SourceUnitIndex = null;
+        }
+    }
     public class ResolvingState
     {
+        public ResolvingSource ResolvingSource { get; }
         public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
 
         public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
 
-        public ResolvingState()
+        public ResolvingState(ResolvingSource resolvingSource)
         {
+            this.ResolvingSource = resolvingSource;
             this.ActionResolvingStates = new();
-            this.TargetGroupResolvingStates = new();    
+            this.TargetGroupResolvingStates = new();     
         }
     }
 
@@ -23,18 +45,20 @@ namespace TurnBased.Intention
 
         public int CurrentProcessingTargetGroupIndex;
 
-        public UnitIntention()
+        public UnitIntention(UnitIndex unitIndex)
         {
             this.MoveSelection = null;
             this.IntentionResolutionState = UnitIntentionResolutionState.NONE;
-            this.ResolvingState = new();
             this.CurrentProcessingTargetGroupIndex = 0;
+
+            ResolvingSource resolvingSource = new(unitIndex);
+            this.ResolvingState = new(resolvingSource);     
         }
     }
 
     public class AttackActionResolvingState
     {
-        public AttackAction Action { get; }
+        public AttackResolution.AttackAction Action { get; }
         /// <summary>
         /// A referance to the source Unit Move. Can be Null if the Attack Action did not originate from a Unit Move.
         /// </summary>
@@ -47,7 +71,7 @@ namespace TurnBased.Intention
 
         public bool IsResolved;
 
-        public AttackActionResolvingState(AttackAction attackAction, IBattleMove unitMove, MoveResolutionTiming timing)
+        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, IBattleMove unitMove, MoveResolutionTiming timing)
         {
             this.Action = attackAction;
             this.SourceMove = unitMove;
@@ -56,7 +80,7 @@ namespace TurnBased.Intention
             this.SourceElementalMove = null;
             this.IsResolved = false;
         }
-        public AttackActionResolvingState(AttackAction attackAction, IElementalMove elementalMove, MoveResolutionTiming timing)
+        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, IElementalMove elementalMove, MoveResolutionTiming timing)
         {
             this.Action = attackAction;
             this.SourceElementalMove = elementalMove;
@@ -159,7 +183,7 @@ namespace TurnBased.Intention
         {
             if (this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            intentionDictionary.Add(unitIndex.Index, new());
+            intentionDictionary.Add(unitIndex.Index, new(unitIndex));
             OnUnitIntentionAdded?.Invoke(unitIndex);
         }
 
@@ -193,7 +217,7 @@ namespace TurnBased.Intention
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionAwaitingMove());
+            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionAwaitingMove(unitIndex));
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
@@ -207,7 +231,7 @@ namespace TurnBased.Intention
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, new UnitIntention());
+            SetIntention(unitIndex, new UnitIntention(unitIndex));
         }
 
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
@@ -223,9 +247,9 @@ namespace TurnBased.Intention
 
     public static class UnitIntentionFactory
     {
-        public static UnitIntention CreateIntentionAwaitingMove()
+        public static UnitIntention CreateIntentionAwaitingMove(UnitIndex unitIndex)
         {
-            return new UnitIntention()
+            return new UnitIntention(unitIndex)
             {
                 IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION
             };
@@ -233,7 +257,7 @@ namespace TurnBased.Intention
 
         public static UnitIntention CreateIntentionFromMove(UnitIndex unitIndex, IBattleMove move)
         {
-            UnitIntention intention = new()
+            UnitIntention intention = new(unitIndex)
             {
                 MoveSelection = move,
                 IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION
@@ -312,7 +336,7 @@ namespace TurnBased.Intention
 
                 for (int actionIndex = 0; actionIndex < step.Actions.Count; actionIndex++)
                 {
-                    AttackAction action = step.Actions[actionIndex];
+                    AttackResolution.AttackAction action = step.Actions[actionIndex];
 
                     AttackActionResolvingState attackActionResolvingState = new(action, unitMove, unitMove.GetResolutionTiming());
                     resolvingState.ActionResolvingStates.Add(attackActionResolvingState);
@@ -328,7 +352,7 @@ namespace TurnBased.Intention
 
                 for (int actionIndex = 0; actionIndex < step.Actions.Count; actionIndex++)
                 {
-                    AttackAction action = step.Actions[actionIndex];
+                    AttackResolution.AttackAction action = step.Actions[actionIndex];
 
                     AttackActionResolvingState attackActionResolvingState = new(action, elementalMove, elementalMove.GetResolutionTiming());
                     resolvingState.ActionResolvingStates.Add(attackActionResolvingState);

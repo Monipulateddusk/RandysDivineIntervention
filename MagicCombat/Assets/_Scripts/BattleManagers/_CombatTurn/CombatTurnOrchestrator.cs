@@ -10,6 +10,7 @@ namespace TurnBased.Phases {
         private TurnOrder.TurnOrderManager TurnOrderManager                             = new();
 
         private Health.UnitHealthManager UnitHealthManager                              = new();
+        private Status.UnitStatusManager UnitStatusManager                              = new();
         private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
         private Combat.TurnOrderCombatHandler turnOrderCombatHandler                    = new();

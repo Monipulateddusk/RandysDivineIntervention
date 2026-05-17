@@ -34,13 +34,13 @@ public enum StationSelectionState
 /// 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
-public enum AttackActionType 
-{ 
-    DAMAGE,
-    HEALING, 
-    STATUS_EFFECT, 
-    IMBUE_ENVIRONMENTS 
+public enum DamageOriginType
+{
+    Unit,
+    Status,
+    Environment,
+    Scripted,
+    Trap
 }
 
 public enum MoveTarget
@@ -201,6 +201,14 @@ public enum MoveResolutionTiming
 {
     Instant,
     TurnOrderSequence
+}
+
+public enum StatusResolutionTiming
+{
+    StartOfUnitTurn,
+    EndOfUnitTurn,
+    StartOfRound,
+    EndOfRound,
 }
 
 

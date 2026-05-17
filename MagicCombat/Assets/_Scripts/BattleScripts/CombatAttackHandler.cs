@@ -21,16 +21,17 @@ namespace TurnBased.AttackResolution
                 /*  Get the Declared Units in this Attack Action's Targetting Group.    */
                 if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(resolvingState, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
 
-                await ProcessAttackAction(actionResolvingState.Action, declaredTargets);
+                await ProcessAttackAction(resolvingState.ResolvingSource, actionResolvingState.Action, declaredTargets);
 
                 actionResolvingState.IsResolved = true;
             }
         }
 
 
-        public async static System.Threading.Tasks.Task ProcessAttackAction(AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
         {
             if (!StationManagerUtilities.DoesStationIndexListContainExistantTarget(declaredTargets)) { return; }
+            if (resolvingSource == null) { return; }
 
             System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict = new();
 
@@ -38,7 +39,7 @@ namespace TurnBased.AttackResolution
             {
                 if (!StationManager.Instance.TryGetUnitIndexOnStation(targetStation, out UnitIndex unitIndexOnStation)) { Debug.LogWarning($"COMBAT ATTACK HANDLER — UNABLE TO RETRIEVE UNIT INDEX OF TARGET. TARGET STATION INDEX IS: {targetStation.Index}"); continue; }
 
-                System.Collections.Generic.List<AttackEvent> attackEvents = attackAction.Execute(unitIndexOnStation);
+                System.Collections.Generic.List<AttackEvent> attackEvents = attackAction.Execute(resolvingSource, unitIndexOnStation);
 
                 /*  Execute the attack for this UnitIndex and store it. */
                 if (!unitIndexTargetPerAttackEventDict.ContainsKey(unitIndexOnStation))
