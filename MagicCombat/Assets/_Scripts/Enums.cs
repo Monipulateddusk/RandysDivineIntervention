@@ -203,15 +203,6 @@ public enum MoveResolutionTiming
     TurnOrderSequence
 }
 
-public enum StatusResolutionTiming
-{
-    StartOfUnitTurn,
-    EndOfUnitTurn,
-    StartOfRound,
-    EndOfRound,
-}
-
-
 public enum TurnOrderCreationState
 {
     InsufficentUnits = 0,
@@ -232,4 +223,25 @@ enum CameraAnimType
     Shift, 
     Static, 
     Shader 
+}
+
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+/// STATUS ENUMERATIONS
+/// 
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+public enum StatusResolutionTiming
+{
+    None,
+    StartOfUnitTurn,
+    EndOfUnitTurn,
+    StartOfRound,
+    EndOfRound,
+}
+
+public enum StatusType
+{
+    Buff,
+    Debuff,
 }

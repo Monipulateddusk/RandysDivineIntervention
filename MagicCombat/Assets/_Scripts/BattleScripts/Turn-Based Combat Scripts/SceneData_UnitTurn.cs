@@ -21,19 +21,3 @@ public class UnitTurnStationIndexesSceneData : SceneDataStationIndexes
         this.SourceStationIndex = sourceUnitIndex;
     }
 }
-
-
-
-public class UnitDataUnitTurnSceneData
-{
-    public UnitData SourceUnitData                                              { get; }
-    public System.Collections.Generic.List<UnitData> AllyUnitData               { get; }
-    public System.Collections.Generic.List<UnitData> EnemyUnitData              { get; }
-
-    public UnitDataUnitTurnSceneData(UnitData sourceUnitIndex, System.Collections.Generic.List<UnitData> allyStationIndexes, System.Collections.Generic.List<UnitData> enemyStationIndexes)
-    {
-        this.SourceUnitData = sourceUnitIndex;
-        this.AllyUnitData = allyStationIndexes;
-        this.EnemyUnitData = enemyStationIndexes;
-    }
-}

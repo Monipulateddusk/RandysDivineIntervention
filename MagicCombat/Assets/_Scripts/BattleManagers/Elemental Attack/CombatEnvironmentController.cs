@@ -118,59 +118,40 @@ namespace TurnBased.Elements
 
         private async System.Threading.Tasks.Task ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team)
         {
-            UnityEngine.Debug.LogError($"ProcessElementalMove called");
-
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitDataUnitTurnSceneData unitDataSceneData)) { return; }
-
-            UnityEngine.Debug.LogError($"Trying CreateUnitDataSceneDataForElementalMove ");
-
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
             if (!StationManagerUtilities.TryCreateSceneDataForTeam(team, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
 
-            UnityEngine.Debug.LogError($"Obtained scene Data for team");
-
-
-            // Find out what move the elements combine into and do that move to get the info needed to resolve it
+            //  -=-=-=-=-=-=-=-=-
+            //  Process Elemental Attack Move and ensure it isn't null
+            //  -=-=-=-=-=-=-=-=-
             IElementalMove elementalAttackMoveAction = GetElementalCombination(elementValueA, elementValueB);
-
-            UnityEngine.Debug.LogError($"Processed ElementMove: {elementalAttackMoveAction.GetMoveName()}");
-
-            AttackResolutionInfo elementalAttackResolutionInfo = ExecuteElementalMove(unitDataSceneData, elementalAttackMoveAction, team);
+            AttackResolutionInfo elementalAttackResolutionInfo = ExecuteElementalMove(resolutionSceneData, elementalAttackMoveAction, team);
             if (elementalAttackResolutionInfo == null) { return; }
 
-            UnityEngine.Debug.LogError($"Attack Res for elemental Attack is not null");
-
+            //  -=-=-=-=-=-=-=-=-
+            //  Process Elemental Resolving State and Targets
+            //  -=-=-=-=-=-=-=-=-
             Intention.ResolvingSource resolvingSource = new(elementalAttackMoveAction);
-
             Intention.ResolvingState elementalMoveResolvingState = new(resolvingSource);
+            DeclareElementalMoveTargets(resolutionSceneData, stationIndexesSceneData, elementalMoveResolvingState, elementalAttackMoveAction);
 
-            if (!Intention.UnitIntentionFactory.BuildAttackActionResolvingStatesFromElementalMove(unitDataSceneData, elementalMoveResolvingState, elementalAttackMoveAction)) { return; }
-
-            UnityEngine.Debug.LogError($"Attack Res for elemental Attack is not null");
-
-            DeclareElementalMoveTargets(stationIndexesSceneData, elementalMoveResolvingState, elementalAttackMoveAction);
-
-            UnityEngine.Debug.LogError($"Processing Elemental Move: {elementalAttackMoveAction.GetMoveName()}");
-
-            await ProcessElementalMoveAsync(elementalMoveResolvingState);
-        }
-
-        private void DeclareElementalMoveTargets(UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
-        {
-            UnityEngine.Debug.LogError($"Trying to get target selector of {elementalAttackMoveAction.GetMoveName()}");
-            /*  Before we process it, we need to determine the Targets of the attack. The ElementalMoveAction will dictate who it targets.  */
-            if (!this.ElementalAttackTargettingManager.TryGetTargetSelector(elementalAttackMoveAction.GetMoveName(), out TargetSelection.ITargetSelector targetSelector)) { return; }
-
-            UnityEngine.Debug.LogError($"TryGetTargetSelector not null");
-
-            Intention.IntentionResolverManager.Instance.ProcessResolvingStateTargetSeleciton(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
-        }
-
-        private async System.Threading.Tasks.Task ProcessElementalMoveAsync(Intention.ResolvingState elementalMoveResolvingState)
-        {
+            //  -=-=-=-=-=-=-=-=-
+            //  Process Elemental Attack Steps
+            //  -=-=-=-=-=-=-=-=-
             await AttackResolution.CombatAttackHandler.ProcessAttackStep(elementalMoveResolvingState);
         }
 
-        private AttackResolutionInfo ExecuteElementalMove(UnitDataUnitTurnSceneData unitDataSceneData, IElementalMove elementalAttackMoveAction, UnitTeam team)
+        private void DeclareElementalMoveTargets(TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData, UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
+        {
+            if (!Intention.UnitIntentionFactory.BuildAttackActionResolvingStatesFromElementalMove(resolutionSceneData, elementalMoveResolvingState, elementalAttackMoveAction)) { return; }
+            /*  Before we process it, we need to determine the Targets of the attack. The ElementalMoveAction will dictate who it targets.  */
+            if (!this.ElementalAttackTargettingManager.TryGetTargetSelector(elementalAttackMoveAction.GetMoveName(), out TargetSelection.ITargetSelector targetSelector)) { return; }
+
+            Intention.IntentionResolverManager.Instance.ProcessResolvingStateTargetSelection(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
+        }
+
+
+        private AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData, IElementalMove elementalAttackMoveAction, UnitTeam team)
         {
             if (elementalAttackMoveAction == null) { UnityEngine.Debug.LogError("ELEMENTAL COMBINATION ERROR: NOT VALID!!!"); return null; }
 
@@ -179,7 +160,7 @@ namespace TurnBased.Elements
             if (unitsOnTeam.Count <= 0) { return null; }
 
             /*  Process the attack using the Scene Unit Data.   */
-            return elementalAttackMoveAction.ExecuteElementalMove(usersInfo: unitDataSceneData.AllyUnitData, targetsInfo: unitDataSceneData.EnemyUnitData);
+            return elementalAttackMoveAction.ExecuteElementalMove(resolutionSceneData);
         }
 
 

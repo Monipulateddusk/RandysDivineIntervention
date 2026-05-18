@@ -93,8 +93,8 @@ namespace TurnBased.AttackResolution
         public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"Do nothing."; }
-            AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(unitDataSceneData.SourceUnitData, unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"Do nothing."; }
+            AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(resolutionSceneData);
 
             /*  Get the target groups of the move.  */
             System.Collections.Generic.Dictionary<int, MoveTarget> targetGroupToMoveTargetDictionary = GetMoveTargetTargetGroupDictionaryFromMoveResolutionInfo(resolutionInfo);
@@ -150,9 +150,9 @@ namespace TurnBased.AttackResolution
         public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMove elementalMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out UnitDataUnitTurnSceneData unitDataSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
 
-            AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(unitDataSceneData.AllyUnitData, unitDataSceneData.EnemyUnitData);
+            AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(resolutionSceneData);
 
             /*  Get the target groups of the move.  */
             System.Collections.Generic.Dictionary<int, MoveTarget> targetGroupToMoveTargetDictionary = GetMoveTargetTargetGroupDictionaryFromMoveResolutionInfo(resolutionInfo);

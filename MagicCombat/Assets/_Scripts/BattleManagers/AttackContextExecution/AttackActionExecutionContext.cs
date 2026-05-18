@@ -44,6 +44,21 @@ namespace TurnBased.AttackResolution
             this.IsNegated = false;
         }
     }
+    public class ApplyStatusRequest
+    {
+        public Intention.ResolvingSource ResolvingSource;
+        public Status.BaseStatus ApplingStatus;
+        public UnitIndex TargetUnit;
+        public bool IsNegated;
+
+        public ApplyStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.ApplingStatus = status;
+            this.TargetUnit = targetIndex;
+            this.IsNegated = false;
+        }
+    }
 
     public class ImbueElementRequest
     {

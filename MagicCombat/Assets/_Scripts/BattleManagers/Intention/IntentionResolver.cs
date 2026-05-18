@@ -66,7 +66,7 @@ namespace TurnBased.Intention
             this.TargetSelectionResolver.ProcessTargetSelection(unitIndex);
         }
 
-        public void ProcessResolvingStateTargetSeleciton(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
+        public void ProcessResolvingStateTargetSelection(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
         {
             if (this.TargetSelectionResolver == null) { return; }
 

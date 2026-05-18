@@ -77,8 +77,6 @@ namespace TurnBased.AttackResolution
                 events.Add(new ElementalDamageEvent(this.ElementEffect, this.DamageAmount, resolvingSource, targetUnitIndex));
             }
 
-            UnityEngine.Debug.LogError($"Elemental Damage Event List count is: {events.Count}");
-
             return events;
         }
     }

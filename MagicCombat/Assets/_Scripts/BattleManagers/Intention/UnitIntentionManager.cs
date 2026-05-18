@@ -7,7 +7,7 @@ namespace TurnBased.Intention
         public DamageOriginType Type { get; }
         public UnitIndex? SourceUnitIndex { get; }
         public IElementalMove SourceElementalMove { get; }
-        public BaseStatus SourceStatus { get; }
+        public Status.BaseStatus SourceStatus { get; }
 
 
 
@@ -24,7 +24,7 @@ namespace TurnBased.Intention
             this.SourceStatus = null;
             this.SourceUnitIndex = null;
         }
-        public ResolvingSource(BaseStatus sourceStatus)
+        public ResolvingSource(Status.BaseStatus sourceStatus)
         {
             this.SourceStatus = sourceStatus;
             this.Type = DamageOriginType.Status;
@@ -282,10 +282,10 @@ namespace TurnBased.Intention
         {
             if (move == null) { return false; }
 
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out UnitDataUnitTurnSceneData SceneData)) { return false; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return false; }
             if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) {  return false; }  
 
-            AttackResolutionInfo info = move.ExecuteMove(SceneData.SourceUnitData, SceneData.AllyUnitData, SceneData.EnemyUnitData);
+            AttackResolutionInfo info = move.ExecuteMove(resolutionSceneData);
 
             CreateTargetGroupResolvingStatesForIntention(unitIntention.ResolvingState, info, unitData.targetSelectorType);
 
@@ -293,14 +293,14 @@ namespace TurnBased.Intention
             return true;
         }
 
-        public static bool BuildAttackActionResolvingStatesFromElementalMove(UnitDataUnitTurnSceneData sceneData, ResolvingState resolvingState, IElementalMove elementalMove)
+        public static bool BuildAttackActionResolvingStatesFromElementalMove(TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData, ResolvingState resolvingState, IElementalMove elementalMove)
         {
             if (elementalMove == null) { return false; }
 
             UnityEngine.Debug.LogError($"Move is not null");
 
             /*  Process the elemental move and determine the targeting groups and action resolving states for it.   */
-            AttackResolutionInfo info = elementalMove.ExecuteElementalMove(sceneData.AllyUnitData, sceneData.EnemyUnitData);
+            AttackResolutionInfo info = elementalMove.ExecuteElementalMove(resolutionSceneData);
 
             UnityEngine.Debug.LogError($"Executed elemental move");
 
