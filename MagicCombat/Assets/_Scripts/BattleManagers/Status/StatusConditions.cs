@@ -1,5 +1,3 @@
-using TurnBased.AttackResolution;
-
 namespace TurnBased.Status
 {
     public abstract class BaseStatus
@@ -17,24 +15,54 @@ namespace TurnBased.Status
             this.StatusType = statusType;
         }
 
-        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> OnStatusAdded(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> OnStatusRemoved(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData) { return RemoveStatusOnStackSize(resolutionSceneData); } 
+        
         public virtual void ModifyIncomingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
         public virtual void ModifyOutgoingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
         public virtual void ModifyIncomingHealRequest(AttackResolution.HealRequest healRequest) { }
         public virtual void ModifyOutgoingHealRequest(AttackResolution.HealRequest healRequest) { }
         public virtual void ModifyIncomingApplyStatusRequest(AttackResolution.ApplyStatusRequest applyStatusRequest) { }
         public virtual void ModifyOutgoingApplyStatusRequest(AttackResolution.ApplyStatusRequest applyStatusRequest) { }
+        public virtual void ModifyIncomingRemoveStatusRequest(AttackResolution.RemoveStatusRequest removeStatusRequest) { }
+        public virtual void ModifyOutgoingRemoveStatusRequest(AttackResolution.RemoveStatusRequest removeStatusRequest) { }
 
-        public void AddStack()
+        public virtual void IncrementStack() 
         {
-            if (this.CanStack)
-            {
-                this.StackSize++;
+            if (this.CanStack) 
+            { 
+                this.StackSize++;   
             }
         }
-        public void UpdateStatus()
-        {
 
+        /// <returns>True if the stack size is less than or equal to 0.</returns>
+        public virtual bool DecrementStack()
+        {
+            this.StackSize--;
+
+            if (this.StackSize <= 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        internal System.Collections.Generic.List<AttackResolution.AttackEvent> RemoveStatusOnStackSize(AttackResolution.ResolutionSceneData resolutionSceneData)
+        {
+            Intention.ResolvingSource resolvingSource = new(this);
+            /*  If this status' stacksize is less than or equal to zero, we want to mark this status for removal. */
+            if (this.StackSize <= 0)
+            {
+                return new()
+                {
+                    { new AttackResolution.RemoveStatusEvent(this, resolvingSource, resolutionSceneData.OwnerUnitInformation.UnitIndex) }
+                };
+            }
+            else
+            {
+                return new();
+            }
         }
     }
 
@@ -52,7 +80,7 @@ namespace TurnBased.Status
                 { new AttackResolution.DamageEvent(1, resolvingSource, resolutionSceneData.OwnerUnitInformation.UnitIndex) }
             };
         }
-        public override void ModifyOutgoingDamageRequest(DamageRequest damageRequest)
+        public override void ModifyOutgoingDamageRequest(AttackResolution.DamageRequest damageRequest)
         {
             damageRequest.DamageAmount /= 3;
         }

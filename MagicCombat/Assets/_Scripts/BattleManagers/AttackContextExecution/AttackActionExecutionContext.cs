@@ -1,3 +1,5 @@
+using TurnBased.Status;
+
 namespace TurnBased.AttackResolution
 {
     public class DamageRequest
@@ -60,6 +62,22 @@ namespace TurnBased.AttackResolution
         }
     }
 
+    public class RemoveStatusRequest
+    {
+        public Intention.ResolvingSource ResolvingSource;
+        public Status.BaseStatus RemovingStatus;
+        public UnitIndex TargetUnit;
+        public bool IsNegated;
+
+        public RemoveStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.RemovingStatus = status;
+            this.TargetUnit = targetIndex;
+            this.IsNegated = false;
+        }
+    }
+
     public class ImbueElementRequest
     {
         public Intention.ResolvingSource ResolvingSource;
@@ -105,6 +123,18 @@ namespace TurnBased.AttackResolution
 
                 await ImbueEnvironment(imbueElementRequest);
             }
+            else if (ev is AddStatusEvent addStatusEvent)
+            {
+                ApplyStatusRequest applyStatusRequest = new(addStatusEvent.Source, addStatusEvent.TargetUnitIndex, addStatusEvent.Status);
+
+                AddStatus(applyStatusRequest);
+            }
+            else if (ev is RemoveStatusEvent removeStatusEvent)
+            {
+                RemoveStatusRequest removeStatusRequest = new(removeStatusEvent.Source, removeStatusEvent.TargetUnitIndex, removeStatusEvent.Status);
+
+                RemoveStatus(removeStatusRequest);
+            }
             else
             {
                 UnityEngine.Debug.LogError("ERROR — AttackActionExecutionContext: INVALID ATTACK EVENT");
@@ -127,6 +157,16 @@ namespace TurnBased.AttackResolution
         {
             UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(imbueElementRequest.TargetUnit);
             await Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, team);
+        }
+
+        private void AddStatus(ApplyStatusRequest applyStatusRequest)
+        {
+            UnitStatusHandler.RemoveStatusForUnitIndex(applyStatusRequest.TargetUnit, applyStatusRequest.ApplingStatus);
+        }
+
+        private void RemoveStatus(RemoveStatusRequest removeStatusRequest)
+        {
+            UnitStatusHandler.RemoveStatusForUnitIndex(removeStatusRequest.TargetUnit, removeStatusRequest.RemovingStatus);
         }
     }
 }

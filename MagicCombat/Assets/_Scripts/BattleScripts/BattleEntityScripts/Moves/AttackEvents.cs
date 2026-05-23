@@ -48,4 +48,23 @@ namespace TurnBased.AttackResolution
             this.ImbuedElement = imbuedElement;
         }
     }
+
+    public class AddStatusEvent : AttackEvent
+    {
+        public Status.BaseStatus Status { get; }
+
+        public AddStatusEvent(Status.BaseStatus addedStatus, Intention.ResolvingSource source, UnitIndex targetUnitIndex) : base(source, targetUnitIndex)
+        {
+            this.Status = addedStatus;  
+        }
+    }
+    public class RemoveStatusEvent : AttackEvent
+    {
+        public Status.BaseStatus Status { get; }
+
+        public RemoveStatusEvent(Status.BaseStatus addedStatus, Intention.ResolvingSource source, UnitIndex targetUnitIndex) : base(source, targetUnitIndex)
+        {
+            this.Status = addedStatus;
+        }
+    }
 }
