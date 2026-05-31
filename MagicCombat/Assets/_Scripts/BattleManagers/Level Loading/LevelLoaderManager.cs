@@ -90,7 +90,7 @@ namespace TurnBased.LoaderUnloader
 
             this.currentLevelIndex++;
 
-            if (this.currentLevelIndex > this.AllLevelData.Count - 1)
+            if (this.currentLevelIndex > this.AllLevelData.Count)
             {
                 UnityEngine.SceneManagement.SceneManager.LoadScene("LevelSelect");                
             }

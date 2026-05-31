@@ -52,12 +52,6 @@ namespace TurnBased.Phases
 
         public void SwitchSubPhase(SubPhaseState newState, UnitIndex selectedUnitIndex)
         {
-            
-            UnityEngine.Debug.LogWarning($"Switching to Phase: {newState}.");
-            UnityEngine.Debug.LogWarning($"Size of the list is: {this.MainPhaseStates.Count}");
-
-
-
             this.MainPhaseStates[this.CurrentSubPhaseState]?.OnExit();
 
             this.CurrentSubPhaseState = newState;

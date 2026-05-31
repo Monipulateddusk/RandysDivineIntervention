@@ -134,4 +134,43 @@ namespace TurnBased.AttackResolution
             return new() { new ImbueElementEvent(this.ElementEffect, resolvingSource, targetUnitIndex) };
         }
     }
+
+    public class InflictStatusAttackAction : AttackAction
+    {
+        public Status.BaseStatus StatusEffect { get; private set; }
+
+        public InflictStatusAttackAction(Status.BaseStatus statusEffect, int groupID) : base(groupID)
+        {
+            this.StatusEffect = statusEffect;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Inflict the target with {this.StatusEffect.StatusName}";
+        }
+
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
+        {
+            return new() { new AddStatusEvent(this.StatusEffect, resolvingSource, targetUnitIndex) };
+        }
+    }
+    public class RemoveStatusAttackAction : AttackAction
+    {
+        public Status.BaseStatus StatusEffect { get; private set; }
+
+        public RemoveStatusAttackAction(Status.BaseStatus statusEffect, int groupID) : base(groupID)
+        {
+            this.StatusEffect = statusEffect;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Remove the target of {this.StatusEffect.StatusName}";
+        }
+
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
+        {
+            return new() { new RemoveStatusEvent(this.StatusEffect, resolvingSource, targetUnitIndex) };
+        }
+    }
 }

@@ -1,4 +1,5 @@
 using TurnBased.AttackResolution;
+using TurnBased.Status;
 
 namespace TurnBased
 {
@@ -62,7 +63,7 @@ namespace TurnBased
 
             AttackResolutionInfo resolutionInfo = new()
             {
-                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Area) },
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.AllEnemies), new TargetDeclarationGroup(groupID: 1, MoveTarget.AllAllies) },
 
                 Steps =
                 {
@@ -72,8 +73,11 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, 0, 1, groupID: 0),
+                            new AttackResolution.InflictStatusAttackAction(new BurnStatus(), groupID: 0),
+                            new AttackResolution.HealingAttackAction(totalWaterAttack, groupID: 1)
                         }
+
                     }
                 }
 

@@ -1,5 +1,3 @@
-using TurnBased.AttackResolution;
-
 namespace TurnBased.Status
 {
     public class UnitStatus
@@ -31,9 +29,9 @@ namespace TurnBased.Status
             return true;
         }
 
-        public BaseStatus RemoveStatusFromList(BaseStatus statusToBeRemoved)
+        public bool RemoveStatusFromList(BaseStatus statusToBeRemoved)
         {
-            if (statusToBeRemoved == null || this.UnitStatuses == null) { return null; }
+            if (statusToBeRemoved == null || this.UnitStatuses == null) { return false; }
             
             for (int i = 0; i < this.UnitStatuses.Count; i++)
             {
@@ -42,11 +40,11 @@ namespace TurnBased.Status
                     if (this.UnitStatuses[i].DecrementStack())
                     {
                         this.UnitStatuses.Remove(statusToBeRemoved);
-                        return statusToBeRemoved;
+                        return true;
                     }
                 }
             }
-            return null;
+            return false;
         }        
     }
 
@@ -132,17 +130,21 @@ namespace TurnBased.Status
 
     public static class UnitStatusHandler
     {
-        public static void AddStatusForUnitIndex(UnitIndex unitIndex, Status.BaseStatus statusBeingAdded)
+        public static BaseStatus AddStatusForUnitIndex(UnitIndex unitIndex, Status.BaseStatus statusBeingAdded)
         {
-            if (!UnitStatusManager.Instance.TryGetStatusOfUnitIndex(unitIndex, out UnitStatus unitStatus)) { return; }
+            if (!UnitStatusManager.Instance.TryGetStatusOfUnitIndex(unitIndex, out UnitStatus unitStatus)) { return null; }
 
-            unitStatus.AddStatusToList(statusBeingAdded);
+            /*  If we sucessfully add a status to the list, return the added status to resolve any attack events when the status is added.  */
+            if (!unitStatus.AddStatusToList(statusBeingAdded)) { return null; }
+            return statusBeingAdded;
         }
-        public static void RemoveStatusForUnitIndex(UnitIndex unitIndex, Status.BaseStatus statusBeingRemoved)
+        public static BaseStatus RemoveStatusForUnitIndex(UnitIndex unitIndex, Status.BaseStatus statusBeingRemoved)
         {
-            if (!UnitStatusManager.Instance.TryGetStatusOfUnitIndex(unitIndex, out UnitStatus unitStatus)) { return; }
+            if (!UnitStatusManager.Instance.TryGetStatusOfUnitIndex(unitIndex, out UnitStatus unitStatus)) { return null; }
 
-            
+            /*  If we sucessfully remove a status from the list, return the removed status to resolve any attack events when the status is removed.  */
+            if (!unitStatus.RemoveStatusFromList(statusBeingRemoved)) { return null; }
+            return statusBeingRemoved;
         }
 
         public static void ModifyIncomingDamageRequestToUnitIndex(UnitIndex unitIndex, AttackResolution.DamageRequest damageRequest)
@@ -204,5 +206,6 @@ namespace TurnBased.Status
                 status.ModifyOutgoingApplyStatusRequest(statusRequest);
             }
         }
+
     }
 }

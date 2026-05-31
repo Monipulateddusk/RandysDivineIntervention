@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace TurnBased.Phases {
 
     public class CombatTurnOrchestrator
@@ -13,16 +11,84 @@ namespace TurnBased.Phases {
         private Status.UnitStatusManager UnitStatusManager                              = new();
         private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
-        private Combat.TurnOrderCombatHandler turnOrderCombatHandler                    = new();
+        private Combat.TurnOrderCombatHandler TurnOrderCombatHandler                    = new();
 
-        private Intention.IntentionResolverManager intentionResolverManager             = new();
+        private Intention.IntentionResolverManager IntentionResolverManager             = new();
+        private Combat.IntentionCombatResolver IntentionCombatResolver                  = new(); 
 
         private MoveSelection.MoveSelectorManager MoveSelectorManager                   = new();
         private TargetSelection.UnitTargetSelectorManager UnitTargetSelectorManager     = new();
 
         private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
 
+        private PhaseTaskCompletionManager phaseCompletionManager;
 
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when starting the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfBattle;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when starting the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfRound;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other at the Start of the Player's Pre-Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPrePlayerTurn;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other to the Start of the Player Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnStartPlayerTurn;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when starting the resolution of Turn Order. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnTurnOrderResolving;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when Resolving Turn Order. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnResolvingTurnOrder;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other at the end of the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnEndOfRound;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other at the end of the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager> OnEndOfBattle;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Move Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitMoveSelection;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Target Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitTargetSelection;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is ready to execute their Move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitReadyToExecuteMove;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is about to Resolve their move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitResolveMove;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit's Attack is complete. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitAttackComplete;
 
 
         private static CombatTurnOrchestrationPhase currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
@@ -45,7 +111,7 @@ namespace TurnBased.Phases {
         public void Awake()
         {
             UnityEngine.Debug.LogError("AWAKE CALLED INSIDE ORCHESTRATOR");
-            TurnBased.GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
+            GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
 
             currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
 
@@ -54,9 +120,11 @@ namespace TurnBased.Phases {
             this.subPhaseManager = new();
             this.TurnOrderManager = new();  
             this.UnitHealthManager = new();
+            this.UnitStatusManager = new();
             this.UnitIntentionManager = new();
-            this.turnOrderCombatHandler = new();
-            this.intentionResolverManager = new();
+            this.TurnOrderCombatHandler = new();
+            this.IntentionResolverManager = new();
+            this.IntentionCombatResolver = new();
             this.MoveSelectorManager = new();
             this.UnitTargetSelectorManager = new();
             this.AttackResolutionManager = new();
@@ -68,11 +136,13 @@ namespace TurnBased.Phases {
             this.TurnOrderManager.Awake();
 
             this.UnitHealthManager.Awake();
+            this.UnitStatusManager.Awake();
             this.UnitIntentionManager.Awake();
 
-            this.turnOrderCombatHandler.Awake();
+            this.TurnOrderCombatHandler.Awake();
 
-            this.intentionResolverManager.Awake();
+            this.IntentionResolverManager.Awake();
+            this.IntentionCombatResolver.Awake();
 
             this.MoveSelectorManager.Awake();
             this.UnitTargetSelectorManager.Awake();
@@ -90,11 +160,13 @@ namespace TurnBased.Phases {
             this.TurnOrderManager.OnDestroy();
 
             this.UnitHealthManager.OnDestroy();
+            this.UnitStatusManager.OnDestroy();
             this.UnitIntentionManager.OnDestroy();
 
-            this.turnOrderCombatHandler.OnDestroy();
+            this.TurnOrderCombatHandler.OnDestroy();
 
-            this.intentionResolverManager.OnDestroy();
+            this.IntentionResolverManager.OnDestroy();
+            this.IntentionCombatResolver.OnDestroy();
 
             this.MoveSelectorManager.OnDestroy();
             this.UnitTargetSelectorManager.OnDestroy();
@@ -111,15 +183,37 @@ namespace TurnBased.Phases {
             this.UnitHealthManager = null;
             this.UnitIntentionManager = null;
 
-            this.turnOrderCombatHandler = null;
+            this.TurnOrderCombatHandler = null;
 
-            this.intentionResolverManager = null;
+            this.IntentionResolverManager = null;
+            this.IntentionCombatResolver = null;    
 
             this.MoveSelectorManager = null;
             this.UnitTargetSelectorManager = null;
 
             this.AttackResolutionManager = null;
             this.combatRoundIntentionManager = null;
+            
+            
+            /*  
+             *  Remove all listeners to events. Doesn't prevent memory leaks, all listeners still need to unsubscribe.  
+             *  But it resets it for next time.
+             */
+            OnStartOfBattle                 = null;
+            OnStartOfRound                  = null;
+            OnStartOfPrePlayerTurn          = null;
+            OnStartPlayerTurn               = null;
+            OnTurnOrderResolving            = null;
+            OnResolvingTurnOrder            = null;
+            OnEndOfRound                    = null;
+            OnEndOfBattle                   = null;
+
+            OnAwaitingUnitMoveSelection     = null;
+            OnAwaitingUnitTargetSelection   = null;
+            OnUnitReadyToExecuteMove        = null;
+            OnUnitResolveMove               = null;
+            OnUnitAttackComplete            = null;
+
         }
 
         public void Update()
@@ -128,9 +222,9 @@ namespace TurnBased.Phases {
             this.subPhaseManager.Update();
 
             string unitIndexDebuggingString = this.subPhaseManager.GetSelectedIndex() != null ? 
-                $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty; 
+                $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty;
 
-            MonoBehaviour.print($"<color=black>Current main phase state is: {currentOrchestrationPhase.ToString()}.</color> " +
+            UnityEngine.MonoBehaviour.print($"<color=black>Current main phase state is: {currentOrchestrationPhase.ToString()}.</color> " +
                 $"<color=white> Current sub phase: {this.subPhaseManager.CurrentSubPhaseState.ToString()} </color>" +
                 unitIndexDebuggingString);
 
@@ -159,29 +253,20 @@ namespace TurnBased.Phases {
 
         private void OnPhaseComplete(CombatTurnOrchestrationPhase phaseThatCompleted)
         {
-            StationIndex selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationIndex();
-            /*  Try and get the Unit index on that station to pass to the subphase we are entering. */
-            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndexOnStation)) { return; }
-
-
             switch (phaseThatCompleted)
             {
                 case CombatTurnOrchestrationPhase.StartOfBattle:
 
-                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
+                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;     
                     break;
 
 
                 case CombatTurnOrchestrationPhase.StartOfRound:
-
                     UnityEngine.Debug.LogWarning($"Start of round phase is complete. Moving to pre-player turn.   ");
 
-                    /*  Reset the subphase*/
+                    /*  Reset the subphase. */
                     this.subPhaseManager.SwitchSubPhase(SubPhaseState.NONE, new UnitIndex(0));
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PrePlayerTurn;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
 
@@ -190,31 +275,25 @@ namespace TurnBased.Phases {
                     UnityEngine.Debug.LogWarning($"Pre player turn done. Moving to the player's main turn.   ");
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PlayerTurn;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
 
                 case CombatTurnOrchestrationPhase.PlayerTurn:
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.TurnOrderRes;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
                 case CombatTurnOrchestrationPhase.TurnOrderRes:
 
                     UnityEngine.Debug.LogWarning($"Turn order resolved. Moving to end of round.  Phase Manager  is:  {this.phaseManager}");
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.EndOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
 
                     break;
 
                 case CombatTurnOrchestrationPhase.EndOfRound:
 
                     UnityEngine.Debug.LogWarning($"End of round over. Going to the start of round.   ");
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
 
                     break;
 
@@ -222,6 +301,8 @@ namespace TurnBased.Phases {
                 default:
                     break;
             }
+
+            this.phaseManager.ChangeState(CurrentOrchestrationPhase);
         }
 
 

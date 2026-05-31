@@ -1,5 +1,3 @@
-using TurnBased.Status;
-
 namespace TurnBased.AttackResolution
 {
     public class DamageRequest
@@ -96,7 +94,7 @@ namespace TurnBased.AttackResolution
 
     public class AttackActionExecutionContext
     {
-        public async System.Threading.Tasks.Task HandleAttackEvent(AttackEvent ev)
+        public void HandleAttackEvent(AttackEvent ev)
         {
             if (ev == null) { return; }
 
@@ -121,7 +119,7 @@ namespace TurnBased.AttackResolution
             {
                 ImbueElementRequest imbueElementRequest = new(imbueElementEvent.Source, imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
 
-                await ImbueEnvironment(imbueElementRequest);
+                ImbueEnvironment(imbueElementRequest);
             }
             else if (ev is AddStatusEvent addStatusEvent)
             {
@@ -153,20 +151,28 @@ namespace TurnBased.AttackResolution
             Health.UnitHealthManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
         }
 
-        private async System.Threading.Tasks.Task ImbueEnvironment(ImbueElementRequest imbueElementRequest)
+        private void ImbueEnvironment(ImbueElementRequest imbueElementRequest)
         {
-            UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(imbueElementRequest.TargetUnit);
-            await Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, team);
+            Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, imbueElementRequest.TargetUnit);
         }
 
         private void AddStatus(ApplyStatusRequest applyStatusRequest)
         {
-            UnitStatusHandler.RemoveStatusForUnitIndex(applyStatusRequest.TargetUnit, applyStatusRequest.ApplingStatus);
+            UnityEngine.Debug.LogError("Adding Status within AttackActionContext");
+            Status.BaseStatus statusAdded = Status.UnitStatusHandler.AddStatusForUnitIndex(applyStatusRequest.TargetUnit, applyStatusRequest.ApplingStatus);
+            if (statusAdded == null) { return; }
+
+            UnityEngine.Debug.LogError($"Added Status: {statusAdded.StatusName}");
+
+            Status.CombatStatusController.AddStatusEffect(applyStatusRequest, statusAdded);
         }
 
         private void RemoveStatus(RemoveStatusRequest removeStatusRequest)
         {
-            UnitStatusHandler.RemoveStatusForUnitIndex(removeStatusRequest.TargetUnit, removeStatusRequest.RemovingStatus);
+            Status.BaseStatus statusRemoved = Status.UnitStatusHandler.RemoveStatusForUnitIndex(removeStatusRequest.TargetUnit, removeStatusRequest.RemovingStatus);
+            if (statusRemoved == null) { return; }
+
+            Status.CombatStatusController.RemoveStatusEffect(removeStatusRequest, statusRemoved);
         }
     }
 }

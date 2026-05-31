@@ -47,7 +47,7 @@ namespace TurnBased.Elements
         };
 
         private System.Collections.Generic.List<ImbuedEnvironmentElement> EnvironmentEffects;
-        private ElementalAttackTargettingManager ElementalAttackTargettingManager;
+        private GeneralPurposeTargettingManager GeneralPurposeTargettingManager;
 
         public void Awake()
         {
@@ -59,8 +59,8 @@ namespace TurnBased.Elements
             this.EnvironmentEffects = new();
 
             /*  Initalise the Targetting Manager for the moves. */
-            this.ElementalAttackTargettingManager = new();
-            this.ElementalAttackTargettingManager.Awake(this.ElementalMoveLookUpTable);
+            this.GeneralPurposeTargettingManager = new();
+            this.GeneralPurposeTargettingManager.Awake(this.ElementalMoveLookUpTable);
         }
 
         public void OnDestroy()
@@ -71,22 +71,23 @@ namespace TurnBased.Elements
             }
             this.EnvironmentEffects.Clear();
 
-            this.ElementalAttackTargettingManager.OnDestroy();
+            this.GeneralPurposeTargettingManager.OnDestroy();
         }
 
-        public async System.Threading.Tasks.Task AddEnvironmentalEffect(Element effect, UnitTeam team)
+        public void AddEnvironmentalEffect(Element effect, UnitIndex unitIndex)
         {
             UnityEngine.Debug.LogError($"Adding element: {effect}");
 
             /*  Add the imbued element to the list and alert any listeners. */
+            UnitTeam team = StationManager.Instance.GetUnitTeamOfIndex(unitIndex);
             ImbuedEnvironmentElement imbuedEnvironmentElement = new(team, effect);
             this.EnvironmentEffects.Add(imbuedEnvironmentElement);
             OnAddElementalImbuement?.Invoke(imbuedEnvironmentElement);
 
-            await DetermineIfProcessingElementalMove(team);
+            DetermineIfProcessingElementalMove(unitIndex, team);
         }
 
-        private async System.Threading.Tasks.Task DetermineIfProcessingElementalMove(UnitTeam team)
+        private void DetermineIfProcessingElementalMove(UnitIndex unitIndex, UnitTeam team)
         {
             /*  Check the List. Does it contain two entries on the same team? If so, process that corresponding elemental attack.   */
             System.Collections.Generic.Queue<ImbuedEnvironmentElement> pairedElementsForElementalAttack = new(this.EnvironmentEffects.Where(iEE => iEE.team == team));
@@ -101,7 +102,7 @@ namespace TurnBased.Elements
 
                 UnityEngine.Debug.LogError($"Processing paired elements: Element A: {elementA}, Element B: {elementB}");
 
-                await ProcessElementalMove(elementA, elementB, team);
+                ProcessElementalMove(elementA, elementB, unitIndex, team);
             }
         }
 
@@ -116,7 +117,7 @@ namespace TurnBased.Elements
             }
         }
 
-        private async System.Threading.Tasks.Task ProcessElementalMove(Element elementValueA, Element elementValueB, UnitTeam team)
+        private void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitIndex unitIndex, UnitTeam team)
         {
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
             if (!StationManagerUtilities.TryCreateSceneDataForTeam(team, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
@@ -125,44 +126,35 @@ namespace TurnBased.Elements
             //  Process Elemental Attack Move and ensure it isn't null
             //  -=-=-=-=-=-=-=-=-
             IElementalMove elementalAttackMoveAction = GetElementalCombination(elementValueA, elementValueB);
-            AttackResolutionInfo elementalAttackResolutionInfo = ExecuteElementalMove(resolutionSceneData, elementalAttackMoveAction, team);
-            if (elementalAttackResolutionInfo == null) { return; }
 
             //  -=-=-=-=-=-=-=-=-
             //  Process Elemental Resolving State and Targets
             //  -=-=-=-=-=-=-=-=-
-            Intention.ResolvingSource resolvingSource = new(elementalAttackMoveAction);
+            Intention.ResolvingSource resolvingSource = new(elementalAttackMoveAction, unitIndex);
             Intention.ResolvingState elementalMoveResolvingState = new(resolvingSource);
-            DeclareElementalMoveTargets(resolutionSceneData, stationIndexesSceneData, elementalMoveResolvingState, elementalAttackMoveAction);
+            DeclareElementalMoveTargets(unitIndex, resolutionSceneData, stationIndexesSceneData, elementalMoveResolvingState, elementalAttackMoveAction);
 
             //  -=-=-=-=-=-=-=-=-
-            //  Process Elemental Attack Steps
+            //  Request the adding of Elemental Moves to the Resolver.
             //  -=-=-=-=-=-=-=-=-
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(elementalMoveResolvingState);
+            AttackResolution.CombatResolvingRequest resolvingRequest = Combat.IntentionCombatResolverUtility.AddToCombatResolverFront(elementalMoveResolvingState);
         }
 
-        private void DeclareElementalMoveTargets(TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData, UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
+        private void DeclareElementalMoveTargets(UnitIndex unitIndex, TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData, UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
         {
-            if (!Intention.UnitIntentionFactory.BuildAttackActionResolvingStatesFromElementalMove(resolutionSceneData, elementalMoveResolvingState, elementalAttackMoveAction)) { return; }
+            //  -=-=-=-=-=-=-=-=-
+            //  Execute the elemental move to pass to the Factory the ResolutionInfo
+            //  -=-=-=-=-=-=-=-=-
+            AttackResolutionInfo info = elementalAttackMoveAction.ExecuteElementalMove(resolutionSceneData);
+
             /*  Before we process it, we need to determine the Targets of the attack. The ElementalMoveAction will dictate who it targets.  */
-            if (!this.ElementalAttackTargettingManager.TryGetTargetSelector(elementalAttackMoveAction.GetMoveName(), out TargetSelection.ITargetSelector targetSelector)) { return; }
+            if (!this.GeneralPurposeTargettingManager.TryGetTargetSelector(elementalAttackMoveAction.GetMoveName(), out TargetSelection.ITargetSelector targetSelector)) { return; }
+
+            if (!Intention.UnitIntentionFactory.BuildAttackActionResolvingState(unitIndex, info, elementalMoveResolvingState)) { return; }
+
 
             Intention.IntentionResolverManager.Instance.ProcessResolvingStateTargetSelection(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
         }
-
-
-        private AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData, IElementalMove elementalAttackMoveAction, UnitTeam team)
-        {
-            if (elementalAttackMoveAction == null) { UnityEngine.Debug.LogError("ELEMENTAL COMBINATION ERROR: NOT VALID!!!"); return null; }
-
-            /*  Get the first entry of Units on the Team to retrieve the attack information.    */
-            System.Collections.Generic.List<UnitIndex> unitsOnTeam = StationManager.Instance.GetUnitsOnTeam(team);
-            if (unitsOnTeam.Count <= 0) { return null; }
-
-            /*  Process the attack using the Scene Unit Data.   */
-            return elementalAttackMoveAction.ExecuteElementalMove(resolutionSceneData);
-        }
-
 
         private IElementalMove GetElementalCombination(Element elementValueA, Element elementValueB)
         {

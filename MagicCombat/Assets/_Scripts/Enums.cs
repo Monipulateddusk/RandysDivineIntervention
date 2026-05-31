@@ -36,11 +36,9 @@ public enum StationSelectionState
 
 public enum DamageOriginType
 {
-    Unit,
+    UnitMove,
     Status,
     Environment,
-    Scripted,
-    Trap
 }
 
 public enum MoveTarget
@@ -223,21 +221,6 @@ enum CameraAnimType
     Shift, 
     Static, 
     Shader 
-}
-
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-/// 
-/// STATUS ENUMERATIONS
-/// 
-/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-/// 
-public enum StatusResolutionTiming
-{
-    None,
-    StartOfUnitTurn,
-    EndOfUnitTurn,
-    StartOfRound,
-    EndOfRound,
 }
 
 public enum StatusType

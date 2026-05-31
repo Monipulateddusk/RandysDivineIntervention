@@ -1,5 +1,3 @@
-using System;
-using TurnBased.Health;
 using TurnBased.Intention;
 using UnityEngine;
 
@@ -251,7 +249,7 @@ namespace TurnBased.Phases
     {
         PhaseTaskCompletionManager turnOrderCombatCompletionManager;
 
-        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 
@@ -326,7 +324,7 @@ namespace TurnBased.Phases
 
     public class EndOfBattlePhase : MainPhase
     {
-        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
         {
         }
 

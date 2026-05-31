@@ -1,23 +1,29 @@
+using TurnBased.AttackResolution;
+
 namespace TurnBased.Status
 {
     public abstract class BaseStatus
     {
+        public string StatusName { get; private set; }
         public int StackSize { get; private set; }
         public bool CanStack { get; private set; }
-        public StatusResolutionTiming StatusTiming { get; private set; }
+        public CombatTurnOrchestrationPhase StatusTiming { get; private set; }
         public StatusType StatusType { get; private set; }
+        public UnitTargetSelectorType StatusTargetType { get; }
 
-        public BaseStatus(bool canStack, StatusResolutionTiming timing, StatusType statusType)
+        public BaseStatus(string statusName, bool canStack, CombatTurnOrchestrationPhase timing, StatusType statusType, UnitTargetSelectorType statusTargetType = UnitTargetSelectorType.HighestHP)
         {
+            this.StatusName = statusName;
             this.StackSize = 1;
             this.StatusTiming = timing;
             this.CanStack = canStack;
             this.StatusType = statusType;
+            this.StatusTargetType = statusTargetType;
         }
 
-        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> OnStatusAdded(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
-        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> OnStatusRemoved(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
-        public virtual System.Collections.Generic.List<AttackResolution.AttackEvent> ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData) { return RemoveStatusOnStackSize(resolutionSceneData); } 
+        public virtual AttackResolutionInfo OnStatusAdded(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual AttackResolutionInfo OnStatusRemoved(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); } 
         
         public virtual void ModifyIncomingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
         public virtual void ModifyOutgoingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
@@ -47,37 +53,50 @@ namespace TurnBased.Status
             }
             return false;
         }
-
-        internal System.Collections.Generic.List<AttackResolution.AttackEvent> RemoveStatusOnStackSize(AttackResolution.ResolutionSceneData resolutionSceneData)
-        {
-            Intention.ResolvingSource resolvingSource = new(this);
-            /*  If this status' stacksize is less than or equal to zero, we want to mark this status for removal. */
-            if (this.StackSize <= 0)
-            {
-                return new()
-                {
-                    { new AttackResolution.RemoveStatusEvent(this, resolvingSource, resolutionSceneData.OwnerUnitInformation.UnitIndex) }
-                };
-            }
-            else
-            {
-                return new();
-            }
-        }
     }
+
 
     public class BurnStatus : BaseStatus
     {
-        public BurnStatus() : base(canStack: false, StatusResolutionTiming.StartOfRound, StatusType.Debuff)
+        public BurnStatus() : base("Burn", canStack: false, CombatTurnOrchestrationPhase.StartOfRound, StatusType.Debuff)
         {
         }
 
-        public override System.Collections.Generic.List<AttackResolution.AttackEvent> ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public override AttackResolutionInfo OnStatusAdded(ResolutionSceneData resolutionSceneData)
         {
-            Intention.ResolvingSource resolvingSource = new(this);
             return new()
             {
-                { new AttackResolution.DamageEvent(1, resolvingSource, resolutionSceneData.OwnerUnitInformation.UnitIndex) }
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Self) },
+
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackResolution.DamageAttackAction(damageAmount: 4, 1, groupID: 0)
+                        }
+                    },
+                }
+            };
+        }
+
+        public override AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
+        {
+            return new()
+            {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Self) },
+
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackResolution.DamageAttackAction(damageAmount: 1, 1, groupID: 0)
+                        }
+                    },
+                }
             };
         }
         public override void ModifyOutgoingDamageRequest(AttackResolution.DamageRequest damageRequest)
@@ -87,17 +106,36 @@ namespace TurnBased.Status
     }
     public class PoisonStatus : BaseStatus
     {
-        public PoisonStatus() : base(canStack: true, StatusResolutionTiming.StartOfRound, StatusType.Debuff)
+        public PoisonStatus() : base("Poison", canStack: true, CombatTurnOrchestrationPhase.StartOfRound, StatusType.Debuff)
         {
         }
 
-        public override System.Collections.Generic.List<AttackResolution.AttackEvent> ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public override AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            Intention.ResolvingSource resolvingSource = new(this);
             return new()
             {
-                { new AttackResolution.DamageEvent(this.StackSize, resolvingSource, resolutionSceneData.OwnerUnitInformation.UnitIndex) }
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Self) },
+
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackResolution.DamageAttackAction(damageAmount: this.StackSize, 1, groupID: 0),
+                            new AttackResolution.RemoveStatusAttackAction(this, groupID: 0)
+                        }
+                    },
+                }
             };
         }
+    }
+
+    public static class StatusReferances
+    {
+        public readonly static System.Collections.Generic.List<TurnBased.Status.BaseStatus> StatusEffects = new()
+        {
+            { new PoisonStatus() }, { new BurnStatus() }            
+        };
     }
 }
