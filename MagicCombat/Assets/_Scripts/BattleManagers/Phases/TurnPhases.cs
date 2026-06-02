@@ -5,12 +5,23 @@ namespace TurnBased.Phases
 {
     public abstract class Phase
     {
-        public Phase()
+        protected EventHookSystem hookSystem;
+        protected PhaseTaskCompletionManager completionManager;
+        public Phase(EventHookSystem hookSystem)
         {
+            this.hookSystem = hookSystem;
+        }
+
+        ~Phase()
+        {
+            this.hookSystem = null;
+            this.completionManager = null;
         }
         public abstract void OnEnter();
         public abstract void Update();
         public abstract void OnExit();
+        protected abstract void OnEventsComplete();
+        protected abstract void OnPhaseComplete();   
     }
 
     public abstract class MainPhase : Phase
@@ -18,7 +29,7 @@ namespace TurnBased.Phases
         protected Intention.CombatRoundUnitIntentionManager RoundUnitIntentionManager;
 
         protected System.Action<CombatTurnOrchestrationPhase> OnMainPhaseComplete;
-        public MainPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base()
+        public MainPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(hookSystem)
         {
             this.OnMainPhaseComplete = onMainPhaseComplete;
             this.RoundUnitIntentionManager = cRUIM;
@@ -27,18 +38,34 @@ namespace TurnBased.Phases
         {
             this.OnMainPhaseComplete = null;
             this.RoundUnitIntentionManager = null;
+            this.hookSystem = null;
         }
     }
 
     public class BeginBattlePhase : MainPhase
     {
-        public BeginBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public BeginBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnStartOfBattle += EventHookSystem_OnStartOfBattle;
+        }
+
+        ~BeginBattlePhase()
+        {
+            EventHookSystem.OnStartOfBattle -= EventHookSystem_OnStartOfBattle;
+        }
+
+        private void EventHookSystem_OnStartOfBattle(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfBattle);
+            this.hookSystem.InvokeStartOfBattle(OnEventsComplete);
+
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -50,35 +77,43 @@ namespace TurnBased.Phases
         {
    
         }
-
-        ~BeginBattlePhase()
+        protected override void OnEventsComplete()
         {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
+            OnPhaseComplete();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfBattle);
         }
     }
 
 
     public class BeginRoundPhase : MainPhase
     {
-        PhaseTaskCompletionManager completionManager;
-
-        public BeginRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public BeginRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnStartOfRound += EventHookSystem_OnStartOfRound;
+        }
+
+        ~BeginRoundPhase()
+        {
+            EventHookSystem.OnStartOfRound -= EventHookSystem_OnStartOfRound;
+        }
+
+        private void EventHookSystem_OnStartOfRound(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            Debug.LogWarning("Entering begin round phase");
-
             /*  Set the StationSelector to be locked so the player cannot select units while processing initial intentions. */
             StationSelectorManager.Instance.SetSelectorStateLocked();
 
-            InitaliseTurnOrderForTheRound();
-
-            SubscribeEventsForStartOfRound();
-
-
+            this.hookSystem.InvokeStartOfRound(OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -86,12 +121,27 @@ namespace TurnBased.Phases
             /*  Reenable selection when we are done processing all Start-of-Round effects and events.   */
             StationSelectorManager.Instance.SetSelectorStateUnlocked();
 
+            this.completionManager = null;
             Debug.LogError($"Leaving Begin Round Phase!");
         }
 
         public override void Update()
         {
 
+        }
+
+        protected override void OnEventsComplete()
+        {
+            InitaliseTurnOrderForTheRound();
+            SubscribeEventsForStartOfRound();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= OnPhaseComplete;
+
+            /*  Once everything is done, we want to move onto the next Phase.   */
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfRound);
         }
 
         private void InitaliseTurnOrderForTheRound()
@@ -111,17 +161,8 @@ namespace TurnBased.Phases
         private void SubscribeEventsForStartOfRound()
         {
             Debug.LogWarning($"Adding events for start of round.");
-
-            this.completionManager = new(OnBeginRoundComplete);
-
-            Debug.LogWarning($"Created completion manager.");
-
             this.completionManager.AddAction();
-
-            Debug.LogWarning($"Added action.");
-
-
-            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += this.completionManager.OnActionComplete;
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += OnPhaseComplete;
 
             Debug.LogWarning($"Starting Processing non-player driven unit intentions.");
 
@@ -130,25 +171,20 @@ namespace TurnBased.Phases
         }
 
 
-        private void OnBeginRoundComplete()
-        {
-            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= this.completionManager.OnActionComplete;
-
-            /*  Once everything is done, we want to move onto the next Phase.   */
-            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.StartOfRound); 
-        }
-        ~BeginRoundPhase()
-        {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
-        }
     }
 
     public class PreTurnPhase : MainPhase
     {
 
-        public PreTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public PreTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnStartOfPrePlayerTurn += EventHookSystem_OnStartOfPrePlayerTurn;
+        }
+
+        private void EventHookSystem_OnStartOfPrePlayerTurn(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
@@ -156,9 +192,9 @@ namespace TurnBased.Phases
             MonoBehaviour.print("<color=green>Entering in PreTurnPhase</color>");
             /*  When we enter this Phase, we want to process any Pre-Start-Of-Turn Status Effects.  */
 
-            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PrePlayerTurn);
+            this.hookSystem.InvokeStartOfPrePlayerTurn(OnEventsComplete);
 
-
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -171,28 +207,47 @@ namespace TurnBased.Phases
 
         }
 
+        protected override void OnPhaseComplete()
+        {
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PrePlayerTurn);
+        }
+
+        protected override void OnEventsComplete()
+        {
+            OnPhaseComplete();
+        }
+
         ~PreTurnPhase()
         {
+            EventHookSystem.OnStartOfPrePlayerTurn -= EventHookSystem_OnStartOfPrePlayerTurn;
             this.OnMainPhaseComplete = null;
             this.RoundUnitIntentionManager = null;
         }
-
-
     }
 
     public class UnitTurnPhase : MainPhase
     {
-        PhaseTaskCompletionManager playerDrivenIntentionsCompletionManager;
-
-        public UnitTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public UnitTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnStartOfPlayerTurn += EventHookSystem_OnStartOfPlayerTurn;
+        }
+        ~UnitTurnPhase()
+        {
+            EventHookSystem.OnStartOfPlayerTurn -= EventHookSystem_OnStartOfPlayerTurn;
+        }
+
+        private void EventHookSystem_OnStartOfPlayerTurn(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
+
         }
 
         public override void OnEnter()
         {
             /*  Notify the Intention Resolver to begin processing Player Driven Intentions. */
-            StartPlayerDrivenIntentions();
-
+            this.hookSystem.InvokeStartOfPlayerTurn(OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -204,7 +259,10 @@ namespace TurnBased.Phases
         public override void Update()
         {
         }
-
+        protected override void OnEventsComplete()
+        {
+            StartPlayerDrivenIntentions();
+        }
 
         /// <summary>
         /// Called upon entering this Phase. Processes the Player Driven Intentions of Units. 
@@ -213,77 +271,63 @@ namespace TurnBased.Phases
         /// </summary>
         private void StartPlayerDrivenIntentions()
         {
-            this.playerDrivenIntentionsCompletionManager = new(OnPlayerDrivenIntentionsComplete);
-
-            this.playerDrivenIntentionsCompletionManager.AddAction();
-            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += this.playerDrivenIntentionsCompletionManager.OnActionComplete;
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved += OnPhaseComplete;
             this.RoundUnitIntentionManager.ObtainPlayerDrivenUnitIntentions();
         }
-
-        private void OnPlayerDrivenIntentionsComplete()
+        protected override void OnPhaseComplete()
         {
-            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= this.playerDrivenIntentionsCompletionManager.OnActionComplete;
-
-            Debug.LogWarning("DONE PLAYER INTENTIONS");
-
-            /*  When player driven intentions are done, we want to evaluate if we are entering resolving comabat.   */
-            ProcessCombat();
-        }
-
-        private void ProcessCombat()
-        {
-            Debug.LogWarning("INTENTIONS ARE DONE!!!! POGGIES!!!");
+            Intention.CombatRoundUnitIntentionManager.OnAllIntentionsResolved -= OnPhaseComplete;
 
             /*  Within the MainTurnManager on the Intention Resolver, start the combat allowing each unit to process each of their attacks. */
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.PlayerTurn);
-            return;
         }
-        ~UnitTurnPhase()
-        {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
-        }
+
     }
 
     public class TurnOrderCombatResolutionPhase : MainPhase
     {
-        PhaseTaskCompletionManager turnOrderCombatCompletionManager;
-
-        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
+        }
+
+        ~TurnOrderCombatResolutionPhase()
+        {
+            EventHookSystem.OnResolvingTurnOrder -= EventHookSystem_OnResolvingTurnOrder;
+        }
+
+        private void EventHookSystem_OnResolvingTurnOrder(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-   
-
             /*  The Combat Round Intention Manager should be the one to put us into the resolve attack sub phase.   */
-            this.turnOrderCombatCompletionManager = new(OnTurnOrderCombatFullyResolving);
-            this.turnOrderCombatCompletionManager.AddAction();
-
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved += this.turnOrderCombatCompletionManager.OnActionComplete;
-
-            Combat.TurnOrderCombatHandler.Instance.StartTurnOrderCombat();
+            this.hookSystem.InvokeTurnOrderResolving(OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
         {
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved -= this.turnOrderCombatCompletionManager.OnActionComplete;
+
         }
 
         public override void Update()
         {
          
         }
-
-        private void OnTurnOrderCombatFullyResolving()
+        protected override void OnEventsComplete()
         {
-            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
+            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved += OnPhaseComplete;
+            Combat.TurnOrderCombatHandler.Instance.StartTurnOrderCombat();
         }
-        ~TurnOrderCombatResolutionPhase()
+
+        protected override void OnPhaseComplete()
         {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
+            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved -= OnPhaseComplete;
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
         }
     }
 
@@ -291,18 +335,26 @@ namespace TurnBased.Phases
 
     public class EndRoundPhase : MainPhase
     {
-        public EndRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public EndRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnEndOfRound += EventHookSystem_OnEndOfRound;
+        }
+        ~EndRoundPhase()
+        {
+            EventHookSystem.OnEndOfRound -= EventHookSystem_OnEndOfRound;
+        }
+
+        private void EventHookSystem_OnEndOfRound(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            UnityEngine.Debug.LogWarning($"Entering end of round phase. ");
-
-
             UnityEngine.Debug.LogWarning($"Ending end of round.   ");
-            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.EndOfRound);     
-
+            this.hookSystem.InvokeEndOfRound(OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -314,23 +366,38 @@ namespace TurnBased.Phases
         {
 
         }
-
-        ~EndRoundPhase()
+        protected override void OnEventsComplete()
         {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
+            OnPhaseComplete();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.EndOfRound);
         }
     }
 
     public class EndOfBattlePhase : MainPhase
     {
-        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, onMainPhaseComplete)
+        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
+            EventHookSystem.OnEndOfBattle += EventHookSystem_OnEndOfBattle;
+        }
+        ~EndOfBattlePhase()
+        {
+            EventHookSystem.OnEndOfBattle -= EventHookSystem_OnEndOfBattle;
+        }
+
+        private void EventHookSystem_OnEndOfBattle(PhaseTaskCompletionManager completionManager)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            
+            this.hookSystem.InvokeEndOfBattle(OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -342,11 +409,14 @@ namespace TurnBased.Phases
         {
 
         }
-        ~EndOfBattlePhase()
+        protected override void OnEventsComplete()
         {
-            this.OnMainPhaseComplete = null;
-            this.RoundUnitIntentionManager = null;
+            OnPhaseComplete();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            UnityEngine.Debug.Log("END OF BATTLE!");
         }
     }
-
 }

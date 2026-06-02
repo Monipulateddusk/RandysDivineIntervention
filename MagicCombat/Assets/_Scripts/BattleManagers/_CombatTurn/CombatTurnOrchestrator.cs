@@ -21,74 +21,10 @@ namespace TurnBased.Phases {
 
         private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
 
-        private PhaseTaskCompletionManager phaseCompletionManager;
+        private EventHookSystem EventHookSystem                                         = new();
 
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when starting the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfBattle;
 
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when starting the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfRound;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other at the Start of the Player's Pre-Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPrePlayerTurn;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other to the Start of the Player Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartPlayerTurn;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when starting the resolution of Turn Order. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnTurnOrderResolving;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when Resolving Turn Order. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnResolvingTurnOrder;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other at the end of the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnEndOfRound;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other at the end of the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnEndOfBattle;
-
-        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Move Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitMoveSelection;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Target Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitTargetSelection;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when a Unit is ready to execute their Move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitReadyToExecuteMove;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when a Unit is about to Resolve their move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitResolveMove;
-
-        /// <summary>
-        /// Allows the hooking of any effects, presentation or other when a Unit's Attack is complete. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
-        /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitAttackComplete;
+        private TestHookExample testExample = new();
 
 
         private static CombatTurnOrchestrationPhase currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
@@ -128,11 +64,16 @@ namespace TurnBased.Phases {
             this.MoveSelectorManager = new();
             this.UnitTargetSelectorManager = new();
             this.AttackResolutionManager = new();
+            this.EventHookSystem = new();
+
+
+            this.testExample = new();
+
 
 
             this.combatRoundIntentionManager.Awake(this);
-            this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
-            this.subPhaseManager.Awake(OnSubPhaseComplete);
+            this.phaseManager.Awake(this.combatRoundIntentionManager, this.EventHookSystem, OnPhaseComplete);
+            this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseComplete);
             this.TurnOrderManager.Awake();
 
             this.UnitHealthManager.Awake();
@@ -148,6 +89,8 @@ namespace TurnBased.Phases {
             this.UnitTargetSelectorManager.Awake();
 
             this.AttackResolutionManager.Awake();
+
+            this.testExample.Awake();
 
         }
 
@@ -174,6 +117,13 @@ namespace TurnBased.Phases {
             this.AttackResolutionManager.OnDestroy();
             this.combatRoundIntentionManager.OnDestroy();
 
+            this.testExample.OnDestroy();
+
+
+
+            this.EventHookSystem.OnDestroy();
+
+
 
 
             this.phaseManager = null;
@@ -193,26 +143,13 @@ namespace TurnBased.Phases {
 
             this.AttackResolutionManager = null;
             this.combatRoundIntentionManager = null;
-            
-            
-            /*  
-             *  Remove all listeners to events. Doesn't prevent memory leaks, all listeners still need to unsubscribe.  
-             *  But it resets it for next time.
-             */
-            OnStartOfBattle                 = null;
-            OnStartOfRound                  = null;
-            OnStartOfPrePlayerTurn          = null;
-            OnStartPlayerTurn               = null;
-            OnTurnOrderResolving            = null;
-            OnResolvingTurnOrder            = null;
-            OnEndOfRound                    = null;
-            OnEndOfBattle                   = null;
 
-            OnAwaitingUnitMoveSelection     = null;
-            OnAwaitingUnitTargetSelection   = null;
-            OnUnitReadyToExecuteMove        = null;
-            OnUnitResolveMove               = null;
-            OnUnitAttackComplete            = null;
+            this.testExample = null;
+
+
+            this.EventHookSystem = null;
+
+
 
         }
 

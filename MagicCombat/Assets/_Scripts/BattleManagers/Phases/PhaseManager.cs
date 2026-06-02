@@ -21,7 +21,7 @@ namespace TurnBased.Phases
         private System.Collections.Generic.Dictionary<CombatTurnOrchestrationPhase, Phase> PhaseDictionary = new();
         private Phase CurrentPhase;
 
-        public void Awake(Intention.CombatRoundUnitIntentionManager cRUIM, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
+        public void Awake(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete)
         {
             if (instance == null)
             {
@@ -30,13 +30,13 @@ namespace TurnBased.Phases
 
             this.PhaseDictionary = new()
             {
-                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase                (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase                 (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase                    (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase                   (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.TurnOrderRes,     new TurnOrderCombatResolutionPhase  (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, onMainPhaseComplete) },
-                {CombatTurnOrchestrationPhase.EndOfBattle,      new EndOfBattlePhase                (cRUIM, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.StartOfBattle,    new BeginBattlePhase                (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.StartOfRound,     new BeginRoundPhase                 (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PrePlayerTurn,    new PreTurnPhase                    (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.PlayerTurn,       new UnitTurnPhase                   (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.TurnOrderRes,     new TurnOrderCombatResolutionPhase  (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfRound,       new EndRoundPhase                   (cRUIM, hookSystem, onMainPhaseComplete) },
+                {CombatTurnOrchestrationPhase.EndOfBattle,      new EndOfBattlePhase                (cRUIM, hookSystem, onMainPhaseComplete) },
             };
         }
 

@@ -1,24 +1,33 @@
 namespace TurnBased.AttackResolution
 {
-    public class DamageRequest
+    public class BaseRequest
     {
         public Intention.ResolvingSource ResolvingSource;
+        public bool IsNegated;
+
+        public BaseRequest(Intention.ResolvingSource resolvingSource)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.IsNegated = false;
+        }
+    }
+
+    public class DamageRequest : BaseRequest
+    {
         public UnitIndex TargetUnit;
         public Element Element;
         public int DamageAmount;
         public bool IsCrit;
-        public bool IsNegated;
 
-        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue)
+        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue) : base(resolvingSource)
         {
-            this.ResolvingSource = resolvingSource;
             this.TargetUnit = targetIndex;
             this.DamageAmount = damageValue;
             this.Element = Element.NULL;
             this.IsCrit = false;
-            this.IsNegated = false;
+
         }
-        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue, Element element)
+        public DamageRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int damageValue, Element element) : base(resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.TargetUnit = targetIndex;
@@ -29,14 +38,12 @@ namespace TurnBased.AttackResolution
         }
     }
 
-    public class HealRequest
+    public class HealRequest : BaseRequest
     {
-        public Intention.ResolvingSource ResolvingSource;
         public UnitIndex TargetUnit;
         public int HealAmount;
-        public bool IsNegated;
 
-        public HealRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int healValue)
+        public HealRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int healValue) : base(resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.TargetUnit = targetIndex;
@@ -44,14 +51,12 @@ namespace TurnBased.AttackResolution
             this.IsNegated = false;
         }
     }
-    public class ApplyStatusRequest
+    public class ApplyStatusRequest : BaseRequest
     {
-        public Intention.ResolvingSource ResolvingSource;
         public Status.BaseStatus ApplingStatus;
         public UnitIndex TargetUnit;
-        public bool IsNegated;
 
-        public ApplyStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status)
+        public ApplyStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status) : base(resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.ApplingStatus = status;
@@ -60,14 +65,12 @@ namespace TurnBased.AttackResolution
         }
     }
 
-    public class RemoveStatusRequest
+    public class RemoveStatusRequest : BaseRequest
     {
-        public Intention.ResolvingSource ResolvingSource;
         public Status.BaseStatus RemovingStatus;
         public UnitIndex TargetUnit;
-        public bool IsNegated;
 
-        public RemoveStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status)
+        public RemoveStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status) : base(resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.RemovingStatus = status;
@@ -76,14 +79,12 @@ namespace TurnBased.AttackResolution
         }
     }
 
-    public class ImbueElementRequest
+    public class ImbueElementRequest : BaseRequest
     {
-        public Intention.ResolvingSource ResolvingSource;
         public UnitIndex TargetUnit;
         public Element ImbuedElementType;
-        public bool IsNegated;
 
-        public ImbueElementRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Element imbuedElementType)
+        public ImbueElementRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Element imbuedElementType) : base(resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.TargetUnit= targetIndex;

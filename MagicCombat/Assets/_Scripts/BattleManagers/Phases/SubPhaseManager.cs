@@ -17,19 +17,19 @@ namespace TurnBased.Phases
             }
         }
 
-        public void Awake(System.Action<SubPhaseState> OnSubPhaseComplete) 
+        public void Awake(EventHookSystem hookSystem, System.Action<SubPhaseState> OnSubPhaseComplete) 
         {
             /*  Clear the previous Phases for this currentUnit and Initalise them.  */
             this.MainPhaseStates = new();
             this.MainPhaseStates.Clear();
 
             /*  Add all phases to the dictionary.   */
-            this.MainPhaseStates.Add(SubPhaseState.NONE,                        new UnitTurnPhase_None(OnSubPhaseComplete));
-            this.MainPhaseStates.Add(SubPhaseState.AWAITING_MOVE_SELECTION,     new UnitTurnPhase_MoveSelection(OnSubPhaseComplete));
-            this.MainPhaseStates.Add(SubPhaseState.AWAITING_TARGET_SELECTION,   new UnitTurnPhase_TargetSelection(OnSubPhaseComplete));
-            this.MainPhaseStates.Add(SubPhaseState.READY_TO_EXECUTE_MOVE,       new UnitTurnPhase_ReadyToExecuteMove(OnSubPhaseComplete));
-            this.MainPhaseStates.Add(SubPhaseState.RESOLVE_ATTACK,              new UnitTurnPhase_ResolveAttack(OnSubPhaseComplete));
-            this.MainPhaseStates.Add(SubPhaseState.ATTACK_COMPLETE,             new UnitTurnPhase_AttackComplete(OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.NONE,                        new UnitTurnPhase_None(hookSystem, OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.AWAITING_MOVE_SELECTION,     new UnitTurnPhase_MoveSelection(hookSystem, OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.AWAITING_TARGET_SELECTION,   new UnitTurnPhase_TargetSelection(hookSystem, OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.READY_TO_EXECUTE_MOVE,       new UnitTurnPhase_ReadyToExecuteMove(hookSystem, OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.RESOLVE_ATTACK,              new UnitTurnPhase_ResolveAttack(hookSystem, OnSubPhaseComplete));
+            this.MainPhaseStates.Add(SubPhaseState.ATTACK_COMPLETE,             new UnitTurnPhase_AttackComplete(hookSystem, OnSubPhaseComplete));
 
             UnityEngine.Debug.LogError("CREATED ALL SUBPHASES");
             UnityEngine.Debug.LogWarning($"Size of the list is: {this.MainPhaseStates.Count}");
