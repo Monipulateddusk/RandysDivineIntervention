@@ -66,11 +66,11 @@ namespace TurnBased.Intention
             this.TargetSelectionResolver.ProcessTargetSelection(unitIndex);
         }
 
-        public void ProcessResolvingStateTargetSeleciton(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
+        public void ProcessResolvingStateTargetSelection(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState resolvingState, TargetSelection.ITargetSelector targetSelector)
         {
             if (this.TargetSelectionResolver == null) { return; }
 
-            this.TargetSelectionResolver.ProcessEnvironmentTargetSelection(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
+            this.TargetSelectionResolver.ProcessOtherTargetSelection(stationIndexesSceneData, resolvingState, targetSelector);
         }
 
         public void OnPlayerDrivenTargetSelection(UnitIndex unitIndex, System.Collections.Generic.List<StationIndex> targets)

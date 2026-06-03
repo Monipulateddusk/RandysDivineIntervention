@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace TurnBased.Phases {
 
     public class CombatTurnOrchestrator
@@ -10,18 +8,24 @@ namespace TurnBased.Phases {
         private TurnOrder.TurnOrderManager TurnOrderManager                             = new();
 
         private Health.UnitHealthManager UnitHealthManager                              = new();
+        private Status.UnitStatusManager UnitStatusManager                              = new();
         private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
-        private Combat.TurnOrderCombatHandler turnOrderCombatHandler                    = new();
+        private Combat.TurnOrderCombatHandler TurnOrderCombatHandler                    = new();
 
-        private Intention.IntentionResolverManager intentionResolverManager             = new();
+        private Intention.IntentionResolverManager IntentionResolverManager             = new();
+        private Combat.IntentionCombatResolver IntentionCombatResolver                  = new(); 
 
         private MoveSelection.MoveSelectorManager MoveSelectorManager                   = new();
         private TargetSelection.UnitTargetSelectorManager UnitTargetSelectorManager     = new();
 
         private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
+        private Status.CombatStatusHandler CombatStatusManager                          = new();
+
+        private EventHookSystem EventHookSystem                                         = new();
 
 
+        private TestHookExample testExample = new();
 
 
         private static CombatTurnOrchestrationPhase currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
@@ -44,7 +48,7 @@ namespace TurnBased.Phases {
         public void Awake()
         {
             UnityEngine.Debug.LogError("AWAKE CALLED INSIDE ORCHESTRATOR");
-            TurnBased.GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
+            GameState.GameStateManager.OnGameStateUpdated += GameStateManager_OnGameStateUpdated;
 
             currentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfBattle;
 
@@ -53,30 +57,43 @@ namespace TurnBased.Phases {
             this.subPhaseManager = new();
             this.TurnOrderManager = new();  
             this.UnitHealthManager = new();
+            this.UnitStatusManager = new();
             this.UnitIntentionManager = new();
-            this.turnOrderCombatHandler = new();
-            this.intentionResolverManager = new();
+            this.TurnOrderCombatHandler = new();
+            this.IntentionResolverManager = new();
+            this.IntentionCombatResolver = new();
             this.MoveSelectorManager = new();
             this.UnitTargetSelectorManager = new();
             this.AttackResolutionManager = new();
+            this.CombatStatusManager = new();
+            this.EventHookSystem = new();
+
+
+            this.testExample = new();
+
 
 
             this.combatRoundIntentionManager.Awake(this);
-            this.phaseManager.Awake(this.combatRoundIntentionManager, OnPhaseComplete);
-            this.subPhaseManager.Awake(OnSubPhaseComplete);
+            this.phaseManager.Awake(this.combatRoundIntentionManager, this.EventHookSystem, OnPhaseComplete);
+            this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseComplete);
             this.TurnOrderManager.Awake();
 
             this.UnitHealthManager.Awake();
+            this.UnitStatusManager.Awake();
             this.UnitIntentionManager.Awake();
 
-            this.turnOrderCombatHandler.Awake();
+            this.TurnOrderCombatHandler.Awake();
 
-            this.intentionResolverManager.Awake();
+            this.IntentionResolverManager.Awake();
+            this.IntentionCombatResolver.Awake();
 
             this.MoveSelectorManager.Awake();
             this.UnitTargetSelectorManager.Awake();
 
             this.AttackResolutionManager.Awake();
+            this.CombatStatusManager.Awake();
+
+            this.testExample.Awake();
 
         }
 
@@ -89,17 +106,27 @@ namespace TurnBased.Phases {
             this.TurnOrderManager.OnDestroy();
 
             this.UnitHealthManager.OnDestroy();
+            this.UnitStatusManager.OnDestroy();
             this.UnitIntentionManager.OnDestroy();
 
-            this.turnOrderCombatHandler.OnDestroy();
+            this.TurnOrderCombatHandler.OnDestroy();
 
-            this.intentionResolverManager.OnDestroy();
+            this.IntentionResolverManager.OnDestroy();
+            this.IntentionCombatResolver.OnDestroy();
 
             this.MoveSelectorManager.OnDestroy();
             this.UnitTargetSelectorManager.OnDestroy();
 
             this.AttackResolutionManager.OnDestroy();
+            this.CombatStatusManager.OnDestroy();   
             this.combatRoundIntentionManager.OnDestroy();
+
+            this.testExample.OnDestroy();
+
+
+
+            this.EventHookSystem.OnDestroy();
+
 
 
 
@@ -110,15 +137,25 @@ namespace TurnBased.Phases {
             this.UnitHealthManager = null;
             this.UnitIntentionManager = null;
 
-            this.turnOrderCombatHandler = null;
+            this.TurnOrderCombatHandler = null;
 
-            this.intentionResolverManager = null;
+            this.IntentionResolverManager = null;
+            this.IntentionCombatResolver = null;    
 
             this.MoveSelectorManager = null;
             this.UnitTargetSelectorManager = null;
 
             this.AttackResolutionManager = null;
+            this.CombatStatusManager = null;
             this.combatRoundIntentionManager = null;
+
+            this.testExample = null;
+
+
+            this.EventHookSystem = null;
+
+
+
         }
 
         public void Update()
@@ -127,9 +164,9 @@ namespace TurnBased.Phases {
             this.subPhaseManager.Update();
 
             string unitIndexDebuggingString = this.subPhaseManager.GetSelectedIndex() != null ? 
-                $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty; 
+                $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty;
 
-            MonoBehaviour.print($"<color=black>Current main phase state is: {currentOrchestrationPhase.ToString()}.</color> " +
+            UnityEngine.MonoBehaviour.print($"<color=black>Current main phase state is: {currentOrchestrationPhase.ToString()}.</color> " +
                 $"<color=white> Current sub phase: {this.subPhaseManager.CurrentSubPhaseState.ToString()} </color>" +
                 unitIndexDebuggingString);
 
@@ -158,29 +195,20 @@ namespace TurnBased.Phases {
 
         private void OnPhaseComplete(CombatTurnOrchestrationPhase phaseThatCompleted)
         {
-            StationIndex selectedStationIndex = StationSelectorManager.Instance.GetSelectedStationIndex();
-            /*  Try and get the Unit index on that station to pass to the subphase we are entering. */
-            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStationIndex, out UnitIndex unitIndexOnStation)) { return; }
-
-
             switch (phaseThatCompleted)
             {
                 case CombatTurnOrchestrationPhase.StartOfBattle:
 
-                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
+                    CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;     
                     break;
 
 
                 case CombatTurnOrchestrationPhase.StartOfRound:
-
                     UnityEngine.Debug.LogWarning($"Start of round phase is complete. Moving to pre-player turn.   ");
 
-                    /*  Reset the subphase*/
+                    /*  Reset the subphase. */
                     this.subPhaseManager.SwitchSubPhase(SubPhaseState.NONE, new UnitIndex(0));
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PrePlayerTurn;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
 
@@ -189,31 +217,25 @@ namespace TurnBased.Phases {
                     UnityEngine.Debug.LogWarning($"Pre player turn done. Moving to the player's main turn.   ");
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.PlayerTurn;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
 
                 case CombatTurnOrchestrationPhase.PlayerTurn:
 
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.TurnOrderRes;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
                     break;
 
                 case CombatTurnOrchestrationPhase.TurnOrderRes:
 
                     UnityEngine.Debug.LogWarning($"Turn order resolved. Moving to end of round.  Phase Manager  is:  {this.phaseManager}");
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.EndOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
 
                     break;
 
                 case CombatTurnOrchestrationPhase.EndOfRound:
 
                     UnityEngine.Debug.LogWarning($"End of round over. Going to the start of round.   ");
-
                     CurrentOrchestrationPhase = CombatTurnOrchestrationPhase.StartOfRound;
-                    this.phaseManager.ChangeState(CurrentOrchestrationPhase);
 
                     break;
 
@@ -221,6 +243,8 @@ namespace TurnBased.Phases {
                 default:
                     break;
             }
+
+            this.phaseManager.ChangeState(CurrentOrchestrationPhase);
         }
 
 

@@ -37,8 +37,6 @@ namespace TurnBased
         public bool requiresMovement;
     }
 
-
-
     public class BattleMediator : MonoBehaviour
     {
         private static BattleMediator instance;
@@ -63,9 +61,6 @@ namespace TurnBased
         private GameState.GameStateManager              GameStateManager            = new();
 
         private Intention.IntentionVisualiserManager    IntentionVisualiserManager = new();
-
-
-        [SerializeField] GameObject textPrefab;
 
         private void Awake()
         {

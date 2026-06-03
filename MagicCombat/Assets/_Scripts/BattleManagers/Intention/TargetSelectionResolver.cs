@@ -39,7 +39,7 @@ namespace TurnBased.Intention
 
             return ProcessUnitTargetGroupSelection(unitResolvingState, targetSelector);
         }
-        public bool ProcessEnvironmentTargetSelection(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
+        public bool ProcessOtherTargetSelection(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, TargetSelection.ITargetSelector targetSelector)
         {
             int targetGroupResolvingIndex = 0;
             /*  Find the first unResolved Target Group. */
@@ -111,13 +111,14 @@ namespace TurnBased.Intention
 
             System.Collections.Generic.List<StationIndex> selectedTargets = targetSelector.SelectTargets(sceneData, moveTargetType);
 
-            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(intention, selectedTargets))
+            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(intention.ResolvingState, intention.CurrentProcessingTargetGroupIndex, sceneData, moveTargetType, targetSelector))
             {
                 /*  If there is still groups to be selected, process the next target group. */
                 ProcessTargetSelection(this.currentResolvingUnit.Value);
             }
             else
             {
+                intention.IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
                 this.currentResolvingUnit = null;
                 /*  Notify CombatRoundIntentionManager that all TargetGroups has been selected by this UnitIndex. */
                 OnTargetSelected?.Invoke();
@@ -126,18 +127,18 @@ namespace TurnBased.Intention
             return true;
         }
 
-        private bool ProcessNonUnitTargetSelector(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState elementalMoveResolvingState, int currentTargetGroupResolvingIndex, TargetSelection.ITargetSelector targetSelector)
+        private bool ProcessNonUnitTargetSelector(UnitTurnStationIndexesSceneData stationIndexesSceneData, ResolvingState resolvingState, int currentTargetGroupResolvingIndex, TargetSelection.ITargetSelector targetSelector)
         {
             if (targetSelector == null) { return false; }
 
-            if (!UnitIntentionFactory.TryGetMoveTargetOfCurrentTargetGroup(elementalMoveResolvingState, currentTargetGroupResolvingIndex, out MoveTarget moveTargetType)) { return false; }
+            if (!UnitIntentionFactory.TryGetMoveTargetOfCurrentTargetGroup(resolvingState, currentTargetGroupResolvingIndex, out MoveTarget moveTargetType)) { return false; }
 
             System.Collections.Generic.List<StationIndex> selectedTargets = targetSelector.SelectTargets(stationIndexesSceneData, moveTargetType);
 
-            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(elementalMoveResolvingState, currentTargetGroupResolvingIndex, selectedTargets))
+            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(resolvingState, currentTargetGroupResolvingIndex, stationIndexesSceneData, moveTargetType, targetSelector))
             {
                 /*  If there is still groups to be selected, process the next target group. */
-                ProcessEnvironmentTargetSelection(stationIndexesSceneData, elementalMoveResolvingState, targetSelector);
+                ProcessOtherTargetSelection(stationIndexesSceneData, resolvingState, targetSelector);
             }
             else
             {

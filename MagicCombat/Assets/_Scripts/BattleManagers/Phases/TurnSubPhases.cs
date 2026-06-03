@@ -6,14 +6,13 @@ namespace TurnBased.Phases
     {
         protected System.Action<SubPhaseState> OnSubPhaseComplete;
         protected UnitIndex currentUnitIndex;
-        public SubPhase(System.Action<SubPhaseState> onSubPhaseComplete) : base()
+        public SubPhase(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
         }
 
         ~SubPhase()
         {
-            Debug.LogError("Deconstructing Subphase");
             OnSubPhaseComplete = null;
         }
 
@@ -22,7 +21,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_None : SubPhase
     {
-        public UnitTurnPhase_None(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_None(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
         }
 
@@ -40,17 +39,25 @@ namespace TurnBased.Phases
         {
 
         }
+
+        protected override void OnEventsComplete()
+        {
+     
+        }
+
+        protected override void OnPhaseComplete()
+        {
+     
+        }
     }
 
 
     public class UnitTurnPhase_MoveSelection : SubPhase
     {
-
-        public UnitTurnPhase_MoveSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_MoveSelection(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
-
+            EventHookSystem.OnAwaitingUnitMoveSelection += EventHookSystem_OnAwaitingUnitMoveSelection;
         }
-
         ~UnitTurnPhase_MoveSelection()
         {
             Debug.LogError("MoveSelection Deconstructor called");
@@ -58,14 +65,25 @@ namespace TurnBased.Phases
             Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
         }
 
+        private void EventHookSystem_OnAwaitingUnitMoveSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
+            UnityEngine.Debug.LogError("Added action to move selection!");
+        }
+
+
         public override void OnEnter()
         {
             Debug.LogWarning($"Ready for move intention");
 
-            Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
+            this.hookSystem.InvokeAwaitingMoveSelection(this.currentUnitIndex, OnEventsComplete);
 
-            Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
-            Intention.IntentionResolverManager.Instance.ProcessMoveSelection(this.currentUnitIndex);
+            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(this.currentUnitIndex, out var unitData)) { OnPhaseComplete(); }
+
+            UnityEngine.Debug.LogError($"Processing move selection for: {unitData.name}");
+
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -78,59 +96,111 @@ namespace TurnBased.Phases
 
         }
 
+        protected override void OnEventsComplete()
+        {
+            UnityEngine.Debug.LogError("Events complete in move selection!");
+
+
+            Intention.MoveSelectionResolver.OnMoveSelected += OnMoveSelected;
+
+            Intention.UnitIntentionManager.Instance.SetReadyForMoveIntention(this.currentUnitIndex);
+            Intention.IntentionResolverManager.Instance.ProcessMoveSelection(this.currentUnitIndex);
+        }
+
         private void OnMoveSelected(UnitIndex selectedUnitIndex, IBattleMove selectedMove)
         {
+            Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
+            
+            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(selectedUnitIndex, out var unitData)) { OnPhaseComplete(); }
+            
+            UnityEngine.Debug.LogError($"{unitData.name} Selected move: {selectedMove.GetMoveName()}!");
+
+
+
+
             /*  Add this selected move to intentionManager. */
             Intention.UnitIntentionManager.Instance.SetMoveIntention(selectedUnitIndex, selectedMove);
+
+            OnPhaseComplete();
+        }
+
+
+        protected override void OnPhaseComplete()
+        {
             OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
         }
+
+
     }
 
     public class UnitTurnPhase_TargetSelection : SubPhase
     {
-        public UnitTurnPhase_TargetSelection(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_TargetSelection(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
+            EventHookSystem.OnAwaitingUnitTargetSelection += EventHookSystem_OnAwaitingUnitTargetSelection;
         }
-
         ~UnitTurnPhase_TargetSelection()
         {
-            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
+            EventHookSystem.OnAwaitingUnitTargetSelection -= EventHookSystem_OnAwaitingUnitTargetSelection;
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnPhaseComplete;
+        }
+        private void EventHookSystem_OnAwaitingUnitTargetSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            Intention.TargetSelectionResolver.OnTargetSelected += OnTargetSelected;
-
-            Intention.IntentionResolverManager.Instance.ProcessUnitIntentionTargetSelection(this.currentUnitIndex);
+            this.hookSystem.InvokeAwaitingTargetSelection(this.currentUnitIndex, OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
         {
-            Intention.TargetSelectionResolver.OnTargetSelected -= OnTargetSelected;
+
         }
 
         public override void Update()
         {
 
         }
-
-        private void OnTargetSelected()
+        protected override void OnEventsComplete()
         {
-            OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
+            Intention.TargetSelectionResolver.OnTargetSelected += OnPhaseComplete;
+            Intention.IntentionResolverManager.Instance.ProcessUnitIntentionTargetSelection(this.currentUnitIndex);
         }
 
+        protected override void OnPhaseComplete()
+        {
+            Intention.TargetSelectionResolver.OnTargetSelected -= OnPhaseComplete;
+            OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
+        }
     }
 
 
     public class UnitTurnPhase_ReadyToExecuteMove : SubPhase
     {
-        public UnitTurnPhase_ReadyToExecuteMove(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_ReadyToExecuteMove(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
+            EventHookSystem.OnUnitReadyToExecuteMove += EventHookSystem_OnUnitReadyToExecuteMove;
+        }
+
+        ~UnitTurnPhase_ReadyToExecuteMove()
+        {
+            EventHookSystem.OnUnitReadyToExecuteMove -= EventHookSystem_OnUnitReadyToExecuteMove;
+        }
+
+        private void EventHookSystem_OnUnitReadyToExecuteMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
+            this.hookSystem.InvokeReadyToExecuteMove(this.currentUnitIndex, OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -140,61 +210,89 @@ namespace TurnBased.Phases
 
         public override void Update()
         {
+        }
+
+        protected override void OnEventsComplete()
+        {
+            OnPhaseComplete();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
         }
     }
 
     public class UnitTurnPhase_ResolveAttack : SubPhase
     {
-        PhaseTaskCompletionManager resolveAttackResolutionCompletionManager;
-
-        public UnitTurnPhase_ResolveAttack(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_ResolveAttack(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
+            EventHookSystem.OnUnitResolveMove += EventHookSystem_OnUnitResolveMove;
+        }
 
+        private void EventHookSystem_OnUnitResolveMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
+ 
         }
 
         ~UnitTurnPhase_ResolveAttack()
         {
-
+            EventHookSystem.OnUnitResolveMove -= EventHookSystem_OnUnitResolveMove;
         }
 
         public override void OnEnter()
         {
-            this.resolveAttackResolutionCompletionManager = new(OnAttackResolutionPhaseComplete);
-
-            this.resolveAttackResolutionCompletionManager.AddAction();
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += this.resolveAttackResolutionCompletionManager.OnActionComplete;
-            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
-
+            this.hookSystem.InvokeUnitResolveMove(this.currentUnitIndex, OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= this.resolveAttackResolutionCompletionManager.OnActionComplete;
+
         }
 
         public override void Update()
         {
 
         }
-
-
-        private void OnAttackResolutionPhaseComplete()
+        protected override void OnEventsComplete()
         {
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += OnPhaseComplete;
+            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= OnPhaseComplete;
+
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
             this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
         }
-
     }
 
     public class UnitTurnPhase_AttackComplete : SubPhase
     {
-        public UnitTurnPhase_AttackComplete(System.Action<SubPhaseState> onSubPhaseComplete) : base(onSubPhaseComplete)
+        public UnitTurnPhase_AttackComplete(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
         {
+            EventHookSystem.OnUnitAttackComplete += EventHookSystem_OnUnitAttackComplete;
+        }
+        ~UnitTurnPhase_AttackComplete()
+        {
+            EventHookSystem.OnUnitAttackComplete -= EventHookSystem_OnUnitAttackComplete;
+        }
+
+        private void EventHookSystem_OnUnitAttackComplete(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        {
+            this.completionManager = completionManager;
+            this.completionManager.AddAction();
         }
 
         public override void OnEnter()
         {
-            this.OnSubPhaseComplete(SubPhaseState.ATTACK_COMPLETE);
+            this.hookSystem.InvokeUnitAttackComplete(this.currentUnitIndex, OnEventsComplete);
+            this.completionManager.OnActionComplete();
         }
 
         public override void OnExit()
@@ -205,6 +303,15 @@ namespace TurnBased.Phases
         public override void Update()
         {
 
+        }
+        protected override void OnEventsComplete()
+        {
+            OnPhaseComplete();
+        }
+
+        protected override void OnPhaseComplete()
+        {
+            this.OnSubPhaseComplete(SubPhaseState.ATTACK_COMPLETE);
         }
     }
 }

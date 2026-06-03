@@ -1,3 +1,5 @@
+using UnityEditor.PackageManager.Requests;
+
 namespace TurnBased.Combat
 {
     public class TurnOrderCombatHandler 
@@ -24,6 +26,7 @@ namespace TurnBased.Combat
 
         public void Awake()
         {
+            IntentionCombatResolver.OnResolvingStatesComplete += OnResolvingStatesComplete;
             if (instance == null)
             {
                 instance = this;
@@ -32,6 +35,7 @@ namespace TurnBased.Combat
 
         public void OnDestroy()
         {
+            IntentionCombatResolver.OnResolvingStatesComplete -= OnResolvingStatesComplete;
             if (instance != null && instance == this)
             {
                 instance = null;
@@ -55,13 +59,23 @@ namespace TurnBased.Combat
             this.currentUnitIndexResolving = turnOrderNextUnit.Value;
 
 
-            _ = ProcessNextUnitInTurnOrder();
+            ProcessNextUnitInTurnOrder();
         }
 
-        private async System.Threading.Tasks.Task ProcessNextUnitInTurnOrder()
+        private void ProcessNextUnitInTurnOrder()
         {
-            UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
-            await IntentionCombatResolver.ProcessAttack(this.currentUnitIndexResolving);
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentUnitIndexResolving, out Intention.UnitIntention intention)) { return; }
+
+            UnityEngine.Debug.LogWarning($"Processing next unit in turn order. Current unit index resolving is: {this.currentUnitIndexResolving.Index} and resolving state unit index is: {intention.ResolvingState.ResolvingSource.SourceUnitIndex.Index}");
+
+            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
+
+            request.OnRequestComplete += WhenRequestComplete; 
+        }
+
+        private void WhenRequestComplete(AttackResolution.CombatResolvingRequest request)
+        {
+            request.OnRequestComplete -= WhenRequestComplete;
 
             TurnOrder.TurnOrderManager.Instance.ResetCurrentUnit();
 
@@ -76,9 +90,14 @@ namespace TurnBased.Combat
             else
             {
                 UnityEngine.Debug.LogError($"ALL ATTACKS DONE!!! ");
-                OnTurnOrderAttacksFullyResolved?.Invoke();
             }
         }
+
+        private void OnResolvingStatesComplete()
+        {
+            OnTurnOrderAttacksFullyResolved?.Invoke();
+        }
+
 
         private bool IsProcessingIntentContinuing() => TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0;
     }

@@ -2,19 +2,19 @@ namespace TurnBased.Phases
 {
     public class PhaseTaskCompletionManager
     {
-        private uint phaseTaskCount;
-        private System.Action onPhaseCompletion;
+        private int phaseTaskCount;
+        private System.Action OnPhaseCompletion;
 
         public PhaseTaskCompletionManager(System.Action actionUponPhaseCompletion)
         {
             this.phaseTaskCount = 0;
-            this.onPhaseCompletion = actionUponPhaseCompletion;
+            this.OnPhaseCompletion = actionUponPhaseCompletion;
         }
 
         ~PhaseTaskCompletionManager()
         {
             phaseTaskCount = 0;
-            onPhaseCompletion = null;
+            OnPhaseCompletion = null;
         }
 
         public void AddAction()
@@ -26,9 +26,9 @@ namespace TurnBased.Phases
         {
             this.phaseTaskCount--;
 
-            if (this.phaseTaskCount == 0)
+            if (this.phaseTaskCount <= 0)
             {
-                this.onPhaseCompletion?.Invoke();
+                this.OnPhaseCompletion?.Invoke();
             }
         }
     }

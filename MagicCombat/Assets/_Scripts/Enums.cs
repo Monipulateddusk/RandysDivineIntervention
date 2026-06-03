@@ -34,13 +34,11 @@ public enum StationSelectionState
 /// 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-
-public enum AttackActionType 
-{ 
-    DAMAGE,
-    HEALING, 
-    STATUS_EFFECT, 
-    IMBUE_ENVIRONMENTS 
+public enum DamageOriginType
+{
+    UnitMove,
+    Status,
+    Environment,
 }
 
 public enum MoveTarget
@@ -86,7 +84,6 @@ public enum MetaGameState
     PlayerWin   = 1,
     PlayerLoss  = 2,
 }
-
 
 /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 /// 
@@ -203,7 +200,6 @@ public enum MoveResolutionTiming
     TurnOrderSequence
 }
 
-
 public enum TurnOrderCreationState
 {
     InsufficentUnits = 0,
@@ -224,4 +220,10 @@ enum CameraAnimType
     Shift, 
     Static, 
     Shader 
+}
+
+public enum StatusType
+{
+    Buff,
+    Debuff,
 }

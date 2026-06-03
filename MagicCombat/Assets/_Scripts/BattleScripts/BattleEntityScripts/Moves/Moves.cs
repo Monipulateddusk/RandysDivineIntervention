@@ -4,14 +4,14 @@ namespace TurnBased
 
     public class AttackStep
     {
-        public System.Collections.Generic.List<AttackAction> Actions = new();
+        public System.Collections.Generic.List<AttackResolution.AttackAction> Actions = new();
 
         public AttackStep()
         {
             Actions = new();
         }
 
-        public AttackStep(System.Collections.Generic.List<AttackAction> actions)
+        public AttackStep(System.Collections.Generic.List<AttackResolution.AttackAction> actions)
         {
             this.Actions = actions; 
         }
@@ -46,7 +46,7 @@ namespace TurnBased
 
     public interface IBattleMove
     {
-        public abstract AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
+        public abstract AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData);
         public MoveResolutionTiming GetResolutionTiming();
         public int GetMaxTargets();
         public bool DoesSourceUnitMove();
@@ -58,7 +58,7 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -70,7 +70,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new DamageAttackAction(userInfo.attack, 1, groupID: 0),
+                            new AttackResolution.DamageAttackAction(resolutionSceneData.OwnerUnitInformation.UnitAttack, 1, groupID: 0),
                         }
                     },
                 }
@@ -91,9 +91,9 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int damage = userInfo.attack / 3;
+            int damage = resolutionSceneData.OwnerUnitInformation.UnitAttack / 3;
             AttackResolutionInfo resolutionInfo = new()
             {
                 TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
@@ -104,14 +104,14 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damageAmount: 1, 2, groupID: 0)
+                            new AttackResolution.DamageAttackAction(damageAmount: 1, 2, groupID: 0)
                         }
                     },
                     new AttackStep()
                     {
                         Actions =
                         {
-                            new DamageAttackAction(damageAmount: damage, 1, groupID: 0)
+                            new AttackResolution.DamageAttackAction(damageAmount: damage, 1, groupID: 0)
                         }
                     },
                 }
@@ -132,7 +132,7 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(UnitData userInfo = null, System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -144,7 +144,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new ImbueEnvironmentAttackAction(userInfo.element, groupID: 0)
+                            new AttackResolution.ImbueEnvironmentAttackAction(resolutionSceneData.OwnerUnitInformation.UnitElement, groupID: 0)
                         },
                     }
                 }

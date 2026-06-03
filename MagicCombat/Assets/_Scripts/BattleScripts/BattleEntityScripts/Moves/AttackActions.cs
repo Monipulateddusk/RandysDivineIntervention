@@ -1,4 +1,4 @@
-namespace TurnBased
+namespace TurnBased.AttackResolution
 {
     public abstract class AttackAction
     {
@@ -8,7 +8,7 @@ namespace TurnBased
             this.TargetGroupID = groupID;
         }
 
-        public abstract System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex);
+        public abstract System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex);
         public abstract string GetDescription();
     }
 
@@ -28,13 +28,13 @@ namespace TurnBased
             return this.HitsAmount > 1 ? $"Deal {this.DamageAmount}x{this.HitsAmount} damage" : $"Deal {this.DamageAmount} damage";
         }
 
-        public override System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex)
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
         {
             System.Collections.Generic.List<AttackEvent> events = new();
 
             for (int i = 0; i < this.HitsAmount; i++)
             {
-                events.Add(new DamageEvent(this.DamageAmount, targetUnitIndex));
+                events.Add(new DamageEvent(this.DamageAmount, resolvingSource, targetUnitIndex));
             }
 
             return events;
@@ -68,16 +68,14 @@ namespace TurnBased
                 _ => $"Non-Elemental",
             };
         }
-        public override System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex)
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
         {
             System.Collections.Generic.List<AttackEvent> events = new();
 
             for (int i = 0; i < this.HitsAmount; i++)
             {
-                events.Add(new ElementalDamageEvent(this.ElementEffect, this.DamageAmount, targetUnitIndex));
+                events.Add(new ElementalDamageEvent(this.ElementEffect, this.DamageAmount, resolvingSource, targetUnitIndex));
             }
-
-            UnityEngine.Debug.LogError($"Elemental Damage Event List count is: {events.Count}");
 
             return events;
         }
@@ -97,9 +95,9 @@ namespace TurnBased
             return $"Heal for {HealingAmount}";
         }
 
-        public override System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex)
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
         {
-            return new() { new HealEvent(this.HealingAmount, targetUnitIndex) };
+            return new() { new HealEvent(this.HealingAmount, resolvingSource, targetUnitIndex) };
         }
     }
 
@@ -131,9 +129,48 @@ namespace TurnBased
             };
         }
 
-        public override System.Collections.Generic.List<AttackEvent> Execute(UnitIndex targetUnitIndex)
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
         {
-            return new() { new ImbueElementEvent(this.ElementEffect, targetUnitIndex) };
+            return new() { new ImbueElementEvent(this.ElementEffect, resolvingSource, targetUnitIndex) };
+        }
+    }
+
+    public class InflictStatusAttackAction : AttackAction
+    {
+        public Status.BaseStatus StatusEffect { get; private set; }
+
+        public InflictStatusAttackAction(Status.BaseStatus statusEffect, int groupID) : base(groupID)
+        {
+            this.StatusEffect = statusEffect;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Inflict the target with {this.StatusEffect.StatusName}";
+        }
+
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
+        {
+            return new() { new AddStatusEvent(this.StatusEffect, resolvingSource, targetUnitIndex) };
+        }
+    }
+    public class RemoveStatusAttackAction : AttackAction
+    {
+        public Status.BaseStatus StatusEffect { get; private set; }
+
+        public RemoveStatusAttackAction(Status.BaseStatus statusEffect, int groupID) : base(groupID)
+        {
+            this.StatusEffect = statusEffect;
+        }
+
+        public override string GetDescription()
+        {
+            return $"Remove the target of {this.StatusEffect.StatusName}";
+        }
+
+        public override System.Collections.Generic.List<AttackEvent> Execute(Intention.ResolvingSource resolvingSource, UnitIndex targetUnitIndex)
+        {
+            return new() { new RemoveStatusEvent(this.StatusEffect, resolvingSource, targetUnitIndex) };
         }
     }
 }

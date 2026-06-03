@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using TurnBased.TargetSelection;
 
 public readonly struct UnitIndex     
 {  
@@ -211,8 +209,8 @@ public class SceneUnitData
     }
     public UnitIndex[] GetUnitsInReserve(UnitTeam team)
     {
-        List<UnitIndex> reserveUnitIndexes = new();
-        foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        System.Collections.Generic.List<UnitIndex> reserveUnitIndexes = new();
+        foreach (System.Collections.Generic.KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
         {
             UnitIndex unitIndex = new(unitKeyValuePair.Key);
 
@@ -225,12 +223,12 @@ public class SceneUnitData
         return reserveUnitIndexes.ToArray();
     }
 
-    public bool TryGetUnitIndexesOfTeam(UnitTeam team, out List<UnitIndex> unitIndexesOnTeam)
+    public bool TryGetUnitIndexesOfTeam(UnitTeam team, out System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam)
     {
         // Loop through our Units. Look into them and determine which team they are on. Add those into a list and return the completed list.    
         unitIndexesOnTeam = new();
         
-        foreach (KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        foreach (System.Collections.Generic.KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
         {
             int unitIndex               = unitKeyValuePair.Key;
             BaseBattleUnit battleUnit   = unitKeyValuePair.Value;
@@ -278,7 +276,7 @@ public class SceneUnitData
     public bool TryGetStationIndexOfUnitIndex(UnitIndex unitIndex, out StationIndex stationIndexOfUnitIndex)
     {
         stationIndexOfUnitIndex = default;
-        foreach (KeyValuePair<int,Station> stationKeyValuePairs in this.Stations)
+        foreach (System.Collections.Generic.KeyValuePair<int,Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
             if (!station.UnitOnStation.HasValue) { continue; }
@@ -296,10 +294,10 @@ public class SceneUnitData
     /// </summary>
     /// <param name="team"></param>
     /// <returns></returns>
-    public List<UnitIndex> GetUnitsOnTeam(UnitTeam team)
+    public System.Collections.Generic.List<UnitIndex> GetUnitsOnTeam(UnitTeam team)
     {
-        List<UnitIndex> unitIndexesOnTeam = new();
-        foreach (KeyValuePair<int, BaseBattleUnit> unitsKeyValuePair in this.Units)
+        System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam = new();
+        foreach (System.Collections.Generic.KeyValuePair<int, BaseBattleUnit> unitsKeyValuePair in this.Units)
         {
             int unitIndex = unitsKeyValuePair.Key;  
             BaseBattleUnit battleUnit = unitsKeyValuePair.Value;
@@ -313,12 +311,12 @@ public class SceneUnitData
         return unitIndexesOnTeam;
     }
 
-    public List<UnitIndex> GetAllActiveUnits()
+    public System.Collections.Generic.List<UnitIndex> GetAllActiveUnits()
     {
         // Loop through our stations. All the ones without a NULL UnitOnStation have a Unit on them. 
-        List<UnitIndex> activeUnits = new();
+        System.Collections.Generic.List<UnitIndex> activeUnits = new();
         if (this.Stations.Count < 0) { return new(); }
-        foreach(KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        foreach(System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
 
@@ -332,9 +330,9 @@ public class SceneUnitData
         return activeUnits;
     }
 
-    public List<UnitIndex> GetAllUnits()
+    public System.Collections.Generic.List<UnitIndex> GetAllUnits()
     {
-        List<UnitIndex> units = new();
+        System.Collections.Generic.List<UnitIndex> units = new();
         if(this.Units.Count < 0) { return new(); }
 
         return null;
@@ -346,11 +344,11 @@ public class SceneUnitData
     /// </summary>
     /// <param name="team"></param>
     /// <returns></returns>
-    public List<UnitIndex> GetAllActiveUnits(UnitTeam team)
+    public System.Collections.Generic.List<UnitIndex> GetAllActiveUnits(UnitTeam team)
     {
         // Loop through our stations. All the ones without a NULL UnitOnStation have a Unit on them. 
-        List<UnitIndex> activeUnits = new();
-        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        System.Collections.Generic.List<UnitIndex> activeUnits = new();
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
 
@@ -362,10 +360,10 @@ public class SceneUnitData
         return activeUnits;
     }
 
-    public List<StationIndex> GetStationIndexes()
+    public System.Collections.Generic.List<StationIndex> GetStationIndexes()
     {
-        List<StationIndex> stationIndexes = new();
-        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        System.Collections.Generic.List<StationIndex> stationIndexes = new();
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
             stationIndexes.Add(station.StationIndex);
@@ -376,11 +374,11 @@ public class SceneUnitData
     /// <summary>
     /// </summary>
     /// <returns>All populated Station Indexes (Station Indexes correlating to Stations with a Unit on them).</returns>
-    public List<StationIndex> GetPopulatedStationIndexes()
+    public System.Collections.Generic.List<StationIndex> GetPopulatedStationIndexes()
     {
-        List<StationIndex> stationIndexes = new();
+        System.Collections.Generic.List<StationIndex> stationIndexes = new();
         /*  Loop through all Stations, if a station has a Unit on it, add it to the List.   */
-        foreach (KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePairs in this.Stations)
         {
             Station station = stationKeyValuePairs.Value;
 
@@ -399,7 +397,7 @@ public class SceneUnitData
 
     public bool IsStationValid(Station station)
     {
-        foreach (KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationKeyValuePair in this.Stations)
         {
             if(stationKeyValuePair.Value == station)
             {
@@ -410,7 +408,7 @@ public class SceneUnitData
     }
     public bool IsUnitValid(BaseBattleUnit unit)
     {
-        foreach(KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
+        foreach(System.Collections.Generic.KeyValuePair<int, BaseBattleUnit> unitKeyValuePair in this.Units)
         {
             if(unitKeyValuePair.Value == unit)
             {
@@ -423,7 +421,7 @@ public class SceneUnitData
 
     private bool IsUnitIndexOnBattlefield(UnitIndex unitIndex)
     {
-        foreach (KeyValuePair<int, Station> stationsKeyValuePair in this.Stations)
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationsKeyValuePair in this.Stations)
         {
             Station station = stationsKeyValuePair.Value;
             if (!DoesStationHaveUnit(station)) { continue; }
@@ -566,12 +564,12 @@ public class StationManager
 
     private SceneUnitData SceneUnitData = new();
 
-    readonly List<UnityEngine.Vector3> ALLY_STATION_LOCATIONS = new(){
+    readonly System.Collections.Generic.List<UnityEngine.Vector3> ALLY_STATION_LOCATIONS = new(){
         new(0,      0,  1),         new(-3,         0,      1),         new(3,      0,      1),
         new(1.5f,   0,  3),         new(-1.5f,      0,      3),         new(4.5f,   0,      3),
         new(1.5f,   0, -1),         new(-1.5f,      0,     -1),         new(4.5f,   0,     -1),
     };
-    readonly List<UnityEngine.Vector3> ENEMY_STATION_LOCATIONS = new(){
+    readonly System.Collections.Generic.List<UnityEngine.Vector3> ENEMY_STATION_LOCATIONS = new(){
         new(1.5f,   0, -6),         new(-1.5f,      0,     -6),         new(4.5f,   0,     -6),
         new(0,      0, -8),         new(-3,         0,     -8),         new(3,      0,     -8),
         new(0,      0, -4),         new(-3,         0,     -4),         new(3,      0,     -4),
@@ -606,20 +604,20 @@ public class StationManager
         this.SceneUnitData = null;
     }
 
-    public List<UnitIndex>      GetAllActiveUnits()                                                                         => this.SceneUnitData.GetAllActiveUnits();
-    public List<UnitIndex>      GetUnitsOnTeam              (UnitTeam team)                                                 => this.SceneUnitData.GetUnitsOnTeam(team);
-    public bool                 TryGetUnitIndexesOfTeam     (UnitTeam team, out List<UnitIndex> unitIndexesOnTeam)          => this.SceneUnitData.TryGetUnitIndexesOfTeam(team, out unitIndexesOnTeam);
-    public bool                 TryGetTeamOfUnitIndex       (UnitIndex unitIndex, out UnitTeam team)                        => this.SceneUnitData.TryGetTeamOfUnitIndex(unitIndex, out team);
-    public List<StationIndex>   GetStationsIndex()                                                                          => this.SceneUnitData.GetStationIndexes();
-    public List<StationIndex>   GetPopulatedStationIndexes()                                                                => this.SceneUnitData.GetPopulatedStationIndexes();
-    public bool                 TryGetUnitIndexOnStation    (StationIndex stationIndex, out UnitIndex unitIndexOnStation)   => this.SceneUnitData.TryGetUnitIndexOfStationIndex(stationIndex, out unitIndexOnStation);
-    public bool                 TryGetStationIndexOfIndex   (UnitIndex index,           out StationIndex stationIndex)      => this.SceneUnitData.TryGetStationIndexOfUnitIndex(index, out stationIndex); 
-    public bool                 TryGetBattleUnitOfIndex     (UnitIndex index,           out BaseBattleUnit unit)            => this.SceneUnitData.GetBattleUnitOfIndex(index, out unit);
-    public bool                 TryGetStationOfUnitIndex    (UnitIndex index,           out Station stationOfUnitIndex)     => this.SceneUnitData.GetStationOfUnitIndex(index, out stationOfUnitIndex);
-    public bool                 TryGetStationOfStationIndex(StationIndex stationIndex, out Station stationOfStationIndex)   => this.SceneUnitData.GetStationOfStationIndex(stationIndex, out stationOfStationIndex);
-    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                                                   => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
-    public bool                 IsStationValid          (Station station)                                                   => this.SceneUnitData.IsStationValid(station);
-    public bool                 IsUnitValid             (BaseBattleUnit unit)                                               => this.SceneUnitData.IsUnitValid(unit);
+    public System.Collections.Generic.List<UnitIndex>      GetAllActiveUnits()                                                                  => this.SceneUnitData.GetAllActiveUnits();
+    public System.Collections.Generic.List<UnitIndex>      GetUnitsOnTeam              (UnitTeam team)                                          => this.SceneUnitData.GetUnitsOnTeam(team);
+    public bool                 TryGetUnitIndexesOfTeam     (UnitTeam team, out System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam)   => this.SceneUnitData.TryGetUnitIndexesOfTeam(team, out unitIndexesOnTeam);
+    public bool                 TryGetTeamOfUnitIndex       (UnitIndex unitIndex, out UnitTeam team)                                            => this.SceneUnitData.TryGetTeamOfUnitIndex(unitIndex, out team);
+    public System.Collections.Generic.List<StationIndex>   GetStationsIndex()                                                                   => this.SceneUnitData.GetStationIndexes();
+    public System.Collections.Generic.List<StationIndex>   GetPopulatedStationIndexes()                                                         => this.SceneUnitData.GetPopulatedStationIndexes();
+    public bool                 TryGetUnitIndexOnStation    (StationIndex stationIndex, out UnitIndex unitIndexOnStation)                       => this.SceneUnitData.TryGetUnitIndexOfStationIndex(stationIndex, out unitIndexOnStation);
+    public bool                 TryGetStationIndexOfIndex   (UnitIndex index,           out StationIndex stationIndex)                          => this.SceneUnitData.TryGetStationIndexOfUnitIndex(index, out stationIndex); 
+    public bool                 TryGetBattleUnitOfIndex     (UnitIndex index,           out BaseBattleUnit unit)                                => this.SceneUnitData.GetBattleUnitOfIndex(index, out unit);
+    public bool                 TryGetStationOfUnitIndex    (UnitIndex index,           out Station stationOfUnitIndex)                         => this.SceneUnitData.GetStationOfUnitIndex(index, out stationOfUnitIndex);
+    public bool                 TryGetStationOfStationIndex(StationIndex stationIndex, out Station stationOfStationIndex)                       => this.SceneUnitData.GetStationOfStationIndex(stationIndex, out stationOfStationIndex);
+    public UnitTeam             GetUnitTeamOfIndex      (UnitIndex index)                                                                       => this.SceneUnitData.GetUnitTeamOfUnitIndex(index);
+    public bool                 IsStationValid          (Station station)                                                                       => this.SceneUnitData.IsStationValid(station);
+    public bool                 IsUnitValid             (BaseBattleUnit unit)                                                                   => this.SceneUnitData.IsUnitValid(unit);
 
 
 
@@ -698,9 +696,9 @@ public class StationManager
         }
     }
 
-    public List<StationIndex> GetStationIndexesFromUnitIndexes(List<UnitIndex> indexes)
+    public System.Collections.Generic.List<StationIndex> GetStationIndexesFromUnitIndexes(System.Collections.Generic.List<UnitIndex> indexes)
     {
-        List<StationIndex> stationIndexes = new();
+        System.Collections.Generic.List<StationIndex> stationIndexes = new();
         foreach (UnitIndex unitIndex in indexes)
         {
             if(!this.SceneUnitData.TryGetStationIndexOfUnitIndex(unitIndex, out StationIndex stationIndexOfUnitIndex)) { continue; }
@@ -738,7 +736,7 @@ public class StationManager
     public void DeployUnitsForStartOfBattle()
     {
         /*  Deploy the Units so that the first units in the list go onto the first empty station on their team. */
-        foreach (KeyValuePair<int, BaseBattleUnit> battleUnitKeyValuePairs in this.SceneUnitData.Units)
+        foreach (System.Collections.Generic.KeyValuePair<int, BaseBattleUnit> battleUnitKeyValuePairs in this.SceneUnitData.Units)
         {
             UnitIndex battleUnitIndex = new(battleUnitKeyValuePairs.Key);
             BaseBattleUnit battleUnit = battleUnitKeyValuePairs.Value;
@@ -800,7 +798,7 @@ public class StationManager
     /// <returns></returns>
     private StationIndex? FindFirstEmptyStationIndexOnTeam(UnitTeam unitTeam)
     {
-        foreach (KeyValuePair<int, Station> stationsKeyValuePairs in this.SceneUnitData.Stations)
+        foreach (System.Collections.Generic.KeyValuePair<int, Station> stationsKeyValuePairs in this.SceneUnitData.Stations)
         {
             Station station = stationsKeyValuePairs.Value;
             if (station == null) continue;
@@ -823,11 +821,11 @@ public class StationManager
 
 public readonly struct TargettingSelectorInfo
 {
-    public List<StationIndex> PossibleTargets { get; }
+    public System.Collections.Generic.List<StationIndex> PossibleTargets { get; }
     public bool DoesRequireTargettingSelectorSelection { get; }
     public string TargettingDisplayText { get; }
 
-    public TargettingSelectorInfo(List<StationIndex> targets, bool doesRequireSelection, string targetDisplayText)
+    public TargettingSelectorInfo(System.Collections.Generic.List<StationIndex> targets, bool doesRequireSelection, string targetDisplayText)
     {
         this.PossibleTargets = targets;
         this.DoesRequireTargettingSelectorSelection = doesRequireSelection;
@@ -866,9 +864,9 @@ public static class StationManagerUtilities
         if (sourceTeam == UnitTeam.NULL) { return false; }
 
         /*  Get a list of all UnitIndexes that are on the team. */
-        if (!stationManager.TryGetUnitIndexesOfTeam(sourceTeam, out List<UnitIndex> allIUnitIndexesOnAlliedTeam))
+        if (!stationManager.TryGetUnitIndexesOfTeam(sourceTeam, out System.Collections.Generic.List<UnitIndex> allIUnitIndexesOnAlliedTeam))
         { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!");  }
-        if (!stationManager.TryGetUnitIndexesOfTeam(oppositeTeam, out List<UnitIndex> unitIndexesOfOppositeTeam))
+        if (!stationManager.TryGetUnitIndexesOfTeam(oppositeTeam, out System.Collections.Generic.List<UnitIndex> unitIndexesOfOppositeTeam))
         { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: INSUFFICIENT QUANTITY OF UNITS PRESENT INSIDE TEAMED INDEXES!"); }
 
         /*  Confirm that the sourceUnitIndex is contained within UnitIndexesOnTeam. If not, something broke.    */
@@ -878,14 +876,14 @@ public static class StationManagerUtilities
         if (allIUnitIndexesOnAlliedTeam.Count <= 0) { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: TEAMED UNIT INDEX LIST IS LESS THAN 0!"); }
 
         /*  Remove the source Unit Index from the TeamedIndexes Array.  */
-        List<UnitIndex> TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
+        System.Collections.Generic.List<UnitIndex> TeamedIndexes = GetUnitIndexCollectionRemovingSourceIndex(allIUnitIndexesOnAlliedTeam, sourceUnitIndex);
 
         /*  Try to convert the UnitIndex to the stationIndex for purposes of Scene Data.    */
         if (!stationManager.TryGetStationIndexOfIndex(sourceUnitIndex, out StationIndex sourceStationIndex)) { return false; throw new InvalidOperationException("ERROR — STATION_HANDLER: UNABLE TO RETRIEVE STATION INDEX OF UNIT INDEX!"); }
 
         /*  Convert UnitIndex of both allied and enemy lists to the StationIndex of that Unit. */
-        List<StationIndex> allyStationIndexes = stationManager.GetStationIndexesFromUnitIndexes(TeamedIndexes);
-        List<StationIndex> enemyStationIndexes = stationManager.GetStationIndexesFromUnitIndexes(unitIndexesOfOppositeTeam);
+        System.Collections.Generic.List<StationIndex> allyStationIndexes = stationManager.GetStationIndexesFromUnitIndexes(TeamedIndexes);
+        System.Collections.Generic.List<StationIndex> enemyStationIndexes = stationManager.GetStationIndexesFromUnitIndexes(unitIndexesOfOppositeTeam);
 
 
 
@@ -894,34 +892,90 @@ public static class StationManagerUtilities
         return true;
     }
 
-    public static bool TryCreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex, out UnitDataUnitTurnSceneData unitDataSceneData)
+    public static bool TryCreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)
     {
-        unitDataSceneData = default;
+        resolutionSceneData = default;
 
-        UnitData sourceUnitData = null;
-        System.Collections.Generic.List<UnitData> allyData  = new();
-        System.Collections.Generic.List<UnitData> enemyData = new();
-
-        UnityEngine.Debug.LogError($"Creating combat scene data for unit index");
+        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> allyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> enemyUnitInformation = new();
 
         /*  Get the stationIndexes for each active unit in the scene to loop through them and retrieve their data.  */
         if (!TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData sceneData)) { return false; }
 
         foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
         {
-            if (!StationManager.Instance.TryGetUnitDataOnStation(allyStationIndex, out UnitData unitData)) { continue; }
-            allyData.Add(unitData);
+            if (!TryCreateUnitInformation(allyStationIndex, UnitTeam.ALLY, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+
+            allyUnitInformation.Add(unitInformation);
         }
 
         foreach (StationIndex enemyStationIndex in sceneData.EnemyStationIndexes)
         {
-            if (!StationManager.Instance.TryGetUnitDataOnStation(enemyStationIndex, out UnitData unitData)) { continue; }
-            enemyData.Add(unitData);
+            if (!TryCreateUnitInformation(enemyStationIndex, UnitTeam.ENEMY, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+
+            enemyUnitInformation.Add(unitInformation);
         }
 
-        if (!StationManager.Instance.TryGetUnitDataOnStation(sceneData.SourceStationIndex, out sourceUnitData)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        if (!TryCreateUnitInformation(sceneData.SourceStationIndex, UnitTeam.ENEMY, out TurnBased.AttackResolution.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement>  imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
 
-        unitDataSceneData = new UnitDataUnitTurnSceneData(sourceUnitData, allyData, enemyData);
+
+        resolutionSceneData = new TurnBased.AttackResolution.ResolutionSceneData(ownerUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
+        return true;
+    }
+    public static bool TryCreateUnitDataSceneDataForElementalMove(UnitTeam team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)
+    {
+        resolutionSceneData = default;
+
+        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> allyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> enemyUnitInformation = new();
+
+        UnitTeam oppositeTeam = GetOppositeTeamType(team);
+
+        System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam = StationManager.Instance.GetUnitsOnTeam(team);
+        System.Collections.Generic.List<UnitIndex> unitIndexesOnOppositeTeam = StationManager.Instance.GetUnitsOnTeam(oppositeTeam);
+
+        foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
+        {
+            if (!TryCreateUnitInformation(unitIndexOnTeam, team, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            allyUnitInformation.Add(unitInformation);
+        }
+
+        foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
+        {
+            if (!TryCreateUnitInformation(unitIndexOnOppositeTeam, team, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            enemyUnitInformation.Add(unitInformation);
+        }
+
+        if (allyUnitInformation.Count <= 0 || enemyUnitInformation.Count <= 0) { return false; }
+
+        TurnBased.AttackResolution.UnitInformation sourceUnitInformation = allyUnitInformation.FirstOrDefault();
+        System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement> imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
+
+        resolutionSceneData = new TurnBased.AttackResolution.ResolutionSceneData(sourceUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
+        return true;
+    }
+
+    private static bool TryCreateUnitInformation(StationIndex stationIndex, UnitTeam team, out TurnBased.AttackResolution.UnitInformation information) 
+    {
+        information = default;
+
+        if (!StationManager.Instance.TryGetUnitDataOnStation(stationIndex, out UnitData unitData)) { return false; }
+        if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndexOnStation)) { return false; }
+        if (!TurnBased.Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndexOnStation, out int currentHealth)) { return false; }
+
+        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndexOnStation);
+        return true;
+    }
+
+    private static bool TryCreateUnitInformation(UnitIndex unitIndex, UnitTeam team, out TurnBased.AttackResolution.UnitInformation information)
+    {
+        information = default;
+
+        if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return false; }
+        if (!TurnBased.Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { return false; }
+
+        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndex);
         return true;
     }
 
@@ -962,39 +1016,6 @@ public static class StationManagerUtilities
 
 
 
-    /// <returns>True if sucessful. SourceUnitData is Null as Elemental Moves don't have a source.  </returns>
-    public static bool TryCreateUnitDataSceneDataForElementalMove(UnitTeam team, out UnitDataUnitTurnSceneData unitDataSceneData)
-    {
-        unitDataSceneData = default;
-
-        System.Collections.Generic.List<UnitData> teamedData = new();
-        System.Collections.Generic.List<UnitData> oppositeTeamData = new();
-
-        UnitTeam oppositeTeam = GetOppositeTeamType(team);
-
-        System.Collections.Generic.List<UnitIndex> unitIndexesOnTeam            = StationManager.Instance.GetUnitsOnTeam(team);
-        System.Collections.Generic.List<UnitIndex> unitIndexesOnOppositeTeam    = StationManager.Instance.GetUnitsOnTeam(oppositeTeam);
-
-        foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
-        {
-            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndexOnTeam, out UnitData unitData)) { continue; }
-            teamedData.Add(unitData);
-        }
-
-        foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
-        {
-            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndexOnOppositeTeam, out UnitData unitData)) { continue; }
-            oppositeTeamData.Add(unitData);
-        }
-
-        if (teamedData.Count <= 0 || oppositeTeamData.Count <= 0) { return false; }
-
-
-        UnitData sourceUnitData = teamedData.FirstOrDefault();
-
-        unitDataSceneData = new UnitDataUnitTurnSceneData(sourceUnitData, teamedData, oppositeTeamData);
-        return true;
-    }
 
 
     /// <summary>
@@ -1009,7 +1030,7 @@ public static class StationManagerUtilities
     /// </returns>
     public static TargettingSelectorInfo FindAllPossibleTargettingStationIndexesOfTargettingType(UnitTurnStationIndexesSceneData data, MoveTarget moveTargetType)
     {
-        List<StationIndex> possibleTargetStationIndexes = new();
+        System.Collections.Generic.List<StationIndex> possibleTargetStationIndexes = new();
         switch (moveTargetType)
         {
             case MoveTarget.Self:
@@ -1033,7 +1054,7 @@ public static class StationManagerUtilities
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Allies");
 
             case MoveTarget.Area:
-                possibleTargetStationIndexes = TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
+                possibleTargetStationIndexes = TurnBased.TargetSelection.TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Everyone");
 
             default:
@@ -1045,7 +1066,7 @@ public static class StationManagerUtilities
 
     public static TargettingSelectorInfo FindAllPossibleTargettingStationIndexesOfTargettingType(UnitIndex unitIndex, MoveTarget moveTargetType)
     {
-        List<StationIndex> possibleTargetStationIndexes = new();
+        System.Collections.Generic.List<StationIndex> possibleTargetStationIndexes = new();
         if (!TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData data)) { return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Uhh. Uhh..."); }
 
         switch (moveTargetType)
@@ -1071,7 +1092,7 @@ public static class StationManagerUtilities
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "All Allies");
 
             case MoveTarget.Area:
-                possibleTargetStationIndexes = TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
+                possibleTargetStationIndexes = TurnBased.TargetSelection.TargetSelectorHandler.GetAllStationsOnField(data, includeSource: true);
                 return new TargettingSelectorInfo(possibleTargetStationIndexes, false, "Everyone");
 
             default:
@@ -1093,9 +1114,9 @@ public static class StationManagerUtilities
                 return UnitTeam.ALLY;
         }
     }
-    public static List<UnitIndex> GetUnitIndexCollectionRemovingSourceIndex(List<UnitIndex> unitIndexes, UnitIndex sourceIndex)
+    public static System.Collections.Generic.List<UnitIndex> GetUnitIndexCollectionRemovingSourceIndex(System.Collections.Generic.List<UnitIndex> unitIndexes, UnitIndex sourceIndex)
     {
-        List<UnitIndex> indexCollection = new();
+        System.Collections.Generic.List<UnitIndex> indexCollection = new();
         foreach (UnitIndex unitIndex in unitIndexes)
         {
             if (unitIndex.Index != sourceIndex.Index)
@@ -1106,9 +1127,9 @@ public static class StationManagerUtilities
         return indexCollection;
     }
 
-    public static List<UnitData> GetUnitDataOfStationIndexes(List<StationIndex> stationIndexes)
+    public static System.Collections.Generic.List<UnitData> GetUnitDataOfStationIndexes(System.Collections.Generic.List<StationIndex> stationIndexes)
     {
-        List<UnitData> dataCollection = new();
+        System.Collections.Generic.List<UnitData> dataCollection = new();
 
         foreach (StationIndex stationIndex in stationIndexes)
         {
@@ -1119,7 +1140,7 @@ public static class StationManagerUtilities
         return dataCollection;
     }
 
-    public static bool DoesStationIndexListContainExistantTarget(List<StationIndex> stationIndexes)
+    public static bool DoesStationIndexListContainExistantTarget(System.Collections.Generic.List<StationIndex> stationIndexes)
     {
         foreach (StationIndex index in stationIndexes)
         {

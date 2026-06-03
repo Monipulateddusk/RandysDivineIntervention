@@ -1,8 +1,11 @@
+using TurnBased.AttackResolution;
+using TurnBased.Status;
+
 namespace TurnBased
 {
     public interface IElementalMove
     {
-        public abstract AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null);
+        public abstract AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData);
         public abstract string GetMoveName();
         public abstract UnitTargetSelectorType GetTargetSelectorType();
         public string GetElementalMoveDescription();
@@ -16,9 +19,9 @@ namespace TurnBased
     /// </summary>
     public class EM_Inferno : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo, System.Collections.Generic.List<UnitData> targetsInfo)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalFireAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.FIRE);
+            int totalFireAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.FIRE);
 
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -32,7 +35,7 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.FIRE, totalFireAttack, 1,  groupID: 0)
                         }
                     }
                 }
@@ -54,13 +57,13 @@ namespace TurnBased
     /// </summary>
     public class EM_Steam : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.WATER);
+            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.WATER);
 
             AttackResolutionInfo resolutionInfo = new()
             {
-                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.Area) },
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.AllEnemies), new TargetDeclarationGroup(groupID: 1, MoveTarget.AllAllies) },
 
                 Steps =
                 {
@@ -70,8 +73,11 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new ElementalDamageAttackAction(Element.WATER, totalWaterAttack, 1, groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, 0, 1, groupID: 0),
+                            new AttackResolution.InflictStatusAttackAction(new BurnStatus(), groupID: 0),
+                            new AttackResolution.HealingAttackAction(totalWaterAttack, groupID: 1)
                         }
+
                     }
                 }
 
@@ -92,7 +98,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Frostburn : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -107,7 +113,7 @@ namespace TurnBased
                         
                             // Afflicting status: Frostburn to enemies & Slippery
                            // new AttackAction(AttackActionType.DAMAGE, elementEff: Element.WATER, staEffect: "Frostburn", attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.WATER, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -129,9 +135,9 @@ namespace TurnBased
     /// </summary>
     public class EM_Volcano : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.EARTH);
+            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.EARTH);
 
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -146,7 +152,7 @@ namespace TurnBased
                         
                             // Afflicting status: Burned to enemies
                            // new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, staEffect: "Burned", attackTarget: MoveTarget.SingleEnemy)
-                           new ElementalDamageAttackAction(Element.EARTH, 1, totalEarthAttack,  groupID: 0)
+                           new AttackResolution.ElementalDamageAttackAction(Element.EARTH, 1, totalEarthAttack,  groupID: 0)
                         }
                     }
 
@@ -173,9 +179,9 @@ namespace TurnBased
     /// </summary>
     public class EM_Tsunami : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.WATER);
+            int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.WATER);
 
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -187,7 +193,7 @@ namespace TurnBased
                     {
                         Actions =
                         {
-                            new HealingAttackAction (totalWaterAttack, groupID: 0)
+                            new AttackResolution.HealingAttackAction (totalWaterAttack, groupID: 0)
                         }
                     }
 
@@ -210,7 +216,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Wellspring : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -223,7 +229,7 @@ namespace TurnBased
                         Actions =
                         {
                             // All allies are healed for 2 HP
-                            new HealingAttackAction(2, groupID: 0)
+                            new AttackResolution.HealingAttackAction(2, groupID: 0)
                         }
                     }
 
@@ -251,9 +257,9 @@ namespace TurnBased
     /// </summary>
     public class EM_IceAge : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalIceAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.ICE);
+            int totalIceAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.ICE);
 
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -266,7 +272,7 @@ namespace TurnBased
                         Actions =
                         {
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.ICE, attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.ICE, 1, totalIceAttack,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.ICE, 1, totalIceAttack,  groupID: 0)
                         }
                     }
 
@@ -288,7 +294,7 @@ namespace TurnBased
     /// </summary>
     public class EM_HailCloak : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -301,7 +307,7 @@ namespace TurnBased
                         {
                             // All allies are granted Hailcloak
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Hail Cloak", attackTarget: MoveTarget.AllAllies)
-                            new ElementalDamageAttackAction(Element.ICE, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.ICE, 3, 1,  groupID: 0)
                         }
                     }
 
@@ -327,9 +333,9 @@ namespace TurnBased
     /// </summary>
     public class EM_Fissure : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
-            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(usersInfo, Element.EARTH);
+            int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.EARTH);
 
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -342,7 +348,7 @@ namespace TurnBased
                         Actions =
                         {
                             //new AttackAction(AttackActionType.DAMAGE, value: totalAttackValue, elementEff: Element.EARTH, attackTarget: MoveTarget.SingleEnemy)
-                            new ElementalDamageAttackAction(Element.EARTH, totalEarthAttack, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.EARTH, totalEarthAttack, 1,  groupID: 0)
                         }
                     }
 
@@ -366,7 +372,7 @@ namespace TurnBased
     /// </summary>
     public class EM_FrostLock : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(System.Collections.Generic.List<UnitData> usersInfo = null, System.Collections.Generic.List<UnitData> targetsInfo = null)
+        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -380,7 +386,7 @@ namespace TurnBased
                         {
                             // Afflict targets with frost lock
                             //new AttackAction(AttackActionType.STATUS_EFFECT, staEffect: "Frost Lock", attackTarget: MoveTarget.AllEnemies)
-                            new ElementalDamageAttackAction(Element.EARTH, 3, 1,  groupID: 0)
+                            new AttackResolution.ElementalDamageAttackAction(Element.EARTH, 3, 1,  groupID: 0)
 
                         }
                     }
@@ -406,14 +412,14 @@ namespace TurnBased
 
     public static class ElementalMoveUtilities
     {
-        public static int GetTotalAttackValueOfUsersWithElement(System.Collections.Generic.List<UnitData> usersInfo, Element element)
+        public static int GetTotalAttackValueOfUsersWithElement(System.Collections.Generic.List<UnitInformation> usersInfo, Element element)
         {
             int totalAttackValue = 0;
             foreach (var unit in usersInfo)
             {
-                if (unit.element == element)
+                if (unit.UnitElement == element)
                 {
-                    totalAttackValue += unit.attack;
+                    totalAttackValue += unit.UnitAttack;
                 }
             }
 
