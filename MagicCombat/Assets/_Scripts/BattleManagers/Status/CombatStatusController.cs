@@ -1,5 +1,3 @@
-using TurnBased.Combat;
-
 namespace TurnBased.Status
 {
     public class CombatStatusHandler
@@ -21,11 +19,11 @@ namespace TurnBased.Status
                 instance = this;
             }
 
-            EventHookSystem.OnStartOfRound += EventHookSystem_OnStartOfRound;
-            EventHookSystem.OnStartOfPrePlayerTurn += EventHookSystem_OnStartOfPrePlayerTurn;
-            EventHookSystem.OnStartOfPlayerTurn += EventHookSystem_OnStartOfPlayerTurn;
-            EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
-            EventHookSystem.OnEndOfRound += EventHookSystem_OnEndOfRound;
+            EventHookSystem.OnStartOfRound          += EventHookSystem_OnStartOfRound;
+            EventHookSystem.OnStartOfPrePlayerTurn  += EventHookSystem_OnStartOfPrePlayerTurn;
+            EventHookSystem.OnStartOfPlayerTurn     += EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnResolvingTurnOrder    += EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnEndOfRound            += EventHookSystem_OnEndOfRound;
 
         }
 
@@ -35,6 +33,12 @@ namespace TurnBased.Status
             {
                 instance = null;
             }
+
+            EventHookSystem.OnStartOfRound          -= EventHookSystem_OnStartOfRound;
+            EventHookSystem.OnStartOfPrePlayerTurn  -= EventHookSystem_OnStartOfPrePlayerTurn;
+            EventHookSystem.OnStartOfPlayerTurn     -= EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnResolvingTurnOrder    -= EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnEndOfRound            -= EventHookSystem_OnEndOfRound;
         }
 
 
@@ -70,12 +74,12 @@ namespace TurnBased.Status
             this.completionManager = completionManager;
             this.completionManager.AddAction();
 
-            IntentionCombatResolver.OnResolvingStatesComplete += IntentionCombatResolver_OnResolvingStatesComplete;
+            Combat.IntentionCombatResolver.OnResolvingStatesComplete += IntentionCombatResolver_OnResolvingStatesComplete;
         }
 
         private void IntentionCombatResolver_OnResolvingStatesComplete()
         {
-            IntentionCombatResolver.OnResolvingStatesComplete -= IntentionCombatResolver_OnResolvingStatesComplete;
+            Combat.IntentionCombatResolver.OnResolvingStatesComplete -= IntentionCombatResolver_OnResolvingStatesComplete;
             this.completionManager.OnActionComplete();
             this.completionManager = null;
         }
