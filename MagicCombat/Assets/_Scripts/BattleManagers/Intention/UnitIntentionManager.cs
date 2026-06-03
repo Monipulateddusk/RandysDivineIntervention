@@ -110,18 +110,15 @@ namespace TurnBased.Intention
 
     public class UnitIntention
     {
-        public IBattleMove MoveSelection { get; set; }
 
         public ResolvingState ResolvingState { get; set; }
 
         public UnitIntention()
         {
-            this.MoveSelection = null;
             this.ResolvingState = new();
         }
         public UnitIntention(IBattleMove move, UnitIndex unitIndex)
         {
-            this.MoveSelection = move;
             ResolvingSource resolvingSource = new(move, unitIndex);
             this.ResolvingState = new(resolvingSource);
         }
@@ -267,10 +264,7 @@ namespace TurnBased.Intention
 
         public static UnitIntention CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
         {
-            UnitIntention intention = new(move, unitIndex)
-            {
-                MoveSelection = move,
-            };
+            UnitIntention intention = new(move, unitIndex);
 
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
             AttackResolutionInfo moveResolutionInfo = move.ExecuteMove(resolutionSceneData);

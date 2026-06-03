@@ -306,10 +306,11 @@ namespace TurnBased.UI
 
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, moveTarget);
 
+            /*  If the resolving source is UnitMove, Assign the Move reminder text with the selected move's description. */
+            if (intention.ResolvingState.ResolvingSource.Type != DamageOriginType.UnitMove) { return; }
 
-            /*  Assign the Move reminder text with the selected move's description. */
             this.TargetSelectionMoveReminderText.text = string.Empty;
-            this.TargetSelectionMoveReminderText.text = $"{intention.MoveSelection.GetMoveName()} — {AttackResolution.CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.MoveSelection)}";
+            this.TargetSelectionMoveReminderText.text = $"{intention.ResolvingState.ResolvingSource.SourceUnitMove.GetMoveName()} — {AttackResolution.CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.ResolvingState.ResolvingSource.SourceUnitMove)}";
 
             /*  If we do not require individual targets, we amalgamate all the options to 'All Allies' or 'Area'.   */
             if (!selectorInfo.DoesRequireTargettingSelectorSelection)

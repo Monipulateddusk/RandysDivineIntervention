@@ -157,7 +157,7 @@ namespace TurnBased.Combat
 
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
 
-            UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {intention.MoveSelection.GetMoveName()}! ");
+            UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {resolvingState.ResolvingSource.SourceUnitMove.GetMoveName()}! ");
 
             /*  Obtain the Unit Data for resolving this attack. */
             if (!TryGetUnitDataForCombatResolution(sourceUnitIndex, out var UnitDataForCombatResolution)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO OBTAIN UNIT DATA FOR UNIT_INDEX!"); return; }
