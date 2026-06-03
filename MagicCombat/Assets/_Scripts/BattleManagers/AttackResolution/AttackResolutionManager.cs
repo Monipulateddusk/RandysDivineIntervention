@@ -246,9 +246,9 @@ namespace TurnBased.AttackResolution
             moveTarget = MoveTarget.SingleEnemy;
             System.Collections.Generic.Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(unitIntention);
 
-            if (unitIntention.CurrentProcessingTargetGroupIndex < 0 || unitIntention.CurrentProcessingTargetGroupIndex >= unitIntention.ResolvingState.TargetGroupResolvingStates.Count) {  return false; }
+            if (unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex >= unitIntention.ResolvingState.TargetGroupResolvingStates.Count) {  return false; }
 
-            moveTarget = unitIntention.ResolvingState.TargetGroupResolvingStates[unitIntention.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = unitIntention.ResolvingState.TargetGroupResolvingStates[unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 

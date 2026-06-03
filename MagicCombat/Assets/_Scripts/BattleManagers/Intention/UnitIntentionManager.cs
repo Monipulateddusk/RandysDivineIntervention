@@ -43,14 +43,18 @@ namespace TurnBased.Intention
         public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
 
         public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
+        public int CurrentProcessingTargetGroupIndex;
 
         public ResolvingState(ResolvingSource resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.ActionResolvingStates = new();
-            this.TargetGroupResolvingStates = new();     
+            this.TargetGroupResolvingStates = new();
+            this.CurrentProcessingTargetGroupIndex = 0;
         }
     }
+
+
 
     public class UnitIntention
     {
@@ -58,20 +62,17 @@ namespace TurnBased.Intention
         public UnitIntentionResolutionState IntentionResolutionState { get; set; }
         public ResolvingState ResolvingState { get; set; }
 
-        public int CurrentProcessingTargetGroupIndex;
-
         public UnitIntention()
         {
             this.MoveSelection = null;
             this.IntentionResolutionState = UnitIntentionResolutionState.NONE;
-            this.CurrentProcessingTargetGroupIndex = 0;
+
             this.ResolvingState = null;
         }
         public UnitIntention(IBattleMove move, UnitIndex unitIndex)
         {
             this.MoveSelection = move;
             this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
-            this.CurrentProcessingTargetGroupIndex = 0;
 
             ResolvingSource resolvingSource = new(move, unitIndex);
             this.ResolvingState = new(resolvingSource);
@@ -326,13 +327,13 @@ namespace TurnBased.Intention
 
 
         /// <returns>True if all Target Groups are Resolved.</returns>
-        public static bool AssignTargetsToCurrentProcessingTargetGroup(ResolvingState resolvingState, int processingTargetGroupIndex, UnitTurnStationIndexesSceneData sceneData, MoveTarget moveTargetType, TargetSelection.ITargetSelector targetSelector)
+        public static bool AssignTargetsToCurrentProcessingTargetGroup(ResolvingState resolvingState, UnitTurnStationIndexesSceneData sceneData, MoveTarget moveTargetType, TargetSelection.ITargetSelector targetSelector)
         {
-            if (processingTargetGroupIndex < 0 || processingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (resolvingState.CurrentProcessingTargetGroupIndex < 0 || resolvingState.CurrentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
             if (targetSelector == null) { return false; }
 
             System.Collections.Generic.List<StationIndex> targets = targetSelector.SelectTargets(sceneData, moveTargetType);
-            resolvingState.TargetGroupResolvingStates[processingTargetGroupIndex].AssignTargets(targets);
+            resolvingState.TargetGroupResolvingStates[resolvingState.CurrentProcessingTargetGroupIndex].AssignTargets(targets);
 
             /*  Determine if all resolving states are resolved. */
             foreach (TargetGroupResolvingState targetGroupResolvingState in resolvingState.TargetGroupResolvingStates)
@@ -347,18 +348,18 @@ namespace TurnBased.Intention
         public static bool TryGetMoveTargetOfCurrentTargetGroup(UnitIntention intention, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (intention.CurrentProcessingTargetGroupIndex < 0 || intention.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (intention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || intention.ResolvingState.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 
-        public static bool TryGetMoveTargetOfCurrentTargetGroup(ResolvingState resolvingState, int currentProcessingTargetGroupIndex, out MoveTarget moveTarget)
+        public static bool TryGetMoveTargetOfCurrentTargetGroup(ResolvingState resolvingState, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (currentProcessingTargetGroupIndex < 0 || currentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (resolvingState.CurrentProcessingTargetGroupIndex < 0 || resolvingState.CurrentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = resolvingState.TargetGroupResolvingStates[currentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = resolvingState.TargetGroupResolvingStates[resolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 
