@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace TurnBased.Combat
 {
     public class IntentionCombatResolver
@@ -204,11 +202,15 @@ namespace TurnBased.Combat
             UnityEngine.Debug.LogError($"Processing Status resolving state!");
             await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
             UnityEngine.Debug.LogError($"Processed Status Resolving State!");
+
+            AttackResolution.UnitDeathResolver.DetermineDeadUnits();
         }
 
         private async System.Threading.Tasks.Task ProcessEnvironmentResolvingState(Intention.ResolvingState resolvingState)
         {
             await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
+
+            AttackResolution.UnitDeathResolver.DetermineDeadUnits();
         }
         
         public static bool TryGetUnitDataForCombatResolution(UnitIndex sourceUnitIndex, out UnitDataForCombatResolution outUnitDataForCombatResolution)

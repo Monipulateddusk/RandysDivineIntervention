@@ -20,6 +20,7 @@ namespace TurnBased.Phases {
         private TargetSelection.UnitTargetSelectorManager UnitTargetSelectorManager     = new();
 
         private AttackResolution.AttackResolutionManager AttackResolutionManager        = new();
+        private Status.CombatStatusHandler CombatStatusManager                          = new();
 
         private EventHookSystem EventHookSystem                                         = new();
 
@@ -64,6 +65,7 @@ namespace TurnBased.Phases {
             this.MoveSelectorManager = new();
             this.UnitTargetSelectorManager = new();
             this.AttackResolutionManager = new();
+            this.CombatStatusManager = new();
             this.EventHookSystem = new();
 
 
@@ -89,6 +91,7 @@ namespace TurnBased.Phases {
             this.UnitTargetSelectorManager.Awake();
 
             this.AttackResolutionManager.Awake();
+            this.CombatStatusManager.Awake();
 
             this.testExample.Awake();
 
@@ -115,6 +118,7 @@ namespace TurnBased.Phases {
             this.UnitTargetSelectorManager.OnDestroy();
 
             this.AttackResolutionManager.OnDestroy();
+            this.CombatStatusManager.OnDestroy();   
             this.combatRoundIntentionManager.OnDestroy();
 
             this.testExample.OnDestroy();
@@ -142,6 +146,7 @@ namespace TurnBased.Phases {
             this.UnitTargetSelectorManager = null;
 
             this.AttackResolutionManager = null;
+            this.CombatStatusManager = null;
             this.combatRoundIntentionManager = null;
 
             this.testExample = null;

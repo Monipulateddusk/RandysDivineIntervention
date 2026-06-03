@@ -165,7 +165,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogError($"Added Status: {statusAdded.StatusName}");
 
-            Status.CombatStatusController.AddStatusEffect(applyStatusRequest, statusAdded);
+            Status.CombatStatusHandler.Instance.AddStatusEffect(applyStatusRequest, statusAdded);
         }
 
         private void RemoveStatus(RemoveStatusRequest removeStatusRequest)
@@ -173,7 +173,7 @@ namespace TurnBased.AttackResolution
             Status.BaseStatus statusRemoved = Status.UnitStatusHandler.RemoveStatusForUnitIndex(removeStatusRequest.TargetUnit, removeStatusRequest.RemovingStatus);
             if (statusRemoved == null) { return; }
 
-            Status.CombatStatusController.RemoveStatusEffect(removeStatusRequest, statusRemoved);
+            Status.CombatStatusHandler.Instance.RemoveStatusEffect(removeStatusRequest, statusRemoved);
         }
     }
 }

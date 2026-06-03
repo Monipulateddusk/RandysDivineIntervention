@@ -1,3 +1,5 @@
+using TurnBased.Combat;
+
 namespace TurnBased.Status
 {
     public class UnitStatus
@@ -46,6 +48,21 @@ namespace TurnBased.Status
             }
             return false;
         }        
+
+        public System.Collections.Generic.List<BaseStatus> GetStatusesAtResolutionTiming(UnitIndex unitIndex, CombatTurnOrchestrationPhase phaseTiming)
+        {
+            System.Collections.Generic.List<BaseStatus> dict = new();
+
+            foreach(BaseStatus status in this.UnitStatuses)
+            {
+                if (status.StatusTiming == phaseTiming)
+                {
+                    dict.Add(status);
+                }
+            }
+
+            return dict;
+        }
     }
 
     public class UnitStatusManager
@@ -206,6 +223,5 @@ namespace TurnBased.Status
                 status.ModifyOutgoingApplyStatusRequest(statusRequest);
             }
         }
-
     }
 }

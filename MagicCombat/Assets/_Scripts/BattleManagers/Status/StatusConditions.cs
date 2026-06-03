@@ -93,7 +93,7 @@ namespace TurnBased.Status
                     {
                         Actions =
                         {
-                            new AttackResolution.DamageAttackAction(damageAmount: 1, 1, groupID: 0)
+                            new AttackResolution.DamageAttackAction(damageAmount: 9999, 1, groupID: 0)
                         }
                     },
                 }
