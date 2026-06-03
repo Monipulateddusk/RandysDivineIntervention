@@ -117,7 +117,7 @@ namespace TurnBased.Intention
             }
             else
             {
-                intention.IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
+                intention.ResolvingState.IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
                 this.currentResolvingUnit = null;
                 /*  Notify CombatRoundIntentionManager that all TargetGroups has been selected by this UnitIndex. */
                 OnTargetSelected?.Invoke();

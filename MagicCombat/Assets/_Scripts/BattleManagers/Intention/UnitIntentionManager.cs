@@ -37,47 +37,6 @@ namespace TurnBased.Intention
             this.SourceUnitMove = null;
         }
     }
-    public class ResolvingState
-    {
-        public ResolvingSource ResolvingSource { get; }
-        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
-
-        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
-        public int CurrentProcessingTargetGroupIndex;
-
-        public ResolvingState(ResolvingSource resolvingSource)
-        {
-            this.ResolvingSource = resolvingSource;
-            this.ActionResolvingStates = new();
-            this.TargetGroupResolvingStates = new();
-            this.CurrentProcessingTargetGroupIndex = 0;
-        }
-    }
-
-
-
-    public class UnitIntention
-    {
-        public IBattleMove MoveSelection { get; set; }
-        public UnitIntentionResolutionState IntentionResolutionState { get; set; }
-        public ResolvingState ResolvingState { get; set; }
-
-        public UnitIntention()
-        {
-            this.MoveSelection = null;
-            this.IntentionResolutionState = UnitIntentionResolutionState.NONE;
-
-            this.ResolvingState = null;
-        }
-        public UnitIntention(IBattleMove move, UnitIndex unitIndex)
-        {
-            this.MoveSelection = move;
-            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
-
-            ResolvingSource resolvingSource = new(move, unitIndex);
-            this.ResolvingState = new(resolvingSource);
-        }
-    }
 
     public class AttackActionResolvingState
     {
@@ -119,6 +78,52 @@ namespace TurnBased.Intention
         {
             this.DeclaredTargets = targets;
             this.IsResolved = true;
+        }
+    }
+
+    public class ResolvingState
+    {
+        public ResolvingSource ResolvingSource { get; }
+        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
+
+        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
+        public UnitIntentionResolutionState IntentionResolutionState { get; set; }
+        public int CurrentProcessingTargetGroupIndex { get; set; }  
+
+        public ResolvingState()
+        {
+            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION;
+            this.ResolvingSource = null;
+            this.ActionResolvingStates = new();
+            this.TargetGroupResolvingStates = new();
+            this.CurrentProcessingTargetGroupIndex = 0;
+        }
+        public ResolvingState(ResolvingSource resolvingSource)
+        {
+            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
+            this.ResolvingSource = resolvingSource;
+            this.ActionResolvingStates = new();
+            this.TargetGroupResolvingStates = new();
+            this.CurrentProcessingTargetGroupIndex = 0;
+        }
+    }
+
+    public class UnitIntention
+    {
+        public IBattleMove MoveSelection { get; set; }
+
+        public ResolvingState ResolvingState { get; set; }
+
+        public UnitIntention()
+        {
+            this.MoveSelection = null;
+            this.ResolvingState = new();
+        }
+        public UnitIntention(IBattleMove move, UnitIndex unitIndex)
+        {
+            this.MoveSelection = move;
+            ResolvingSource resolvingSource = new(move, unitIndex);
+            this.ResolvingState = new(resolvingSource);
         }
     }
 
@@ -256,7 +261,7 @@ namespace TurnBased.Intention
         {
             return new UnitIntention()
             {
-                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION
+                ResolvingState = new()
             };
         }
 
@@ -265,7 +270,6 @@ namespace TurnBased.Intention
             UnitIntention intention = new(move, unitIndex)
             {
                 MoveSelection = move,
-                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION
             };
 
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }

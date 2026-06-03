@@ -90,7 +90,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex unitIndex)) { return; }
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
 
-            switch (intention.IntentionResolutionState)
+            switch (intention.ResolvingState.IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -117,7 +117,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) {  return; }
             if (selectedUnitIndex.Index != index.Index) { return; }
 
-            switch (intention.IntentionResolutionState)
+            switch (intention.ResolvingState.IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -266,7 +266,7 @@ namespace TurnBased.UI
             /*  Retrieve the current intention state of the Unit.   */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
 
-            if (intention.IntentionResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
+            if (intention.ResolvingState.IntentionResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
             {
                 this.UnitIntentionText.text = $"{unitData.name} is Twiddling their Metaphysical thumbs.";
             }
