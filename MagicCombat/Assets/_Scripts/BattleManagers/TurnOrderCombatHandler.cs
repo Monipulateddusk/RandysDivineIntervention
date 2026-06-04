@@ -66,9 +66,9 @@ namespace TurnBased.Combat
         {
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentUnitIndexResolving, out Intention.UnitIntention intention)) { return; }
 
-            UnityEngine.Debug.LogWarning($"Processing next unit in turn order. Current unit index resolving is: {this.currentUnitIndexResolving.Index} and resolving state unit index is: {intention.ResolvingState.ResolvingSource.SourceUnitIndex.Index}");
+            UnityEngine.Debug.LogWarning($"Processing next unit in turn order. Current unit index resolving is: {this.currentUnitIndexResolving.Index} and resolving state unit index is: {intention.GetCurrentResolvingState().ResolvingSource.SourceUnitIndex.Index}");
 
-            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
+            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.GetCurrentResolvingState());
 
             request.OnRequestComplete += WhenRequestComplete; 
         }

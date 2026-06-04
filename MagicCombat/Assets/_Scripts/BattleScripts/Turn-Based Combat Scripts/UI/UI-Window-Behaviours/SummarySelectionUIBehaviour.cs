@@ -90,7 +90,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex unitIndex)) { return; }
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
 
-            switch (intention.ResolvingState.IntentionResolutionState)
+            switch (intention.GetCurrentResolvingState().IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -117,7 +117,7 @@ namespace TurnBased.UI
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex selectedUnitIndex)) {  return; }
             if (selectedUnitIndex.Index != index.Index) { return; }
 
-            switch (intention.ResolvingState.IntentionResolutionState)
+            switch (intention.GetCurrentResolvingState().IntentionResolutionState)
             {
                 default:
                 case UnitIntentionResolutionState.NONE:
@@ -266,7 +266,7 @@ namespace TurnBased.UI
             /*  Retrieve the current intention state of the Unit.   */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
 
-            if (intention.ResolvingState.IntentionResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
+            if (intention.GetCurrentResolvingState().IntentionResolutionState != UnitIntentionResolutionState.COMPLETED_INTENTION)
             {
                 this.UnitIntentionText.text = $"{unitData.name} is Twiddling their Metaphysical thumbs.";
             }
@@ -307,10 +307,10 @@ namespace TurnBased.UI
             TargettingSelectorInfo selectorInfo = StationManagerUtilities.FindAllPossibleTargettingStationIndexesOfTargettingType(selectedUnitIndex, moveTarget);
 
             /*  If the resolving source is UnitMove, Assign the Move reminder text with the selected move's description. */
-            if (intention.ResolvingState.ResolvingSource.Type != DamageOriginType.UnitMove) { return; }
+            if (intention.GetCurrentResolvingState().ResolvingSource.Type != DamageOriginType.UnitMove) { return; }
 
             this.TargetSelectionMoveReminderText.text = string.Empty;
-            this.TargetSelectionMoveReminderText.text = $"{intention.ResolvingState.ResolvingSource.SourceUnitMove.GetMoveName()} — {AttackResolution.CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.ResolvingState.ResolvingSource.SourceUnitMove)}";
+            this.TargetSelectionMoveReminderText.text = $"{intention.GetCurrentResolvingState().ResolvingSource.SourceUnitMove.GetMoveName()} — {AttackResolution.CombatDamageUtility.GetMoveDescription(selectedUnitIndex, intention.GetCurrentResolvingState().ResolvingSource.SourceUnitMove)}";
 
             /*  If we do not require individual targets, we amalgamate all the options to 'All Allies' or 'Area'.   */
             if (!selectorInfo.DoesRequireTargettingSelectorSelection)

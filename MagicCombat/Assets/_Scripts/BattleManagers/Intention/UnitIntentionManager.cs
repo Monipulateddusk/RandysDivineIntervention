@@ -110,17 +110,26 @@ namespace TurnBased.Intention
 
     public class UnitIntention
     {
+        public System.Collections.Generic.List<ResolvingState> ResolvingStates { get; set; }
+        public int CurrentResolvingStateIndex { get; set; }
+        public int MaximumResolvingStates { get; set; } 
 
-        public ResolvingState ResolvingState { get; set; }
 
         public UnitIntention()
         {
-            this.ResolvingState = new();
+            this.ResolvingStates = new() { new()  };
+            this.MaximumResolvingStates = 2;
+            this.CurrentResolvingStateIndex = 0;
         }
-        public UnitIntention(IBattleMove move, UnitIndex unitIndex)
+        public void AddResolvingStateToIntention(IBattleMove move, UnitIndex unitIndex)
         {
             ResolvingSource resolvingSource = new(move, unitIndex);
-            this.ResolvingState = new(resolvingSource);
+            this.ResolvingStates[this.CurrentResolvingStateIndex] = new(resolvingSource);
+        }
+
+        public ResolvingState GetCurrentResolvingState()
+        {
+            return this.ResolvingStates[this.CurrentResolvingStateIndex];
         }
     }
 
@@ -258,18 +267,18 @@ namespace TurnBased.Intention
         {
             return new UnitIntention()
             {
-                ResolvingState = new()
             };
         }
 
         public static UnitIntention CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
         {
-            UnitIntention intention = new(move, unitIndex);
+            UnitIntention intention = new();
+            intention.AddResolvingStateToIntention(move, unitIndex);
 
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
             AttackResolutionInfo moveResolutionInfo = move.ExecuteMove(resolutionSceneData);
 
-            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, intention.ResolvingState, move.GetResolutionTiming())) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return intention; }
+            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, intention.GetCurrentResolvingState(), move.GetResolutionTiming())) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return intention; }
 
             return intention;
         }
@@ -346,9 +355,9 @@ namespace TurnBased.Intention
         public static bool TryGetMoveTargetOfCurrentTargetGroup(UnitIntention intention, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (intention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || intention.ResolvingState.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex < 0 || intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex >= intention.GetCurrentResolvingState().TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = intention.GetCurrentResolvingState().TargetGroupResolvingStates[intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 

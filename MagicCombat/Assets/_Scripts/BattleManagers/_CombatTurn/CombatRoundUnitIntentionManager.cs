@@ -171,9 +171,9 @@ namespace TurnBased.Intention {
             /*  Peek at the current Unit's intention state. Tell the Orchestrator to move into that state.  */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentResolvingUnit.Value, out UnitIntention intention)) { GetNextUnitInList(CurrentResolvingUnit.Value); }
 
-            Debug.LogWarning($"Intention res state is: {intention.ResolvingState.IntentionResolutionState}");
+            Debug.LogWarning($"Intention res state is: {intention.GetCurrentResolvingState().IntentionResolutionState}");
 
-            switch (intention.ResolvingState.IntentionResolutionState)
+            switch (intention.GetCurrentResolvingState().IntentionResolutionState)
             {
                 case UnitIntentionResolutionState.NONE:
                 case UnitIntentionResolutionState.AWAITING_MOVE_SELECTION:
