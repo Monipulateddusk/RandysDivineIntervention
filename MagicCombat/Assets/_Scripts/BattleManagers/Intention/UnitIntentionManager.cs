@@ -44,15 +44,12 @@ namespace TurnBased.Intention
 
         public ResolvingSource ResolvingSource { get; set; }
 
-        public MoveResolutionTiming Timing { get; }
-
         public bool IsResolved;
 
-        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, ResolvingSource resolvingSource, MoveResolutionTiming timing)
+        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, ResolvingSource resolvingSource)
         {
             this.Action = attackAction;
             this.ResolvingSource = resolvingSource;
-            this.Timing = timing;
 
             this.IsResolved = false;
         }
@@ -88,6 +85,7 @@ namespace TurnBased.Intention
 
         public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
         public UnitIntentionResolutionState IntentionResolutionState { get; set; }
+        public MoveResolutionTiming ResolutionTiming { get; private set; }
         public int CurrentProcessingTargetGroupIndex { get; set; }  
 
         public ResolvingState()
@@ -97,8 +95,9 @@ namespace TurnBased.Intention
             this.ActionResolvingStates = new();
             this.TargetGroupResolvingStates = new();
             this.CurrentProcessingTargetGroupIndex = 0;
+            this.ResolutionTiming = MoveResolutionTiming.TurnOrderSequence;
         }
-        public ResolvingState(ResolvingSource resolvingSource)
+        public ResolvingState(ResolvingSource resolvingSource, MoveResolutionTiming timing = MoveResolutionTiming.TurnOrderSequence)
         {
             this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
             this.ResolvingSource = resolvingSource;
@@ -110,17 +109,32 @@ namespace TurnBased.Intention
 
     public class UnitIntention
     {
-
         public ResolvingState ResolvingState { get; set; }
+        public int UnitAP { get; private set; }
+
 
         public UnitIntention()
         {
             this.ResolvingState = new();
+            this.UnitAP = 0;
         }
-        public UnitIntention(IBattleMove move, UnitIndex unitIndex)
+
+        public void IncrementAP() => this.UnitAP++;
+
+        /// <summary>
+        /// Removes UnitAP by the supplied APAmount.
+        /// </summary>
+        /// <param name="apAmount"></param>
+        /// <returns>False if the AP amount to be reduced would be less than 0. Returns True if the AP amount would be greater than or equal to 0.</returns>
+        public bool RemoveAP(int apAmount)
         {
-            ResolvingSource resolvingSource = new(move, unitIndex);
-            this.ResolvingState = new(resolvingSource);
+            int newAPAmount = this.UnitAP - apAmount;
+            if (newAPAmount < 0)
+            {
+                return false;
+            } 
+            this.UnitAP = newAPAmount;
+            return true;
         }
     }
 
@@ -224,14 +238,19 @@ namespace TurnBased.Intention
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionAwaitingMove(unitIndex));
+            this.intentionDictionary[unitIndex.Index].ResolvingState = new();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionFromMoveForUnit(unitIndex, battleMove));
+            ResolvingState state = UnitIntentionFactory.CreateIntentionFromMoveForUnit(unitIndex, battleMove);
+            this.intentionDictionary[unitIndex.Index].ResolvingState = state;
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public void ClearIntention(UnitIndex unitIndex)
@@ -254,36 +273,26 @@ namespace TurnBased.Intention
 
     public static class UnitIntentionFactory
     {
-        public static UnitIntention CreateIntentionAwaitingMove(UnitIndex unitIndex)
+        public static ResolvingState CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
         {
-            return new UnitIntention()
-            {
-                ResolvingState = new()
-            };
-        }
-
-        public static UnitIntention CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
-        {
-            UnitIntention intention = new(move, unitIndex);
+            ResolvingSource resolvingSource = new(move, unitIndex);
+            ResolvingState resolvingState = new(resolvingSource, move.GetResolutionTiming());
 
             if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
             AttackResolutionInfo moveResolutionInfo = move.ExecuteMove(resolutionSceneData);
 
-            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, intention.ResolvingState, move.GetResolutionTiming())) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return intention; }
+            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, resolvingState)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
 
-            return intention;
+            return resolvingState;
         }
 
-        public static bool BuildAttackActionResolvingState(UnitIndex unitIndex, AttackResolutionInfo info, ResolvingState resolvingState, MoveResolutionTiming timing = MoveResolutionTiming.Instant)
+        public static bool BuildAttackActionResolvingState(UnitIndex unitIndex, AttackResolutionInfo info, ResolvingState resolvingState)
         {
             if (resolvingState == null) { return false; }
 
-
-            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return false; }
-
             CreateTargetGroupResolvingStates(resolvingState, info);
 
-            CreateActionResolvingStates(resolvingState, info, resolvingState.ResolvingSource, timing);
+            CreateActionResolvingStates(resolvingState, info, resolvingState.ResolvingSource);
             return true;
         }
 
@@ -307,7 +316,7 @@ namespace TurnBased.Intention
             UnityEngine.Debug.LogError($"Done Creating target group resolving states    ");
         }
 
-        private static void CreateActionResolvingStates(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, ResolvingSource resolvingSource, MoveResolutionTiming timing)
+        private static void CreateActionResolvingStates(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, ResolvingSource resolvingSource)
         {
             for (int stepIndex = 0; stepIndex < resolutionInfo.Steps.Count; stepIndex++)
             {
@@ -317,7 +326,7 @@ namespace TurnBased.Intention
                 {
                     AttackResolution.AttackAction action = step.Actions[actionIndex];
 
-                    AttackActionResolvingState attackActionResolvingState = new(action, resolvingSource, timing);
+                    AttackActionResolvingState attackActionResolvingState = new(action, resolvingSource);
                     resolvingState.ActionResolvingStates.Add(attackActionResolvingState);
                 }
             }
