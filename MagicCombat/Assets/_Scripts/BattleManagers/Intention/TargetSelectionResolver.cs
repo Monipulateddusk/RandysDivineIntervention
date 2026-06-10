@@ -27,11 +27,11 @@ namespace TurnBased.Intention
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentResolvingUnit.Value, out UnitIntention intention)) { return false; }
 
             /*  Find the first unResolved Target Group. */
-            ResolvingState unitResolvingState = intention.GetCurrentResolvingState();
+            ResolvingState unitResolvingState = intention.ResolvingState;
             for (int i = 0; i < unitResolvingState.TargetGroupResolvingStates.Count; i++)
             {
                 if (unitResolvingState.TargetGroupResolvingStates[i].IsResolved) { continue; }
-                intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex = i;
+                intention.ResolvingState.CurrentProcessingTargetGroupIndex = i;
             }
 
             /*  Determine if we need to invoke the Player's Input systems to resolve this. If so, halt processing until it is done! */
@@ -110,14 +110,14 @@ namespace TurnBased.Intention
 
             System.Collections.Generic.List<StationIndex> selectedTargets = targetSelector.SelectTargets(sceneData, moveTargetType);
 
-            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(intention.GetCurrentResolvingState(), sceneData, moveTargetType, targetSelector))
+            if (!UnitIntentionFactory.AssignTargetsToCurrentProcessingTargetGroup(intention.ResolvingState, sceneData, moveTargetType, targetSelector))
             {
                 /*  If there is still groups to be selected, process the next target group. */
                 ProcessTargetSelection(this.currentResolvingUnit.Value);
             }
             else
             {
-                intention.GetCurrentResolvingState().IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
+                intention.ResolvingState.IntentionResolutionState = UnitIntentionResolutionState.COMPLETED_INTENTION;
                 this.currentResolvingUnit = null;
                 /*  Notify CombatRoundIntentionManager that all TargetGroups has been selected by this UnitIndex. */
                 OnTargetSelected?.Invoke();

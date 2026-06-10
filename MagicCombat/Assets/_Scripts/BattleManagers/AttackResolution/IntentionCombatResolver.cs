@@ -176,7 +176,7 @@ namespace TurnBased.Combat
 
             /*  Process each step individually   */
 
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(intention.GetCurrentResolvingState());
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(intention.ResolvingState);
 
 
             UnityEngine.Debug.LogWarning($"Moving back to station");

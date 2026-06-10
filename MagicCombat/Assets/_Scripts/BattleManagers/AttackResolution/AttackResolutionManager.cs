@@ -1,6 +1,4 @@
 
-using TurnBased.Intention;
-
 namespace TurnBased.AttackResolution
 {
     public class AttackResolutionManager
@@ -69,7 +67,7 @@ namespace TurnBased.AttackResolution
             UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
             /*  Get the Resolving state from the Unit's Intention   */
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.unitIndexToProcess, out Intention.UnitIntention intention)) { return; }
-            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.GetCurrentResolvingState());
+            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
 
             request.OnRequestComplete -= WhenRequestCompleted;
         }
@@ -225,40 +223,40 @@ namespace TurnBased.AttackResolution
             System.Collections.Generic.Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(unitIntention);
 
             string intentionText = $"{unitData.name} is going to ";
-            for (int i = 0; i < intention.GetCurrentResolvingState().ActionResolvingStates.Count; i++)
+            for (int i = 0; i < unitIntention.ResolvingState.ActionResolvingStates.Count; i++)
             {
                 if (i != 0)
                 {
-                    intentionText += (i == intention.GetCurrentResolvingState().ActionResolvingStates.Count - 1) ? " then, " : ", ";
+                    intentionText += (i == unitIntention.ResolvingState.ActionResolvingStates.Count - 1) ? " then, " : ", ";
                 }
 
                 /*  Get Target Group Text   */
-                int groupID = intention.GetCurrentResolvingState().ActionResolvingStates[i].Action.TargetGroupID;
+                int groupID = unitIntention.ResolvingState.ActionResolvingStates[i].Action.TargetGroupID;
                 if (!TryGetTargetTextOfGroupID(intention, groupIDMoveTargetDict, groupID, out string targetText)) { targetText = "a target"; }
 
-                intentionText += $"{intention.GetCurrentResolvingState().ActionResolvingStates[i].Action.GetDescription()} to {targetText}";
+                intentionText += $"{unitIntention.ResolvingState.ActionResolvingStates[i].Action.GetDescription()} to {targetText}";
             }
 
             return intentionText;
         }
 
 
-        public static bool TryGetMoveTargetOfCurrentTargetGroup(Intention.UnitIntention intention, out MoveTarget moveTarget)
+        public static bool TryGetMoveTargetOfCurrentTargetGroup(Intention.UnitIntention unitIntention, out MoveTarget moveTarget)
         {
             moveTarget = MoveTarget.SingleEnemy;
-            System.Collections.Generic.Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(intention);
+            System.Collections.Generic.Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(unitIntention);
 
-            if (intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex < 0 || intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex >= intention.GetCurrentResolvingState().TargetGroupResolvingStates.Count) {  return false; }
+            if (unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex >= unitIntention.ResolvingState.TargetGroupResolvingStates.Count) {  return false; }
 
-            moveTarget = intention.GetCurrentResolvingState().TargetGroupResolvingStates[intention.GetCurrentResolvingState().CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = unitIntention.ResolvingState.TargetGroupResolvingStates[unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 
-        private static System.Collections.Generic.Dictionary<int, MoveTarget> CreateMoveTargetGroupIdentifierDictionary(Intention.UnitIntention intention)
+        private static System.Collections.Generic.Dictionary<int, MoveTarget> CreateMoveTargetGroupIdentifierDictionary(Intention.UnitIntention unitIntention)
         {
             System.Collections.Generic.Dictionary<int, MoveTarget> GroupIDMoveTargetDict = new();
 
-            foreach (Intention.TargetGroupResolvingState groupState in intention.GetCurrentResolvingState().TargetGroupResolvingStates)
+            foreach (Intention.TargetGroupResolvingState groupState in unitIntention.ResolvingState.TargetGroupResolvingStates)
             {
                 GroupIDMoveTargetDict.Add(groupState.GroupID, groupState.MoveTarget);
             }
@@ -282,7 +280,7 @@ namespace TurnBased.AttackResolution
         private static bool TryGetDeclaredTargetsOfGroupID(Intention.UnitIntention intention, int groupID, out System.Collections.Generic.List<StationIndex> selectedTargets)
         {
             selectedTargets = default;
-            foreach (Intention.TargetGroupResolvingState state in intention.GetCurrentResolvingState().TargetGroupResolvingStates)
+            foreach (Intention.TargetGroupResolvingState state in intention.ResolvingState.TargetGroupResolvingStates)
             {
                 if (state.GroupID == groupID)
                 {
