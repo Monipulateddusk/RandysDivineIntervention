@@ -6,26 +6,6 @@ namespace TurnBased.Intention {
     {
         private Phases.CombatTurnOrchestrator orchestrator;
 
-        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-        /// 
-        /// If the Intentions are finished resolving. Happens Twice, once when we do Non-Player-Driven Intentions and when we do Player-Driven Intentions
-        /// 
-        /// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-
-        private bool intentionsComplete;
-        public bool IsAllUnitIntentionsComplete
-        {
-            get
-            {
-                return intentionsComplete;
-            }
-            set
-            {
-                intentionsComplete = value;
-            }
-        }
-
-
         private static bool isAwaitingUserInput = false;
         public static bool IsAwaitingUserInput
         {
@@ -84,7 +64,6 @@ namespace TurnBased.Intention {
             UnityEngine.Debug.Log($"Nullifying the orchestrator");
             this.orchestrator = null;
             IsAwaitingUserInput = false;
-            IsAllUnitIntentionsComplete = false;
             StationSelectorManager.OnSelectionChange -= OnStationSelectionChange;
 
             MoveSelectionResolver.OnRequireUserInput        -= SetIsAwaitingUserInput;

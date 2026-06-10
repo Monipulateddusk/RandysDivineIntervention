@@ -11,8 +11,6 @@ namespace TurnBased.Phases {
         private Status.UnitStatusManager UnitStatusManager                              = new();
         private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
-        private Combat.TurnOrderCombatHandler TurnOrderCombatHandler                    = new();
-
         private Intention.IntentionResolverManager IntentionResolverManager             = new();
         private Combat.IntentionCombatResolver IntentionCombatResolver                  = new(); 
 
@@ -59,7 +57,6 @@ namespace TurnBased.Phases {
             this.UnitHealthManager = new();
             this.UnitStatusManager = new();
             this.UnitIntentionManager = new();
-            this.TurnOrderCombatHandler = new();
             this.IntentionResolverManager = new();
             this.IntentionCombatResolver = new();
             this.MoveSelectorManager = new();
@@ -81,8 +78,6 @@ namespace TurnBased.Phases {
             this.UnitHealthManager.Awake();
             this.UnitStatusManager.Awake();
             this.UnitIntentionManager.Awake();
-
-            this.TurnOrderCombatHandler.Awake();
 
             this.IntentionResolverManager.Awake();
             this.IntentionCombatResolver.Awake();
@@ -109,8 +104,6 @@ namespace TurnBased.Phases {
             this.UnitStatusManager.OnDestroy();
             this.UnitIntentionManager.OnDestroy();
 
-            this.TurnOrderCombatHandler.OnDestroy();
-
             this.IntentionResolverManager.OnDestroy();
             this.IntentionCombatResolver.OnDestroy();
 
@@ -136,8 +129,6 @@ namespace TurnBased.Phases {
 
             this.UnitHealthManager = null;
             this.UnitIntentionManager = null;
-
-            this.TurnOrderCombatHandler = null;
 
             this.IntentionResolverManager = null;
             this.IntentionCombatResolver = null;    
@@ -280,22 +271,11 @@ namespace TurnBased.Phases {
 
                     UnityEngine.Debug.LogWarning($"Ready to execute was done.  ");
 
-                    /*  First check to see if all the intents are done. If so, move to the next Main Phase in sequence. */
-                    if (this.combatRoundIntentionManager.IsAllUnitIntentionsComplete)
-                    {
-                        UnityEngine.Debug.LogWarning($"ALL INTENTIONS DONE!!  ");
+    
+                    UnityEngine.Debug.LogWarning($"Processing the next intention in sequence!!  ");
 
-                        this.subPhaseManager.ResetCurrentPhase();
-                        this.phaseManager.ChangeToNextStateInOrder();
-                    }
-
-                    /*  If the intentions are not yet done, Process the next unit in resolution order.  */
-                    else
-                    {
-                        UnityEngine.Debug.LogWarning($"Processing the next intention in sequence!!  ");
-
-                        this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
-                    }
+                    this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
+                    
                     break;
 
                 case SubPhaseState.RESOLVE_ATTACK:
