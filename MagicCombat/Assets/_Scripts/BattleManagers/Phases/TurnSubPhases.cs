@@ -259,13 +259,12 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += OnPhaseComplete;
-            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
+            OnPhaseComplete();
         }
 
         protected override void OnPhaseComplete()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= OnPhaseComplete;
+
 
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
             this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);

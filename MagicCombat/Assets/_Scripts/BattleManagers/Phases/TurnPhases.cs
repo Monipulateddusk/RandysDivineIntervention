@@ -320,13 +320,13 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved += OnPhaseComplete;
-            Combat.TurnOrderCombatHandler.Instance.StartTurnOrderCombat();
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += OnPhaseComplete;
+            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
         }
 
         protected override void OnPhaseComplete()
         {
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved -= OnPhaseComplete;
+            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= OnPhaseComplete;
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
         }
     }

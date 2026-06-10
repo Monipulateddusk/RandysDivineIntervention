@@ -69,7 +69,7 @@ namespace TurnBased.AttackResolution
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.unitIndexToProcess, out Intention.UnitIntention intention)) { return; }
             AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
 
-            request.OnRequestComplete -= WhenRequestCompleted;
+            request.OnRequestComplete += WhenRequestCompleted;
         }
 
         private void WhenRequestCompleted(AttackResolution.CombatResolvingRequest request)
