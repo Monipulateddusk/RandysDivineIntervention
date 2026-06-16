@@ -46,7 +46,7 @@ namespace TurnBased
 
     public interface IBattleMove
     {
-        public abstract AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData);
+        public abstract AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData);
         public MoveResolutionTiming GetResolutionTiming();
         public int GetMaxTargets();
         public bool DoesSourceUnitMove();
@@ -58,7 +58,7 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -91,7 +91,7 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int damage = resolutionSceneData.OwnerUnitInformation.UnitAttack / 3;
             AttackResolutionInfo resolutionInfo = new()
@@ -132,7 +132,7 @@ namespace TurnBased
     /// </summary>
     public class ImbueEnvrionment : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {

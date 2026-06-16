@@ -109,7 +109,7 @@ namespace TurnBased.AttackResolution
         public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"Do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return $"Do nothing."; }
             AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(resolutionSceneData);
 
             /*  Get the target groups of the move.  */
@@ -166,7 +166,7 @@ namespace TurnBased.AttackResolution
         public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMove elementalMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
 
             AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(resolutionSceneData);
 

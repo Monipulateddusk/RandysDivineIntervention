@@ -15,7 +15,7 @@ namespace TurnBased.UI
 
         public void Initalise(UnitIndex indexOfUnitHealthCorrelatesTo)
         {
-            Health.UnitHealthManager.OnUnitHealthChange += UnitHealthManager_OnUnitHealthChange;
+            Information.UnitInformationManager.OnUnitHealthChange += UnitHealthManager_OnUnitHealthChange;
 
             UpdateUnitIndex(indexOfUnitHealthCorrelatesTo);
         }
@@ -39,7 +39,7 @@ namespace TurnBased.UI
 
         private void OnDestroy()
         {
-            Health.UnitHealthManager.OnUnitHealthChange -= UnitHealthManager_OnUnitHealthChange;
+            Information.UnitInformationManager.OnUnitHealthChange -= UnitHealthManager_OnUnitHealthChange;
         }
 
         private void UpdateHealthAmount()
@@ -47,8 +47,8 @@ namespace TurnBased.UI
             if (this.mainHealthBarGameObject != null && this.healthBarValueStringGameObject != null)
             {
                 /*  Get the battle unit of this unit to get it's current Health and max health. */
-                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(this.associatedUnitIndex, out int currentHealth)) { return; }
-                if (!Health.UnitHealthManager.Instance.GetMaximumHealthOfUnitIndex(this.associatedUnitIndex, out int maximumHealth)) { return; }
+                if (!Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(this.associatedUnitIndex, out int currentHealth)) { return; }
+                if (!Information.UnitInformationManager.Instance.TryGetMaximumHealthOfUnitIndex(this.associatedUnitIndex, out int maximumHealth)) { return; }
 
                 float value = UserInterfaceUtility.GetValueNormalisation(minimum: 0, maximum: maximumHealth, current: currentHealth);
 

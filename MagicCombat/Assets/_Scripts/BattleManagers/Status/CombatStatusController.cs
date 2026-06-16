@@ -90,7 +90,7 @@ namespace TurnBased.Status
             //  -=-=-=-=-=-=-=-=-
             //  Resolve the OnStatusAdded method to retieve all of the resolution information
             //  -=-=-=-=-=-=-=-=-
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(request.TargetUnit, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(request.TargetUnit, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return; }
             if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(request.TargetUnit, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
 
             AttackResolutionInfo onStatusAddedInfo = statusAdded.OnStatusAdded(resolutionSceneData);
@@ -116,7 +116,7 @@ namespace TurnBased.Status
             //  -=-=-=-=-=-=-=-=-
             //  Resolve the OnStatusAdded method to retieve all of the resolution information
             //  -=-=-=-=-=-=-=-=-
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(request.TargetUnit, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(request.TargetUnit, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return; }
             if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(request.TargetUnit, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
 
             AttackResolutionInfo onStatusAddedInfo = statusRemoved.OnStatusRemoved(resolutionSceneData);
@@ -187,7 +187,7 @@ namespace TurnBased.Status
                     //  -=-=-=-=-=-=-=-=-
                     //  Resolve the ProcessStatus method to retieve all of the resolution information
                     //  -=-=-=-=-=-=-=-=-
-                    if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
+                    if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return; }
                     if (!StationManagerUtilities.TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
 
                     AttackResolutionInfo processStatusInfo = status.ProcessStatus(resolutionSceneData);

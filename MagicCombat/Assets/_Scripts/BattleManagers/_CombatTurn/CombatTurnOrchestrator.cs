@@ -7,7 +7,7 @@ namespace TurnBased.Phases {
         private SubPhaseManager subPhaseManager                                         = new();
         private TurnOrder.TurnOrderManager TurnOrderManager                             = new();
 
-        private Health.UnitHealthManager UnitHealthManager                              = new();
+        private Information.UnitInformationManager UnitInformationManager               = new();
         private Status.UnitStatusManager UnitStatusManager                              = new();
         private Intention.UnitIntentionManager UnitIntentionManager                     = new();
 
@@ -54,7 +54,7 @@ namespace TurnBased.Phases {
             this.phaseManager = new();
             this.subPhaseManager = new();
             this.TurnOrderManager = new();  
-            this.UnitHealthManager = new();
+            this.UnitInformationManager = new();
             this.UnitStatusManager = new();
             this.UnitIntentionManager = new();
             this.IntentionResolverManager = new();
@@ -75,7 +75,7 @@ namespace TurnBased.Phases {
             this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseComplete);
             this.TurnOrderManager.Awake();
 
-            this.UnitHealthManager.Awake();
+            this.UnitInformationManager.Awake();
             this.UnitStatusManager.Awake();
             this.UnitIntentionManager.Awake();
 
@@ -100,7 +100,7 @@ namespace TurnBased.Phases {
             this.subPhaseManager.OnDestroy();
             this.TurnOrderManager.OnDestroy();
 
-            this.UnitHealthManager.OnDestroy();
+            this.UnitInformationManager.OnDestroy();
             this.UnitStatusManager.OnDestroy();
             this.UnitIntentionManager.OnDestroy();
 
@@ -127,7 +127,7 @@ namespace TurnBased.Phases {
             this.subPhaseManager = null;
             this.TurnOrderManager = null;
 
-            this.UnitHealthManager = null;
+            this.UnitInformationManager = null;
             this.UnitIntentionManager = null;
 
             this.IntentionResolverManager = null;

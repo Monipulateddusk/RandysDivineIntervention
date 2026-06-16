@@ -1,29 +1,24 @@
-namespace TurnBased.Health {
+namespace TurnBased.Information {
 
-    public class UnitHealthData
+    public class UnitInformation
     {
-        private int curHealth;
-        public int CurrentHealth { get { return curHealth; } 
-            set 
-            {
-                curHealth = value; 
-            } 
-        }
-        public int MaximumHealth { get; }
+        public int UnitCurrentHealth { get; private set; }
+        public int UnitMaxHealth { get; private set; }
+        public int UnitAttack { get; private set; }
+        public int UnitSpeed { get; private set; }
+        public UnitTeam Team { get; private set; }
+        public Element UnitElement { get; private set; }
+        public UnitIndex UnitIndex { get; private set; }
 
-        public UnitHealthData(int maxHealthValue)
+        public UnitInformation(int unitCurrentHealth, int unitMaxHealth, int unitAttack, int unitSpeed, UnitTeam team, Element unitElement, UnitIndex unitIndex)
         {
-            this.CurrentHealth = maxHealthValue; 
-            this.MaximumHealth = maxHealthValue;
-        }
-
-        public bool SetHealthValue(int newHealthValue)
-        {
-            /*  Don't set the health value to something higher than our maximum health. */
-            if(newHealthValue > this.MaximumHealth) { return false; }
-
-            this.CurrentHealth = newHealthValue;    
-            return true;
+            this.UnitCurrentHealth = unitCurrentHealth;
+            this.UnitMaxHealth = unitMaxHealth;
+            this.UnitAttack = unitAttack;
+            this.UnitSpeed = unitSpeed;
+            this.Team = team;
+            this.UnitElement = unitElement;
+            this.UnitIndex = unitIndex;
         }
 
         /// <summary>
@@ -34,13 +29,13 @@ namespace TurnBased.Health {
         public int HealWithHealValue(int healAmount)
         {
             /*  Get the new health value taking our current health adding on the heal amount    */
-            int newHealthValue = this.CurrentHealth + healAmount;
+            int newHealthValue = this.UnitCurrentHealth + healAmount;
 
             /*  Don't heal past the maximum health value.   */
-            newHealthValue = UnityEngine.Mathf.Clamp(newHealthValue, 0, this.MaximumHealth);
+            newHealthValue = UnityEngine.Mathf.Clamp(newHealthValue, 0, this.UnitMaxHealth);
 
-            this.CurrentHealth = newHealthValue;
-            return this.CurrentHealth;
+            this.UnitCurrentHealth = newHealthValue;
+            return this.UnitCurrentHealth;
         }
 
         /// <summary>
@@ -51,23 +46,31 @@ namespace TurnBased.Health {
         public int DamageWithDamageValue(int damageAmount)
         {
             /*  Subtract the incoming damage with the health we currently have. */
-            int newHealthValue = this.CurrentHealth - damageAmount;
+            int newHealthValue = this.UnitCurrentHealth - damageAmount;
 
             /*  Don't go below 0.   */
-            newHealthValue = UnityEngine.Mathf.Clamp(newHealthValue, 0, this.MaximumHealth);
+            newHealthValue = UnityEngine.Mathf.Clamp(newHealthValue, 0, this.UnitMaxHealth);
 
-            this.CurrentHealth = newHealthValue;
-            return this.CurrentHealth;
+            this.UnitCurrentHealth = newHealthValue;
+            return this.UnitCurrentHealth;
         }
 
-        public bool IsHealthZero() => this.CurrentHealth <= 0;
+        public bool SetHealthValue(int newHealthValue)
+        {
+            /*  Don't set the health value to something higher than our maximum health. */
+            if (newHealthValue > this.UnitMaxHealth) { return false; }
+
+            this.UnitCurrentHealth = newHealthValue;
+            return true;
+        }
+
+        public bool IsHealthZero() => this.UnitCurrentHealth <= 0;
     }
 
-
-    public class UnitHealthManager
+    public class UnitInformationManager
     {
-        private static UnitHealthManager instance;
-        public static UnitHealthManager Instance
+        private static UnitInformationManager instance;
+        public static UnitInformationManager Instance
         {
             get
             {
@@ -83,11 +86,11 @@ namespace TurnBased.Health {
             }
         }
 
-        public static event System.Action<UnitIndex, int>   OnUnitHealthAdded;
-        public static event System.Action<UnitIndex, int>   OnUnitHealthChange;
-        public static event System.Action<UnitIndex>        OnUnitHealthRemoved;
+        public static event System.Action<UnitIndex, UnitInformation>   OnUnitInformationAdded;
+        public static event System.Action<UnitIndex, int>               OnUnitHealthChange;
+        public static event System.Action<UnitIndex>                    OnUnitInformationRemoved;
 
-        private System.Collections.Generic.Dictionary<int, UnitHealthData> UnitIndexHealthDict = new();
+        private System.Collections.Generic.Dictionary<int, UnitInformation> UnitIndexHealthDict = new();
 
         public void Awake()
         {
@@ -114,42 +117,45 @@ namespace TurnBased.Health {
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
 
-            OnUnitHealthAdded = null;
-            OnUnitHealthChange = null;  
-            OnUnitHealthRemoved = null;
+            OnUnitInformationAdded = null;
+            OnUnitHealthChange = null;
+            OnUnitInformationRemoved = null;
         }
 
         private void StationManager_OnAddUnit(UnitIndex unitIndex)
         {
             if(!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return; }
+            if(!StationManager.Instance.TryGetTeamOfUnitIndex(unitIndex, out UnitTeam team)) { return; }
 
-            AddUnitHealthToDictionary(unitIndex, unitData.maxHP);
+            AddUnitInformationToDictionary(unitIndex, unitData, team);
         }
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfRemovedUnit, StationIndex? stationOfUnitIndex, BaseBattleUnit battleUnitOfRemovedUnit)
         {
             UnityEngine.Debug.LogError("Starting to remove unit index from UnitHealthManager");
 
-            RemoveUnitHealthToDictionary(unitIndexOfRemovedUnit);
+            RemoveUnitInformationFromDictionary(unitIndexOfRemovedUnit);
 
             UnityEngine.Debug.LogError("Removed unit index from UnitHealthManager");
         }
 
-        public bool AddUnitHealthToDictionary(UnitIndex unitIndex, int maximumHealth)
+        public bool AddUnitInformationToDictionary(UnitIndex unitIndex, UnitData data, UnitTeam team)
         {
             if (this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            this.UnitIndexHealthDict.Add(unitIndex.Index, new(maximumHealth));
-            OnUnitHealthAdded?.Invoke(unitIndex, maximumHealth);
+            UnitInformation addedUnitInformation = new(data.maxHP, data.maxHP, data.attack, data.speed, team, data.element, unitIndex);
+
+            this.UnitIndexHealthDict.Add(unitIndex.Index, addedUnitInformation);
+            OnUnitInformationAdded?.Invoke(unitIndex, addedUnitInformation);
             return true;
         }
 
-        public bool RemoveUnitHealthToDictionary(UnitIndex unitIndex)
+        public bool RemoveUnitInformationFromDictionary(UnitIndex unitIndex)
         {
             if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
 
             this.UnitIndexHealthDict.Remove(unitIndex.Index);
-            OnUnitHealthRemoved?.Invoke(unitIndex);
+            OnUnitInformationRemoved?.Invoke(unitIndex);
             return true;
         }
 
@@ -190,16 +196,16 @@ namespace TurnBased.Health {
             currentHealth = default;
             if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            currentHealth = this.UnitIndexHealthDict[unitIndex.Index].CurrentHealth;
+            currentHealth = this.UnitIndexHealthDict[unitIndex.Index].UnitCurrentHealth;
             return true;
         }
 
-        public bool GetMaximumHealthOfUnitIndex(UnitIndex unitIndex, out int maximumHealth)
+        public bool TryGetMaximumHealthOfUnitIndex(UnitIndex unitIndex, out int maximumHealth)
         {
             maximumHealth = default;
             if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            maximumHealth = this.UnitIndexHealthDict[unitIndex.Index].MaximumHealth;
+            maximumHealth = this.UnitIndexHealthDict[unitIndex.Index].UnitMaxHealth;
             return true;
         }
 
@@ -212,12 +218,12 @@ namespace TurnBased.Health {
         {
             System.Collections.Generic.List<UnitIndex> noHealthUnits = new();
 
-            foreach(System.Collections.Generic.KeyValuePair<int, UnitHealthData> unitHealthKeyValuePair in this.UnitIndexHealthDict)
+            foreach(System.Collections.Generic.KeyValuePair<int, UnitInformation> unitHealthKeyValuePair in this.UnitIndexHealthDict)
             {
                 int unitIndexInt = unitHealthKeyValuePair.Key;
-                UnitHealthData unitHealthData = unitHealthKeyValuePair.Value;
+                UnitInformation unitInformation = unitHealthKeyValuePair.Value;
                 
-                if (unitHealthData.IsHealthZero()) { noHealthUnits.Add(new UnitIndex(unitIndexInt)); }
+                if (unitInformation.IsHealthZero()) { noHealthUnits.Add(new UnitIndex(unitIndexInt)); }
 
                 continue;
             }

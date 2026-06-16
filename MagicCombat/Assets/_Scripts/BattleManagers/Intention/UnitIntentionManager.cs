@@ -278,7 +278,7 @@ namespace TurnBased.Intention
             ResolvingSource resolvingSource = new(move, unitIndex);
             ResolvingState resolvingState = new(resolvingSource, move.GetResolutionTiming());
 
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
             AttackResolutionInfo moveResolutionInfo = move.ExecuteMove(resolutionSceneData);
 
             if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, resolvingState)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }

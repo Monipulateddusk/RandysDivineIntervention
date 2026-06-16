@@ -144,12 +144,12 @@ namespace TurnBased.AttackResolution
 
         private void DealDamage(DamageRequest damageRequest)
         {
-            Health.UnitHealthManager.Instance.DamageUnitByDamageAmount(damageRequest.TargetUnit, damageRequest.DamageAmount);
+            Information.UnitInformationManager.Instance.DamageUnitByDamageAmount(damageRequest.TargetUnit, damageRequest.DamageAmount);
         }
 
         public void HealDamage(HealRequest healRequest)
         {
-            Health.UnitHealthManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
+            Information.UnitInformationManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
         }
 
         private void ImbueEnvironment(ImbueElementRequest imbueElementRequest)

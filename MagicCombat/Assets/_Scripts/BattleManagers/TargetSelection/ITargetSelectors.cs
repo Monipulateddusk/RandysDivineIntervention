@@ -138,7 +138,7 @@ namespace TurnBased.TargetSelection
             {
                 if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex  unitIndex)) { continue; }
 
-                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int unitHealth)) {  continue; }
+                if (!Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int unitHealth)) {  continue; }
 
                 if (unitHealth > highestHPValue) 
                 {  

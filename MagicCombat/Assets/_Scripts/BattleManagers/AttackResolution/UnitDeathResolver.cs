@@ -34,7 +34,7 @@ namespace TurnBased.AttackResolution
 
             foreach (UnitIndex unitIndex in StationManager.Instance.GetUnitsOnTeam(UnitTeam.ALLY))
             {
-                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { continue; }
+                if (!Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { continue; }
 
                 if (currentHealth <= 0)
                 {
@@ -48,7 +48,7 @@ namespace TurnBased.AttackResolution
 
             foreach (UnitIndex unitIndex in StationManager.Instance.GetUnitsOnTeam(UnitTeam.ENEMY))
             {
-                if (!Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { continue; }
+                if (!Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { continue; }
 
                 if (currentHealth <= 0)
                 {
