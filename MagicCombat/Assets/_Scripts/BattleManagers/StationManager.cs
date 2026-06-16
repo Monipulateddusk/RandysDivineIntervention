@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using TurnBased.Information;
 
 public readonly struct UnitIndex     
 {  
@@ -905,19 +906,19 @@ public static class StationManagerUtilities
 
         foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
         {
-            if (!TryCreateUnitInformation(allyStationIndex, UnitTeam.ALLY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(allyStationIndex, UnitTeam.ALLY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (StationIndex enemyStationIndex in sceneData.EnemyStationIndexes)
         {
-            if (!TryCreateUnitInformation(enemyStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(enemyStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             enemyUnitInformation.Add(unitInformation);
         }
 
-        if (!TryCreateUnitInformation(sceneData.SourceStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        if (!TryGetUnitInformation(sceneData.SourceStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
         System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement>  imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
 
 
@@ -938,13 +939,13 @@ public static class StationManagerUtilities
 
         foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
         {
-            if (!TryCreateUnitInformation(unitIndexOnTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
         {
-            if (!TryCreateUnitInformation(unitIndexOnOppositeTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnOppositeTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             enemyUnitInformation.Add(unitInformation);
         }
 
@@ -957,26 +958,20 @@ public static class StationManagerUtilities
         return true;
     }
 
-    private static bool TryCreateUnitInformation(StationIndex stationIndex, UnitTeam team, out TurnBased.Information.UnitInformation information) 
+    private static bool TryGetUnitInformation(StationIndex stationIndex, UnitTeam team, out TurnBased.Information.UnitInformation information) 
     {
         information = default;
 
-        if (!StationManager.Instance.TryGetUnitDataOnStation(stationIndex, out UnitData unitData)) { return false; }
         if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndexOnStation)) { return false; }
-        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndexOnStation, out int currentHealth)) { return false; }
+        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetUnitInformationOfUnitIndex(unitIndexOnStation, out information)) { return false; }
 
-        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndexOnStation);
         return true;
     }
 
-    private static bool TryCreateUnitInformation(UnitIndex unitIndex, UnitTeam team, out TurnBased.Information.UnitInformation information)
+    private static bool TryGetUnitInformation(UnitIndex unitIndex, UnitTeam team, out TurnBased.Information.UnitInformation information)
     {
-        information = default;
+        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetUnitInformationOfUnitIndex(unitIndex, out information)) { return false; }
 
-        if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return false; }
-        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { return false; }
-
-        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndex);
         return true;
     }
 

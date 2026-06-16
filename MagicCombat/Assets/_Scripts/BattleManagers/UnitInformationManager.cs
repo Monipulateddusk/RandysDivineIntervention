@@ -90,7 +90,7 @@ namespace TurnBased.Information {
         public static event System.Action<UnitIndex, int>               OnUnitHealthChange;
         public static event System.Action<UnitIndex>                    OnUnitInformationRemoved;
 
-        private System.Collections.Generic.Dictionary<int, UnitInformation> UnitIndexHealthDict = new();
+        private System.Collections.Generic.Dictionary<int, UnitInformation> UnitIndexInformationDict = new();
 
         public void Awake()
         {
@@ -99,7 +99,7 @@ namespace TurnBased.Information {
                 instance = this;
             }
 
-            this.UnitIndexHealthDict = new();
+            this.UnitIndexInformationDict = new();
             
             StationManager.OnAddUnit    += StationManager_OnAddUnit;
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
@@ -112,7 +112,7 @@ namespace TurnBased.Information {
                 instance = null;
             }
 
-            this.UnitIndexHealthDict.Clear();
+            this.UnitIndexInformationDict.Clear();
 
             StationManager.OnAddUnit    -= StationManager_OnAddUnit;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
@@ -141,29 +141,29 @@ namespace TurnBased.Information {
 
         public bool AddUnitInformationToDictionary(UnitIndex unitIndex, UnitData data, UnitTeam team)
         {
-            if (this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
             UnitInformation addedUnitInformation = new(data.maxHP, data.maxHP, data.attack, data.speed, team, data.element, unitIndex);
 
-            this.UnitIndexHealthDict.Add(unitIndex.Index, addedUnitInformation);
+            this.UnitIndexInformationDict.Add(unitIndex.Index, addedUnitInformation);
             OnUnitInformationAdded?.Invoke(unitIndex, addedUnitInformation);
             return true;
         }
 
         public bool RemoveUnitInformationFromDictionary(UnitIndex unitIndex)
         {
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            this.UnitIndexHealthDict.Remove(unitIndex.Index);
+            this.UnitIndexInformationDict.Remove(unitIndex.Index);
             OnUnitInformationRemoved?.Invoke(unitIndex);
             return true;
         }
 
         public bool SetUnitHealth(UnitIndex unitIndex, int newHealthValue)
         {
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            if (!this.UnitIndexHealthDict[unitIndex.Index].SetHealthValue(newHealthValue)) { return false; }
+            if (!this.UnitIndexInformationDict[unitIndex.Index].SetHealthValue(newHealthValue)) { return false; }
 
             OnUnitHealthChange?.Invoke(unitIndex, newHealthValue);
             return true;
@@ -171,10 +171,10 @@ namespace TurnBased.Information {
 
         public bool HealUnitByHealAmount(UnitIndex unitIndex, int healAmount)
         {
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
             /*  Get the current*/
-            int newHealthValue = this.UnitIndexHealthDict[unitIndex.Index].HealWithHealValue(healAmount);
+            int newHealthValue = this.UnitIndexInformationDict[unitIndex.Index].HealWithHealValue(healAmount);
 
             OnUnitHealthChange?.Invoke(unitIndex, newHealthValue);
             return true;
@@ -182,10 +182,10 @@ namespace TurnBased.Information {
 
         public bool DamageUnitByDamageAmount(UnitIndex unitIndex, int damageAmount)
         {
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
             /*  Get the current*/
-            int newHealthValue = this.UnitIndexHealthDict[unitIndex.Index].DamageWithDamageValue(damageAmount);
+            int newHealthValue = this.UnitIndexInformationDict[unitIndex.Index].DamageWithDamageValue(damageAmount);
 
             OnUnitHealthChange?.Invoke(unitIndex, newHealthValue);
             return true;
@@ -194,21 +194,29 @@ namespace TurnBased.Information {
         public bool TryGetCurrentHealthOfUnitIndex(UnitIndex unitIndex, out int currentHealth)
         {
             currentHealth = default;
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            currentHealth = this.UnitIndexHealthDict[unitIndex.Index].UnitCurrentHealth;
+            currentHealth = this.UnitIndexInformationDict[unitIndex.Index].UnitCurrentHealth;
             return true;
         }
 
         public bool TryGetMaximumHealthOfUnitIndex(UnitIndex unitIndex, out int maximumHealth)
         {
             maximumHealth = default;
-            if (!this.UnitIndexHealthDict.ContainsKey(unitIndex.Index)) { return false; }
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            maximumHealth = this.UnitIndexHealthDict[unitIndex.Index].UnitMaxHealth;
+            maximumHealth = this.UnitIndexInformationDict[unitIndex.Index].UnitMaxHealth;
             return true;
         }
 
+        public bool TryGetUnitInformationOfUnitIndex(UnitIndex unitIndex, out UnitInformation unitInformation)
+        {
+            unitInformation = default;
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
+
+            unitInformation = this.UnitIndexInformationDict[unitIndex.Index];
+            return true;
+        }
 
         /// <summary>
         /// Called to check through all Units. If any of them have health values that are 0, create a list of all of those Units. Don't yet remove them we may want to do things with them. 
@@ -218,7 +226,7 @@ namespace TurnBased.Information {
         {
             System.Collections.Generic.List<UnitIndex> noHealthUnits = new();
 
-            foreach(System.Collections.Generic.KeyValuePair<int, UnitInformation> unitHealthKeyValuePair in this.UnitIndexHealthDict)
+            foreach(System.Collections.Generic.KeyValuePair<int, UnitInformation> unitHealthKeyValuePair in this.UnitIndexInformationDict)
             {
                 int unitIndexInt = unitHealthKeyValuePair.Key;
                 UnitInformation unitInformation = unitHealthKeyValuePair.Value;
