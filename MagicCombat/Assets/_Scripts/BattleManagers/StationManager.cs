@@ -332,15 +332,6 @@ public class SceneUnitData
         return activeUnits;
     }
 
-    public System.Collections.Generic.List<UnitIndex> GetAllUnits()
-    {
-        System.Collections.Generic.List<UnitIndex> units = new();
-        if(this.Units.Count < 0) { return new(); }
-
-        return null;
-
-    }
-
     /// <summary>
     /// Gets all active units on the defined Team
     /// </summary>
@@ -906,19 +897,19 @@ public static class StationManagerUtilities
 
         foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
         {
-            if (!TryGetUnitInformation(allyStationIndex, UnitTeam.ALLY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(allyStationIndex, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (StationIndex enemyStationIndex in sceneData.EnemyStationIndexes)
         {
-            if (!TryGetUnitInformation(enemyStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(enemyStationIndex, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             enemyUnitInformation.Add(unitInformation);
         }
 
-        if (!TryGetUnitInformation(sceneData.SourceStationIndex, UnitTeam.ENEMY, out TurnBased.Information.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        if (!TryGetUnitInformation(sceneData.SourceStationIndex, out TurnBased.Information.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
         System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement>  imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
 
 
@@ -939,13 +930,13 @@ public static class StationManagerUtilities
 
         foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
         {
-            if (!TryGetUnitInformation(unitIndexOnTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnTeam, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
         {
-            if (!TryGetUnitInformation(unitIndexOnOppositeTeam, team, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnOppositeTeam, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             enemyUnitInformation.Add(unitInformation);
         }
 
@@ -958,7 +949,7 @@ public static class StationManagerUtilities
         return true;
     }
 
-    private static bool TryGetUnitInformation(StationIndex stationIndex, UnitTeam team, out TurnBased.Information.UnitInformation information) 
+    private static bool TryGetUnitInformation(StationIndex stationIndex, out TurnBased.Information.UnitInformation information) 
     {
         information = default;
 
@@ -968,7 +959,7 @@ public static class StationManagerUtilities
         return true;
     }
 
-    private static bool TryGetUnitInformation(UnitIndex unitIndex, UnitTeam team, out TurnBased.Information.UnitInformation information)
+    private static bool TryGetUnitInformation(UnitIndex unitIndex, out TurnBased.Information.UnitInformation information)
     {
         if (!TurnBased.Information.UnitInformationManager.Instance.TryGetUnitInformationOfUnitIndex(unitIndex, out information)) { return false; }
 
@@ -1100,15 +1091,12 @@ public static class StationManagerUtilities
 
     public static UnitTeam GetOppositeTeamType(UnitTeam team)
     {
-        switch (team)
+        return team switch
         {
-            case UnitTeam.ALLY:
-                return UnitTeam.ENEMY;
-            case UnitTeam.ENEMY:
-                return UnitTeam.ALLY;
-            default:
-                return UnitTeam.ALLY;
-        }
+            UnitTeam.ALLY => UnitTeam.ENEMY,
+            UnitTeam.ENEMY => UnitTeam.ALLY,
+            _ => UnitTeam.ALLY,
+        };
     }
     public static System.Collections.Generic.List<UnitIndex> GetUnitIndexCollectionRemovingSourceIndex(System.Collections.Generic.List<UnitIndex> unitIndexes, UnitIndex sourceIndex)
     {
