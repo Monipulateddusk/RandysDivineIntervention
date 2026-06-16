@@ -48,6 +48,26 @@ namespace TurnBased.GameState
             }
         }
 
+        public void DetermineDeadUnits()
+        {
+            /*  Get all units on both teams in resurve and on the field.    */
+            System.Collections.Generic.List<UnitIndex> allDeadUnits = Information.UnitInformationManager.Instance.GetAllUnitsWithNoHealth();
+
+            /*  Remove all the dead units.  */
+            foreach (UnitIndex unitIndex in allDeadUnits)
+            {
+                UnityEngine.Debug.LogError($"Removing unit of UnitIndex {unitIndex.Index}. Station manager is: {StationManager.Instance}");
+
+                bool res = StationManager.Instance.RemoveUnit(unitIndex);
+
+                UnityEngine.Debug.LogError($"Result of removing is: {res}");
+            }
+            UnityEngine.Debug.LogWarning($"Determining game state");
+
+            /*  Finally, determine the Game State. */
+            DetermineGameState();
+        }
+
         public void DetermineGameState()
         {
             UnityEngine.Debug.LogWarning($"Determining game state");
