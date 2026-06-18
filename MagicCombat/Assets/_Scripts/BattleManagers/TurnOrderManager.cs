@@ -51,16 +51,12 @@ namespace TurnBased.TurnOrder
 
         private void StationManager_OnRemoveUnit(UnitIndex unitIndexOfTheRemovedUnit, StationIndex? theStationUnit, BaseBattleUnit battleUnitOfTheRemovedUnit)
         {
-            UnityEngine.Debug.LogError("Starting to remove unit from TurnOrderManager");
-
             /*  If the removed unit exists in our turn order, remove it.    */
             if (this.UnitIndexTurnOrderList.Contains(unitIndexOfTheRemovedUnit))
             {
                 UnityEngine.Debug.LogError($"Removed Unit Index {unitIndexOfTheRemovedUnit.Index} from turnOrderList");
                 this.UnitIndexTurnOrderList.Remove(unitIndexOfTheRemovedUnit);
             }
-
-            UnityEngine.Debug.LogError("Removed unit from TurnOrderManager");
         }
 
         /// <summary>
@@ -98,19 +94,24 @@ namespace TurnBased.TurnOrder
             this.UnitIndexTurnOrderList = StationManager.Instance.GetAllActiveUnits();
 
             /*  Sort the List so that slowest Units are processed last. */
-            this.UnitIndexTurnOrderList.Sort((g1, g2) =>
-            {
-                StationManager.Instance.TryGetBattleUnitOfIndex(g1, out BaseBattleUnit unit1);
-                StationManager.Instance.TryGetBattleUnitOfIndex(g2, out BaseBattleUnit unit2);
-
-                return unit1.GetBaseUnit().speed.CompareTo(unit2.GetBaseUnit().speed);
-            });
-
-            this.UnitIndexTurnOrderList.Reverse();
+            SortTurnOrderList();
 
             OnUpdateTurnOrder?.Invoke(UnitIndexTurnOrderList);
 
             return this.UnitIndexTurnOrderList;
+        }
+
+        private void SortTurnOrderList()
+        {
+            this.UnitIndexTurnOrderList.Sort((g1, g2) =>
+            {
+                Information.UnitInformationManager.Instance.TryGetCurrentSpeedOfUnitIndex(g1, out int unit1Speed);
+                Information.UnitInformationManager.Instance.TryGetCurrentSpeedOfUnitIndex(g2, out int unit2Speed);
+
+                return unit1Speed.CompareTo(unit2Speed);
+            });
+
+            this.UnitIndexTurnOrderList.Reverse();
         }
 
         public UnitIndex? PopNextUnitInTurnOrder()

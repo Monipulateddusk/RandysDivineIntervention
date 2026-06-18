@@ -65,6 +65,20 @@ namespace TurnBased.Information {
         }
 
         public bool IsHealthZero() => this.UnitCurrentHealth <= 0;
+
+        public int IncreaseSpeedByValue(int speedIncreaseValue)
+        {
+            this.UnitSpeed += speedIncreaseValue;
+
+            return this.UnitSpeed;
+        }
+
+        public int DecreaseSpeedByValue(int speedDecreaseValue)
+        {
+            this.UnitSpeed -= speedDecreaseValue;
+
+            return this.UnitSpeed;
+        }
     }
 
     public class UnitInformationManager
@@ -88,6 +102,7 @@ namespace TurnBased.Information {
 
         public static event System.Action<UnitIndex, UnitInformation>   OnUnitInformationAdded;
         public static event System.Action<UnitIndex, int>               OnUnitHealthChange;
+        public static event System.Action<UnitIndex, int>               OnUnitSpeedChange;
         public static event System.Action<UnitIndex>                    OnUnitInformationRemoved;
 
         private System.Collections.Generic.Dictionary<int, UnitInformation> UnitIndexInformationDict = new();
@@ -119,6 +134,7 @@ namespace TurnBased.Information {
 
             OnUnitInformationAdded = null;
             OnUnitHealthChange = null;
+            OnUnitSpeedChange = null;
             OnUnitInformationRemoved = null;
         }
 
@@ -173,7 +189,6 @@ namespace TurnBased.Information {
         {
             if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            /*  Get the current*/
             int newHealthValue = this.UnitIndexInformationDict[unitIndex.Index].HealWithHealValue(healAmount);
 
             OnUnitHealthChange?.Invoke(unitIndex, newHealthValue);
@@ -184,10 +199,27 @@ namespace TurnBased.Information {
         {
             if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
-            /*  Get the current*/
             int newHealthValue = this.UnitIndexInformationDict[unitIndex.Index].DamageWithDamageValue(damageAmount);
 
             OnUnitHealthChange?.Invoke(unitIndex, newHealthValue);
+            return true;
+        }
+
+        public bool IncreaseSpeedOfUnitByAmount(UnitIndex unitIndex, int amount)
+        {
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
+
+            int newSpeedValue = this.UnitIndexInformationDict[unitIndex.Index].IncreaseSpeedByValue(amount);
+            OnUnitSpeedChange?.Invoke(unitIndex, newSpeedValue);
+            return true;
+        }
+
+        public bool DecreaseSpeedOfUnitByAmount(UnitIndex unitIndex, int amount)
+        {
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
+
+            int newSpeedValue = this.UnitIndexInformationDict[unitIndex.Index].DecreaseSpeedByValue(amount);
+            OnUnitSpeedChange?.Invoke(unitIndex, newSpeedValue);
             return true;
         }
 
@@ -206,6 +238,15 @@ namespace TurnBased.Information {
             if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
 
             maximumHealth = this.UnitIndexInformationDict[unitIndex.Index].UnitMaxHealth;
+            return true;
+        }
+
+        public bool TryGetCurrentSpeedOfUnitIndex(UnitIndex unitIndex, out int currentSpeed)
+        {
+            currentSpeed = default;
+            if (!this.UnitIndexInformationDict.ContainsKey(unitIndex.Index)) { return false; }
+
+            currentSpeed = this.UnitIndexInformationDict[unitIndex.Index].UnitSpeed;
             return true;
         }
 
