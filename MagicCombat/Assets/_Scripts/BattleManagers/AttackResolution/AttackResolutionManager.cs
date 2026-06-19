@@ -1,8 +1,9 @@
-
 namespace TurnBased.AttackResolution
 {
     public class AttackResolutionManager
     {
+        TurnOrder.TurnOrderManager turnOrderManager;
+        Phases.SubPhaseManager subPhaseManager;
         public static event System.Action OnAllAttacksFullyResolved;
         private UnitIndex unitIndexToProcess;
 
@@ -23,24 +24,37 @@ namespace TurnBased.AttackResolution
             }
         }
 
-        public void Awake()
+        public AttackResolutionManager()
+        {
+            this.turnOrderManager = new();
+        }
+
+        public void Awake(Phases.SubPhaseManager subPhaseManag)
         {
             Combat.IntentionCombatResolver.OnResolvingStatesComplete += OnResolvingStatesComplete;
             if (Instance == null)
             {
                 instance = this;
             }
+
+            this.subPhaseManager = subPhaseManag;
+            this.turnOrderManager.Awake();
         }
 
         public void OnDestroy()
         {
             Combat.IntentionCombatResolver.OnResolvingStatesComplete -= OnResolvingStatesComplete;
+
+            this.turnOrderManager.OnDestroy();
+
             if (instance != null && instance == this)
             {
                 instance = null;
             }
-            OnAllAttacksFullyResolved = null;
 
+            this.turnOrderManager = null;
+            this.subPhaseManager = null;
+            OnAllAttacksFullyResolved = null;
         }
 
         /// <summary>
@@ -54,7 +68,7 @@ namespace TurnBased.AttackResolution
 
         private void ContinueNextUnit()
         {
-            UnitIndex? turnOrderNextUnit = TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
+            UnitIndex? turnOrderNextUnit = this.turnOrderManager.PopNextUnitInTurnOrder();
 
             if (!turnOrderNextUnit.HasValue) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: CANNOT PROCESS NEXT UNIT IN TURN ORDER THAT DOESN'T EXIST!"); return; }
             this.unitIndexToProcess = turnOrderNextUnit.Value;
@@ -77,7 +91,7 @@ namespace TurnBased.AttackResolution
             request.OnRequestComplete -= WhenRequestCompleted;
 
             /*  Once the request is processed, reset the current unit and move on.  */
-            TurnOrder.TurnOrderManager.Instance.ResetCurrentUnit();
+            this.turnOrderManager.ResetCurrentUnit();
 
             UnityEngine.Debug.LogWarning($"Done processing next unit in turn order");
 
@@ -98,9 +112,10 @@ namespace TurnBased.AttackResolution
             OnAllAttacksFullyResolved?.Invoke();
         }
 
-        private bool IsProcessingIntentContinuing() => TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0;
-
-
+        public TurnOrderCreationState TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> createdTurnOrderList) => this.turnOrderManager.TryCreateNewTurnOrderList(out createdTurnOrderList);
+        public bool IsProcessingIntentContinuing() => this.turnOrderManager.GetTurnOrderList().Count > 0;
+        public UnitIndex? GetCurrentUnit() => this.turnOrderManager.GetCurrentUnit();
+        public System.Collections.Generic.List<UnitIndex> GetTurnOrderList() => this.turnOrderManager.GetTurnOrderList();
     }
 
 

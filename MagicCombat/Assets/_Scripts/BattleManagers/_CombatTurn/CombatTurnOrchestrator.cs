@@ -5,7 +5,6 @@ namespace TurnBased.Phases {
         private Intention.CombatRoundUnitIntentionManager combatRoundIntentionManager   = new();
         private PhaseManager phaseManager                                               = new();
         private SubPhaseManager subPhaseManager                                         = new();
-        private TurnOrder.TurnOrderManager TurnOrderManager                             = new();
 
         private Information.UnitInformationManager UnitInformationManager               = new();
         private Status.UnitStatusManager UnitStatusManager                              = new();
@@ -53,7 +52,6 @@ namespace TurnBased.Phases {
             this.combatRoundIntentionManager = new();
             this.phaseManager = new();
             this.subPhaseManager = new();
-            this.TurnOrderManager = new();  
             this.UnitInformationManager = new();
             this.UnitStatusManager = new();
             this.UnitIntentionManager = new();
@@ -73,7 +71,6 @@ namespace TurnBased.Phases {
             this.combatRoundIntentionManager.Awake(this);
             this.phaseManager.Awake(this.combatRoundIntentionManager, this.EventHookSystem, OnPhaseComplete);
             this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseComplete);
-            this.TurnOrderManager.Awake();
 
             this.UnitInformationManager.Awake();
             this.UnitStatusManager.Awake();
@@ -85,7 +82,7 @@ namespace TurnBased.Phases {
             this.MoveSelectorManager.Awake();
             this.UnitTargetSelectorManager.Awake();
 
-            this.AttackResolutionManager.Awake();
+            this.AttackResolutionManager.Awake(this.subPhaseManager);
             this.CombatStatusManager.Awake();
 
             this.testExample.Awake();
@@ -98,7 +95,6 @@ namespace TurnBased.Phases {
 
             this.phaseManager.OnDestroy();
             this.subPhaseManager.OnDestroy();
-            this.TurnOrderManager.OnDestroy();
 
             this.UnitInformationManager.OnDestroy();
             this.UnitStatusManager.OnDestroy();
@@ -125,7 +121,6 @@ namespace TurnBased.Phases {
 
             this.phaseManager = null;
             this.subPhaseManager = null;
-            this.TurnOrderManager = null;
 
             this.UnitInformationManager = null;
             this.UnitIntentionManager = null;
@@ -300,7 +295,7 @@ namespace TurnBased.Phases {
                     *  IMPORTANT: THIS CONNECTION NEEDS TO BE REVISED. WE SHOULD NOT BE GOING INTO A SUBPHASE FROM WITHIN A PHASE.
                     *  WE SHOULD BE TOLD TO BY THIS CLASS!!!
                     */
-                    if (TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count <= 0)
+                    if (this.AttackResolutionManager.IsProcessingIntentContinuing())
                     {
                         this.phaseManager.ChangeState(CombatTurnOrchestrationPhase.EndOfRound);
                     }

@@ -54,7 +54,7 @@ namespace TurnBased
 
             this.instanciatedItems = new();
 
-            CreateTurnOrderUI(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), TurnOrder.TurnOrderManager.Instance.GetTurnOrderList());
+            CreateTurnOrderUI(AttackResolution.AttackResolutionManager.Instance.GetCurrentUnit(), AttackResolution.AttackResolutionManager.Instance.GetTurnOrderList());
             TurnOrder.TurnOrderManager.OnUpdateTurnOrder += TurnOrderManager_OnUpdateTurnOrder;
         }
 
@@ -233,7 +233,7 @@ namespace TurnBased
         private void TurnOrderManager_OnUpdateTurnOrder(System.Collections.Generic.List<UnitIndex> list)
         {
             DeleteIcons();
-            CreateTurnOrderUI(TurnOrder.TurnOrderManager.Instance.GetCurrentUnit(), list);
+            CreateTurnOrderUI(AttackResolution.AttackResolutionManager.Instance.GetCurrentUnit(), list);
         }
     }
 }

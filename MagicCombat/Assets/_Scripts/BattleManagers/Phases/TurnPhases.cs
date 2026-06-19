@@ -1,4 +1,3 @@
-using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -146,7 +145,7 @@ namespace TurnBased.Phases
 
         private void InitaliseTurnOrderForTheRound()
         {
-            TurnOrderCreationState turnOrderCreationState = TurnOrder.TurnOrderManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
+            TurnOrderCreationState turnOrderCreationState = AttackResolution.AttackResolutionManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
 
             Debug.LogWarning($"TurnOrder initalisation! State is {turnOrderCreationState}");
 
@@ -286,7 +285,7 @@ namespace TurnBased.Phases
 
     public class TurnOrderCombatResolutionPhase : MainPhase
     {
-        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
+        public TurnOrderCombatResolutionPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
             EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
         }
@@ -379,7 +378,7 @@ namespace TurnBased.Phases
 
     public class EndOfBattlePhase : MainPhase
     {
-        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
+        public EndOfBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
             EventHookSystem.OnEndOfBattle += EventHookSystem_OnEndOfBattle;
         }

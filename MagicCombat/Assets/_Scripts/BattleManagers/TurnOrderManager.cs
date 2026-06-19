@@ -4,23 +4,6 @@ namespace TurnBased.TurnOrder
 {
     public class TurnOrderManager
     {
-        private static TurnOrderManager instance;
-        public static TurnOrderManager Instance
-        {
-            get
-            {
-                try
-                {
-                    return instance;
-                }
-                catch (System.Exception e)
-                {
-                    UnityEngine.Debug.LogError(e.ToString());
-                    return null;
-                }
-            }
-        }
-
         private System.Collections.Generic.List<UnitIndex> UnitIndexTurnOrderList = new();
         private UnitIndex? currentUnit = null;
 
@@ -28,11 +11,6 @@ namespace TurnBased.TurnOrder
 
         public void Awake()
         {
-            if (instance == null)
-            {
-                instance = this;
-            }
-
             this.UnitIndexTurnOrderList = new();
 
             StationManager.OnRemoveUnit += StationManager_OnRemoveUnit;
@@ -40,11 +18,6 @@ namespace TurnBased.TurnOrder
 
         public void OnDestroy()
         {
-            if (instance != null && instance == this)
-            {
-                instance = null;
-            }
-
             OnUpdateTurnOrder = null;
             StationManager.OnRemoveUnit -= StationManager_OnRemoveUnit;
         }
