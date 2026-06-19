@@ -1,3 +1,5 @@
+using System;
+using TurnBased.AttackResolution;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -259,13 +261,27 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
+            /*  Get the Resolving state from the Unit's Intention   */
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentUnitIndex, out Intention.UnitIntention intention)) { OnPhaseComplete(); }
+            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
+
+            request.OnRequestComplete += WhenRequestCompleted;
+
+
+            OnPhaseComplete();
+        }
+
+        private void WhenRequestCompleted(CombatResolvingRequest request)
+        {
+            request.OnRequestComplete -= WhenRequestCompleted;
+
+            UnityEngine.Debug.LogError($"REQUEST DONE IN SUB PHASE. MOVING ONTO THE ATTACK COMPLETE PHASE");
+
             OnPhaseComplete();
         }
 
         protected override void OnPhaseComplete()
         {
-
-
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
             this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
         }

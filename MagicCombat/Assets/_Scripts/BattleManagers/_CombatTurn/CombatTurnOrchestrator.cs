@@ -234,7 +234,10 @@ namespace TurnBased.Phases {
         }
 
 
-
+        /// <summary>
+        /// When a subphase is complete, it comes here. NEVER CHANGE THE MAIN PHASE FROM HERE. A MAIN PHASE WOULD HAVE ASSIGNED A SUBPHASE FOR A PURPOSE
+        /// </summary>
+        /// <param name="phaseThatCompleted"></param>
         private void OnSubPhaseComplete(SubPhaseState phaseThatCompleted)
         {
             /*  Retrieve the selected station.  */
@@ -295,11 +298,10 @@ namespace TurnBased.Phases {
                     *  IMPORTANT: THIS CONNECTION NEEDS TO BE REVISED. WE SHOULD NOT BE GOING INTO A SUBPHASE FROM WITHIN A PHASE.
                     *  WE SHOULD BE TOLD TO BY THIS CLASS!!!
                     */
-                    if (this.AttackResolutionManager.IsProcessingIntentContinuing())
-                    {
-                        this.phaseManager.ChangeState(CombatTurnOrchestrationPhase.EndOfRound);
-                    }
 
+                    UnityEngine.Debug.LogError($"ATTACK IS COMPLETE. CHECKING TO SEE IF WE ARE CONTINUING INTENTIONS, OR IF WE ARE ENDING THE PHASE.  ");
+
+                    this.AttackResolutionManager.IsContinuingNextUnit();
 
                     break;
 

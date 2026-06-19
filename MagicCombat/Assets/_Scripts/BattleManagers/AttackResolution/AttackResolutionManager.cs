@@ -66,6 +66,16 @@ namespace TurnBased.AttackResolution
             ContinueNextUnit();
         }
 
+        public void IsContinuingNextUnit()
+        {
+            if (IsProcessingIntentContinuing())
+            {
+                UnityEngine.Debug.LogWarning($"Intentions continuing!");
+
+                ContinueNextUnit();
+            }
+        }
+
         private void ContinueNextUnit()
         {
             UnitIndex? turnOrderNextUnit = this.turnOrderManager.PopNextUnitInTurnOrder();
@@ -79,37 +89,16 @@ namespace TurnBased.AttackResolution
         private void ProcessNextUnitInTurnOrder()
         {
             UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
-            /*  Get the Resolving state from the Unit's Intention   */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.unitIndexToProcess, out Intention.UnitIntention intention)) { return; }
-            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
 
-            request.OnRequestComplete += WhenRequestCompleted;
-        }
-
-        private void WhenRequestCompleted(AttackResolution.CombatResolvingRequest request)
-        {
-            request.OnRequestComplete -= WhenRequestCompleted;
-
-            /*  Once the request is processed, reset the current unit and move on.  */
-            this.turnOrderManager.ResetCurrentUnit();
-
-            UnityEngine.Debug.LogWarning($"Done processing next unit in turn order");
-
-            if (IsProcessingIntentContinuing())
-            {
-                UnityEngine.Debug.LogWarning($"Intentions continuing!");
-
-                ContinueNextUnit();
-            }
-            else
-            {
-                UnityEngine.Debug.LogError($"ALL ATTACKS DONE!!! ");
-            }
+            this.subPhaseManager.SwitchSubPhase(SubPhaseState.RESOLVE_ATTACK, this.unitIndexToProcess);
         }
 
         private void OnResolvingStatesComplete()
         {
-            OnAllAttacksFullyResolved?.Invoke();
+            if (!IsProcessingIntentContinuing())
+            {
+                OnAllAttacksFullyResolved?.Invoke();
+            }
         }
 
         public TurnOrderCreationState TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> createdTurnOrderList) => this.turnOrderManager.TryCreateNewTurnOrderList(out createdTurnOrderList);

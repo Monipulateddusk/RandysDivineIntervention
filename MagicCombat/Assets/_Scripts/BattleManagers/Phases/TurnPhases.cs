@@ -319,12 +319,17 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
+            UnityEngine.Debug.LogError($"WE ARE STARTING THE TURN ORDER RESOLUTION PHASE! WEE WOO!");
+
+
             AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += OnPhaseComplete;
             AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
         }
 
         protected override void OnPhaseComplete()
         {
+            UnityEngine.Debug.LogError($"WE ARE LEAVING THE TURN ORDER RESOLUTION PHASE! WEE WOO!");
+
             AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= OnPhaseComplete;
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
         }
