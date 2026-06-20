@@ -29,6 +29,10 @@ namespace TurnBased.Combat
             this.isResolving = false;
         }
 
+        public void Update()
+        {
+        }
+
         public void OnDestroy()
         {
             if (instance != null && instance == this)
@@ -61,6 +65,7 @@ namespace TurnBased.Combat
         public void AddResolvingStateToBack(AttackResolution.CombatResolvingRequest resolvingRequest)
         {
             this.resolvingRequests.AddLast(resolvingRequest);
+            UnityEngine.Debug.LogWarning("Adding resolving state to back");
 
             ProcessNextRequest();
         }

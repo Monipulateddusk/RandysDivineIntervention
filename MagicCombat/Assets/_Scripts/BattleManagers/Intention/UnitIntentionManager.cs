@@ -104,6 +104,7 @@ namespace TurnBased.Intention
             this.ActionResolvingStates = new();
             this.TargetGroupResolvingStates = new();
             this.CurrentProcessingTargetGroupIndex = 0;
+            this.ResolutionTiming = timing;
         }
     }
 

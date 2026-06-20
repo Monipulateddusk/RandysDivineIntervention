@@ -70,7 +70,7 @@ namespace TurnBased.Phases {
 
             this.combatRoundIntentionManager.Awake(this);
             this.phaseManager.Awake(this.combatRoundIntentionManager, this.EventHookSystem, OnPhaseComplete);
-            this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseComplete);
+            this.subPhaseManager.Awake(this.EventHookSystem, OnSubPhaseCompleteMoveSelection, OnSubPhaseCompleteTargetSelection, OnSubPhaseCompleteReadyExecuteMove, OnSubPhaseCompleteResolveAttack, OnSubPhaseCompleteAttackComplete);
 
             this.UnitInformationManager.Awake();
             this.UnitStatusManager.Awake();
@@ -148,6 +148,8 @@ namespace TurnBased.Phases {
         {
             this.phaseManager.Update();
             this.subPhaseManager.Update();
+
+            this.IntentionCombatResolver.Update();
 
             string unitIndexDebuggingString = this.subPhaseManager.GetSelectedIndex() != null ? 
                 $"<color=green> For UnitIndex: {this.subPhaseManager.GetSelectedIndex().Value.Index} </color>" : string.Empty;
@@ -235,79 +237,96 @@ namespace TurnBased.Phases {
 
 
         /// <summary>
-        /// When a subphase is complete, it comes here. NEVER CHANGE THE MAIN PHASE FROM HERE. A MAIN PHASE WOULD HAVE ASSIGNED A SUBPHASE FOR A PURPOSE
+        /// Retrieves the UnitIndex on the selected station.
         /// </summary>
         /// <param name="phaseThatCompleted"></param>
-        private void OnSubPhaseComplete(SubPhaseState phaseThatCompleted)
+        private bool RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)
         {
             /*  Retrieve the selected station.  */
             StationIndex selectedStation = StationSelectorManager.Instance.GetSelectedStationIndex();
 
             /*  Try and get the Unit index on that station to pass to the subphase we are entering. */
-            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStation, out UnitIndex unitIndexOnStation)) { return; }
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(selectedStation, out unitIndexOnStation)) { return false; }
+            return true;
+        }
 
+        private void OnSubPhaseCompleteMoveSelection(UnitTurnPhase_MoveSelection phaseThatCompleted)
+        {
             /*  If User Input was awaited for purposes of Move or Target selection, complete it when the SubPhase is complete.  */
+            if (!RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)) { return; }
             this.combatRoundIntentionManager.CompleteAwaitingUserInput(unitIndexOnStation);
 
+            UnityEngine.Debug.LogWarning($"Move Selection Subphase is complete, processing the intention once more to aim to go to target resolution.   ");
 
-            switch (phaseThatCompleted)
+            /*  Get the intention of the Unit. If the Move Intent is done, we will be moved to Target Selection.    */
+            this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
+        }
+
+        private void OnSubPhaseCompleteTargetSelection(UnitTurnPhase_TargetSelection phaseThatCompleted)
+        {
+            /*  If User Input was awaited for purposes of Move or Target selection, complete it when the SubPhase is complete.  */
+            if (!RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)) { return; }
+            this.combatRoundIntentionManager.CompleteAwaitingUserInput(unitIndexOnStation);
+
+            UnityEngine.Debug.LogWarning($"Target selection Subphase is complete, processing the intention once more to aim to go to ready to execute phase.   ");
+            /*  Get the intention of the Unit. If the Target Intent is done, we will be moved to Ready-To-Execute Move.    */
+            this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
+        }
+        private void OnSubPhaseCompleteReadyExecuteMove(UnitTurnPhase_ReadyToExecuteMove phaseThatCompleted)
+        {
+            if (!RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)) { return; }
+            UnityEngine.Debug.LogWarning($"Ready to execute was done.  ");
+
+            if (phaseThatCompleted.GetIsResolvingInstantMove())
             {
-                case SubPhaseState.AWAITING_MOVE_SELECTION:
-                    UnityEngine.Debug.LogWarning($"Move Selection Subphase is complete, processing the intention once more to aim to go to target resolution.   ");
-
-                    /*  Get the intention of the Unit. If the Move Intent is done, we will be moved to Target Selection.    */
-                    this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
-                    break;
-
-                case SubPhaseState.AWAITING_TARGET_SELECTION:
-                    UnityEngine.Debug.LogWarning($"Target selection Subphase is complete, processing the intention once more to aim to go to ready to execute phase.   ");
-                    /*  Get the intention of the Unit. If the Target Intent is done, we will be moved to Ready-To-Execute Move.    */
-                    this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
-                    break;
-
-                case SubPhaseState.READY_TO_EXECUTE_MOVE:
-
-                    UnityEngine.Debug.LogWarning($"Ready to execute was done.  ");
-
-    
-                    UnityEngine.Debug.LogWarning($"Processing the next intention in sequence!!  ");
-
-                    this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
-                    
-                    break;
-
-                case SubPhaseState.RESOLVE_ATTACK:
-                    this.subPhaseManager.SwitchSubPhase(SubPhaseState.ATTACK_COMPLETE, unitIndexOnStation);
-                    break;
-
-                case SubPhaseState.ATTACK_COMPLETE:
-                    /*  
-                     *  When called, an attack is done. 
-                     *  However, determine if All intentions are done, or if it was a one-off attack from a unit. 
-                     *  
-                     *  In the event of the former, move to end of round phase. 
-                     *  
-                     *  In the case of the latter, check to see if the move ends their turn. If so, add them to the completed turn order or whatever.
-                     *  
-                     */
-
-                    /*  Check to see if the Turn order list is empty. If not, we don't want to move to the end of round Phase.  */
-
-
-                    /*  
-                    *  IMPORTANT: THIS CONNECTION NEEDS TO BE REVISED. WE SHOULD NOT BE GOING INTO A SUBPHASE FROM WITHIN A PHASE.
-                    *  WE SHOULD BE TOLD TO BY THIS CLASS!!!
-                    */
-
-                    UnityEngine.Debug.LogError($"ATTACK IS COMPLETE. CHECKING TO SEE IF WE ARE CONTINUING INTENTIONS, OR IF WE ARE ENDING THE PHASE.  ");
-
-                    this.AttackResolutionManager.IsContinuingNextUnit();
-
-                    break;
-
-                default:
-                    break;
+                phaseThatCompleted.ResetIsResolvingInstantMove();
+                this.AttackResolutionManager.StartOneOffAttackCombatResolution(OnOneOffMoveComplete, unitIndexOnStation);
             }
+            else
+            {
+                UnityEngine.Debug.LogWarning($"Processing the next intention in sequence!!  ");
+                this.combatRoundIntentionManager.ProcessNextIntentionInSequence();
+            }
+        }
+        private void OnSubPhaseCompleteResolveAttack(UnitTurnPhase_ResolveAttack phaseThatCompleted)
+        {
+            if (!RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)) { return; }
+
+            this.subPhaseManager.SwitchSubPhase(SubPhaseState.ATTACK_COMPLETE, unitIndexOnStation);
+        }
+        private void OnSubPhaseCompleteAttackComplete(UnitTurnPhase_AttackComplete phaseThatCompleted)
+        {
+            /*  
+             *  When called, an attack is done. 
+             *  However, determine if All intentions are done, or if it was a one-off attack from a unit. 
+             *  
+             *  In the event of the former, move to end of round phase. 
+             *  
+             *  In the case of the latter, check to see if the move ends their turn. If so, add them to the completed turn order or whatever.
+             *  
+             */
+
+            /*  Check to see if the Turn order list is empty. If not, we don't want to move to the end of round Phase.  */
+
+
+            /*  
+            *  IMPORTANT: THIS CONNECTION NEEDS TO BE REVISED. WE SHOULD NOT BE GOING INTO A SUBPHASE FROM WITHIN A PHASE.
+            *  WE SHOULD BE TOLD TO BY THIS CLASS!!!
+            */
+
+            UnityEngine.Debug.LogError($"ATTACK IS COMPLETE. CHECKING TO SEE IF WE ARE CONTINUING INTENTIONS, OR IF WE ARE ENDING THE PHASE.  ");
+
+            this.AttackResolutionManager.IsContinuingNextUnit();
+        }
+
+        private void OnOneOffMoveComplete()
+        {
+            if (!RetrieveUnitIndexOnStation(out UnitIndex unitIndexOnStation)) { return; }
+            this.combatRoundIntentionManager.CompleteAwaitingUserInput(unitIndexOnStation);
+
+            UnityEngine.Debug.LogError($"ONE OFF MOVE IS COMPLETE! HOPEFULLY GOING AROUND AGAIN!!.  ");
+
+            this.combatRoundIntentionManager.ProcessIntentionOfResolvingUnit();
         }
     }
 }

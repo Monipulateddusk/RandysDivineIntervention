@@ -6,8 +6,8 @@ namespace TurnBased.Intention {
     {
         private Phases.CombatTurnOrchestrator orchestrator;
 
-        private static bool isAwaitingUserInput = false;
-        public static bool IsAwaitingUserInput
+        private bool isAwaitingUserInput = false;
+        public bool IsAwaitingUserInput
         {
             get
             {
@@ -23,8 +23,8 @@ namespace TurnBased.Intention {
 
 
 
-        private static UnitIndex? currentResolvingUnit;
-        public static UnitIndex? CurrentResolvingUnit
+        private UnitIndex? currentResolvingUnit;
+        public UnitIndex? CurrentResolvingUnit
         {
             get
             {
@@ -32,8 +32,8 @@ namespace TurnBased.Intention {
             }
             private set
             {
-                currentResolvingUnit = value;
-                OnResolvingUnitChange?.Invoke(currentResolvingUnit);
+                this.currentResolvingUnit = value;
+                OnResolvingUnitChange?.Invoke(this.currentResolvingUnit);
             }
         }
 
@@ -63,8 +63,8 @@ namespace TurnBased.Intention {
         {
             UnityEngine.Debug.Log($"Nullifying the orchestrator");
             this.orchestrator = null;
-            IsAwaitingUserInput = false;
-            StationSelectorManager.OnSelectionChange -= OnStationSelectionChange;
+            this.IsAwaitingUserInput = false;
+            StationSelectorManager.OnSelectionChange        -= OnStationSelectionChange;
 
             MoveSelectionResolver.OnRequireUserInput        -= SetIsAwaitingUserInput;
             TargetSelectionResolver.OnRequireUserInput      -= SetIsAwaitingUserInput;
@@ -95,7 +95,7 @@ namespace TurnBased.Intention {
         {
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                CurrentResolvingUnit = unitIndex;
+                this.CurrentResolvingUnit = unitIndex;
 
                 ProcessIntentionOfResolvingUnit();
             }
@@ -109,7 +109,7 @@ namespace TurnBased.Intention {
 
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
+                this.CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
             }
 
             Debug.LogWarning($"Autonomous count is: {this.ProcessingUnitIndexes.Count}. Orchestrator is: {this.orchestrator}  ");
@@ -123,7 +123,7 @@ namespace TurnBased.Intention {
 
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
+                this.CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
             }
             ProcessIntentionOfResolvingUnit();
         }
@@ -132,12 +132,12 @@ namespace TurnBased.Intention {
         {
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                bool res = GetNextUnitInList(CurrentResolvingUnit.Value);
+                bool res = GetNextUnitInList(this.CurrentResolvingUnit.Value);
 
                 if (res)
                 {
                     ProcessIntentionOfResolvingUnit();
-                    StationSelectorManager.Instance.SetSelectedStationIndex(CurrentResolvingUnit.Value);
+                    StationSelectorManager.Instance.SetSelectedStationIndex(this.CurrentResolvingUnit.Value);
                 }
             }
         }
@@ -145,10 +145,10 @@ namespace TurnBased.Intention {
         public void ProcessIntentionOfResolvingUnit()
         {
             /*  If the Current Resolving Unit is not within our resolving list, don't process it and get the next unit. */
-            if (!IntentionResolverUtility.DoesListContainUnitIndex(CurrentResolvingUnit.Value, this.ProcessingUnitIndexes)) { GetNextUnitInList(CurrentResolvingUnit.Value); }
+            if (!IntentionResolverUtility.DoesListContainUnitIndex(this.CurrentResolvingUnit.Value, this.ProcessingUnitIndexes)) { GetNextUnitInList(this.CurrentResolvingUnit.Value); }
 
             /*  Peek at the current Unit's intention state. Tell the Orchestrator to move into that state.  */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentResolvingUnit.Value, out UnitIntention intention)) { GetNextUnitInList(CurrentResolvingUnit.Value); }
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(currentResolvingUnit.Value, out UnitIntention intention)) { GetNextUnitInList(this.CurrentResolvingUnit.Value); }
 
             Debug.LogWarning($"Intention res state is: {intention.ResolvingState.IntentionResolutionState}");
 
@@ -159,16 +159,16 @@ namespace TurnBased.Intention {
 
                     Debug.LogWarning($"Awaiting move selection. Orchestrator is: {this.orchestrator}");
 
-                    this.orchestrator.ChangeSubPhase(SubPhaseState.AWAITING_MOVE_SELECTION, CurrentResolvingUnit.Value);
+                    this.orchestrator.ChangeSubPhase(SubPhaseState.AWAITING_MOVE_SELECTION, this.CurrentResolvingUnit.Value);
                     break;
 
                 case UnitIntentionResolutionState.AWAITING_TARGET_SELECTION:
 
-                    this.orchestrator.ChangeSubPhase(SubPhaseState.AWAITING_TARGET_SELECTION, CurrentResolvingUnit.Value);
+                    this.orchestrator.ChangeSubPhase(SubPhaseState.AWAITING_TARGET_SELECTION, this.CurrentResolvingUnit.Value);
                     break;
 
                 case UnitIntentionResolutionState.COMPLETED_INTENTION:
-                    this.orchestrator.ChangeSubPhase(SubPhaseState.READY_TO_EXECUTE_MOVE, CurrentResolvingUnit.Value);
+                    this.orchestrator.ChangeSubPhase(SubPhaseState.READY_TO_EXECUTE_MOVE, this.CurrentResolvingUnit.Value);
                     break;
 
                 case UnitIntentionResolutionState.RESOLVED_MOVE:
@@ -189,7 +189,7 @@ namespace TurnBased.Intention {
         private bool GetNextUnitInList(UnitIndex previousUnit)
         {
             /*  If this UnitIndex exists in our processing list and is identical to the currently resolving unit, we want to remove this currently resolving unit from the processing list. */
-            if (IntentionResolverUtility.DoesListContainUnitIndex(previousUnit, this.ProcessingUnitIndexes) && CurrentResolvingUnit.HasValue && CurrentResolvingUnit.Value.Index == previousUnit.Index)
+            if (IntentionResolverUtility.DoesListContainUnitIndex(previousUnit, this.ProcessingUnitIndexes) && this.CurrentResolvingUnit.HasValue && this.CurrentResolvingUnit.Value.Index == previousUnit.Index)
             {
                 if (!this.ProcessingUnitIndexes.Remove(previousUnit)) { throw new System.IndexOutOfRangeException("ERROR — INTENTION MANAGER: UNABLE TO REMOVE THE PREVIOUS UNIT WHEN SELECTING NEW UNIT! UNIT DOES NOT EXIST IN COLLECTION"); }
             }
@@ -200,7 +200,7 @@ namespace TurnBased.Intention {
             /*  Retrieve the next new active unit if the container exists. If not, we are done. */
             if (this.ProcessingUnitIndexes.Count > 0)
             {
-                CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
+                this.CurrentResolvingUnit = this.ProcessingUnitIndexes.FirstOrDefault();
                 return true;
             }
 
@@ -226,14 +226,14 @@ namespace TurnBased.Intention {
 
         public void SetIsAwaitingUserInput(UnitIndex unitIndex)
         {
-            IsAwaitingUserInput = true; 
+            this.IsAwaitingUserInput = true; 
             /*  Alert the UI    */
             TurnBased.UI.UserInterfaceUserInput.Instance.StartSelection(unitIndex);
         }
 
         public void CompleteAwaitingUserInput(UnitIndex unitIndex)
         {
-            IsAwaitingUserInput = false;
+            this.IsAwaitingUserInput = false;
             /*  Alert the UI    */
             TurnBased.UI.UserInterfaceUserInput.Instance.StopSelection(unitIndex);
         }

@@ -4,9 +4,16 @@ namespace TurnBased.AttackResolution
     {
         TurnOrder.TurnOrderManager turnOrderManager;
         Phases.SubPhaseManager subPhaseManager;
-        public static event System.Action OnAllAttacksFullyResolved;
+        public event System.Action OnAllAttacksFullyResolved;
         private UnitIndex unitIndexToProcess;
 
+        private enum AttackResolutionState
+        {
+            None,
+            TurnOrderAttacking,
+            OneOffAttacking
+        }
+        private AttackResolutionState currentState = AttackResolutionState.None;
 
         private static AttackResolutionManager instance;
         public static AttackResolutionManager Instance
@@ -60,15 +67,28 @@ namespace TurnBased.AttackResolution
         /// <summary>
         /// When called, goes through the TurnOrder Queue to process each Unit's intentions.
         /// </summary>
-        public void StartCombatResolution()
+        public void StartCombatResolution(System.Action OnTurnOrderCombatResolved)
         {
+            this.OnAllAttacksFullyResolved = OnTurnOrderCombatResolved;
+            this.currentState = AttackResolutionState.TurnOrderAttacking;
+
             UnityEngine.Debug.LogWarning($"Starting combat resolution!");
             ContinueNextUnit();
         }
 
+        public void StartOneOffAttackCombatResolution(System.Action OnOneOffAttackResolved, UnitIndex unitIndexDoingOneOffMove)
+        {
+            this.OnAllAttacksFullyResolved = OnOneOffAttackResolved;
+            this.currentState = AttackResolutionState.OneOffAttacking;
+
+            UnityEngine.Debug.LogWarning($"Starting One Off Move resolution!");
+            this.unitIndexToProcess = unitIndexDoingOneOffMove;
+            ProcessUnitToProcess();
+        }
+
         public void IsContinuingNextUnit()
         {
-            if (IsProcessingIntentContinuing())
+            if (this.currentState != AttackResolutionState.OneOffAttacking && IsProcessingIntentContinuing() )
             {
                 UnityEngine.Debug.LogWarning($"Intentions continuing!");
 
@@ -83,10 +103,10 @@ namespace TurnBased.AttackResolution
             if (!turnOrderNextUnit.HasValue) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: CANNOT PROCESS NEXT UNIT IN TURN ORDER THAT DOESN'T EXIST!"); return; }
             this.unitIndexToProcess = turnOrderNextUnit.Value;
 
-            ProcessNextUnitInTurnOrder();
+            ProcessUnitToProcess();
         }
 
-        private void ProcessNextUnitInTurnOrder()
+        private void ProcessUnitToProcess()
         {
             UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
 
@@ -95,9 +115,22 @@ namespace TurnBased.AttackResolution
 
         private void OnResolvingStatesComplete()
         {
-            if (!IsProcessingIntentContinuing())
+            switch (this.currentState)
             {
-                OnAllAttacksFullyResolved?.Invoke();
+                case AttackResolutionState.TurnOrderAttacking:
+                    if (!IsProcessingIntentContinuing())
+                    {
+                        this.OnAllAttacksFullyResolved?.Invoke();
+                        this.OnAllAttacksFullyResolved = null;
+                    }
+                    break;
+
+                default:
+                case AttackResolutionState.OneOffAttacking:  
+                case AttackResolutionState.None:
+                    this.OnAllAttacksFullyResolved?.Invoke();
+                    this.OnAllAttacksFullyResolved = null;
+                    break;
             }
         }
 
