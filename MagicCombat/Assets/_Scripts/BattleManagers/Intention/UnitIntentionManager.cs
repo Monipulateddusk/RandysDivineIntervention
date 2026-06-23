@@ -331,7 +331,7 @@ namespace TurnBased.Intention
 
         public void ResetAllActiveUnitIntentions()
         {
-            System.Collections.Generic.Dictionary<int, UnitIntention>.KeyCollection activeUnits = this.intentionDictionary.Keys;
+            System.Collections.Generic.List<int> activeUnits = this.intentionDictionary.Keys.ToList();
             foreach (int index in activeUnits)
             {
                 UnitIndex unitIndex = new(index);

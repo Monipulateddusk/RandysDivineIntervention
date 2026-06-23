@@ -83,7 +83,7 @@ namespace TurnBased
         public int GetAPCost()      => 0;
         public bool DoesSourceUnitMove() => true;
 
-        public string GetMoveName() => "HeavyAttack";
+        public string GetMoveName() => "Heavy Attack";
 
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
 
@@ -127,7 +127,7 @@ namespace TurnBased
         public int GetAPCost() => 0;
         public bool DoesSourceUnitMove() => true;
 
-        public string GetMoveName() => "LightAttack";
+        public string GetMoveName() => "Light Attack";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
 
@@ -193,7 +193,7 @@ namespace TurnBased
         public int GetMaxTargets() => 0;
         public int GetAPCost() => 1;
         public bool DoesSourceUnitMove() => false;
-        public string GetMoveName() => "ImbueEnvironment";
+        public string GetMoveName() => "Imbue Environment";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
     

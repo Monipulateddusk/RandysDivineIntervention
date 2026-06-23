@@ -9,6 +9,7 @@ namespace TurnBased.UI
 
         [SerializeField, Tooltip("Assign with the Button Component on 'MoveUIElement'")]                            private UnityEngine.UI.Button MoveUIElementClickableButton;
         [SerializeField, Tooltip("Assign with the TextMeshProUGUI component child to: 'MoveName'")]                 private TMPro.TextMeshProUGUI MoveNameUIElementText;
+        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component child to: 'MoveCostText'")]             private TMPro.TextMeshProUGUI MoveCostUIElementText;
         [SerializeField, Tooltip("Assign with the TextMeshProUGUI component child to: 'MoveDamageDescription'")]    private TMPro.TextMeshProUGUI MoveDescriptionUIElementText;
 
         private IBattleMove correlatingMove;
@@ -66,10 +67,11 @@ namespace TurnBased.UI
         }
         public void Initalise(UnitIndex unitIndex, IBattleMove move)
         {
-            if (this.MoveNameUIElementText != null && this.MoveDescriptionUIElementText != null)
+            if (this.MoveNameUIElementText != null && this.MoveCostUIElementText != null && this.MoveDescriptionUIElementText != null)
             {
                 this.correlatingMove                        = move;
                 this.MoveNameUIElementText.text             = move.GetMoveName();
+                this.MoveCostUIElementText.text             = move.GetAPCost().ToString();
                 this.MoveDescriptionUIElementText.text      = GetMoveDescription(unitIndex, move);
             }
         }

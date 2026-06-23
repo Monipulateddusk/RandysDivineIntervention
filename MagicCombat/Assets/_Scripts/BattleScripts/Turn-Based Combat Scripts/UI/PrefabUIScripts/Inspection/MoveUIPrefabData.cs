@@ -8,6 +8,7 @@ namespace TurnBased.UI
 
         [SerializeField, Tooltip("Assign with the Button Component on 'MoveUIElement'")] private UnityEngine.UI.Button MoveUIElementClickableButton;
         [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on 'MoveText'")] private TMPro.TextMeshProUGUI MoveUIElementText;
+        [SerializeField, Tooltip("Assign with the TextMeshProUGUI component on 'MoveCostText'")] private TMPro.TextMeshProUGUI MoveCostUIElementText;
 
         [SerializeField, Tooltip("Assign with each Shadow on this GameObject, Drag the component itself into the fields.")]
         private UnityEngine.UI.Shadow whiteShadow, blackShadow;
