@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace TurnBased.Intention
@@ -127,7 +128,7 @@ namespace TurnBased.Intention
         /// </summary>
         /// <param name="apAmount"></param>
         /// <returns>False if the AP amount to be reduced would be less than 0. Returns True if the AP amount would be greater than or equal to 0.</returns>
-        public bool RemoveAP(int apAmount)
+        public bool RecreaseAP(int apAmount)
         {
             int newAPAmount = this.UnitAP - apAmount;
             if (newAPAmount < 0)
@@ -136,6 +137,11 @@ namespace TurnBased.Intention
             } 
             this.UnitAP = newAPAmount;
             return true;
+        }
+        public void IncreaseAP(int apAmount)
+        {
+            int newAPAmount = this.UnitAP + apAmount;
+            this.UnitAP = newAPAmount;
         }
     }
 
@@ -226,6 +232,42 @@ namespace TurnBased.Intention
             OnUnitIntentionRemoved?.Invoke(unitIndex);
         }
 
+        /// <summary>
+        /// Sets the AP value to 1 for the start of the round.
+        /// </summary>
+        /// <param name="unitIndex"></param>
+        public void ResetUnitAP(UnitIndex unitIndex)
+        {
+            IncreaseUnitAP(unitIndex, 1);
+        }
+
+        public void IncrementUnitAP(UnitIndex unitIndex)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].IncrementAP();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void IncreaseUnitAP(UnitIndex unitIndex, int apIncreaseValue)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].IncreaseAP(apIncreaseValue);
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void ReduceUnitAP(UnitIndex unitIndex, int apDecreaseValue)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].RecreaseAP(apDecreaseValue);
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
         public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
@@ -258,7 +300,24 @@ namespace TurnBased.Intention
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, new UnitIntention());
+            this.intentionDictionary[unitIndex.Index] = new();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void ClearIntention(UnitIndex unitIndex, IBattleMove moveUsed)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX BEFORE {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
+
+            this.intentionDictionary[unitIndex.Index].ResolvingState = new();
+            this.intentionDictionary[unitIndex.Index].RecreaseAP(moveUsed.GetAPCost());
+
+            UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX AFTER {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
+
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
@@ -268,6 +327,17 @@ namespace TurnBased.Intention
 
             intention = this.intentionDictionary[unitIndex.Index];
             return true;
+        }
+
+        public void ResetAllActiveUnitIntentions()
+        {
+            System.Collections.Generic.Dictionary<int, UnitIntention>.KeyCollection activeUnits = this.intentionDictionary.Keys;
+            foreach (int index in activeUnits)
+            {
+                UnitIndex unitIndex = new(index);
+                ClearIntention(unitIndex);
+                ResetUnitAP(unitIndex);
+            }
         }
     }
 

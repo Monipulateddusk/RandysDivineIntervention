@@ -49,6 +49,7 @@ namespace TurnBased
         public abstract AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData);
         public MoveResolutionTiming GetResolutionTiming();
         public int GetMaxTargets();
+        public int GetAPCost();
         public bool DoesSourceUnitMove();
         public string GetMoveName();
     }
@@ -78,12 +79,14 @@ namespace TurnBased
             return resolutionInfo;
         }
 
-        public int GetMaxTargets() => 1;
+        public int GetMaxTargets()  => 1;
+        public int GetAPCost()      => 0;
         public bool DoesSourceUnitMove() => true;
 
         public string GetMoveName() => "HeavyAttack";
 
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
+
     }
 
     /// <summary>
@@ -121,6 +124,7 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 1;
+        public int GetAPCost() => 0;
         public bool DoesSourceUnitMove() => true;
 
         public string GetMoveName() => "LightAttack";
@@ -152,6 +156,7 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 1;
+        public int GetAPCost() => 1;
         public bool DoesSourceUnitMove() => true;
 
         public string GetMoveName() => "Instant Quick Attack";
@@ -186,6 +191,7 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 0;
+        public int GetAPCost() => 1;
         public bool DoesSourceUnitMove() => false;
         public string GetMoveName() => "ImbueEnvironment";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;

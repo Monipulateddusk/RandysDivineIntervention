@@ -162,7 +162,7 @@ namespace TurnBased.Combat
 
             UnityEngine.Debug.LogWarning($"source unit index is: {sourceUnitIndex.Index}");
 
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
+            //if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
 
             UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {resolvingState.ResolvingSource.SourceUnitMove.GetMoveName()}! ");
 
@@ -183,7 +183,7 @@ namespace TurnBased.Combat
 
             /*  Process each step individually   */
 
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(intention.ResolvingState);
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
 
 
             UnityEngine.Debug.LogWarning($"Moving back to station");
@@ -196,7 +196,7 @@ namespace TurnBased.Combat
 
 
             /*  Clear the intention of the attack once done.    */
-            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex);
+            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, resolvingState.ResolvingSource.SourceUnitMove);
 
             UnityEngine.Debug.LogWarning($"Determining dead units");
 

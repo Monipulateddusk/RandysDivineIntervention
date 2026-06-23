@@ -131,6 +131,7 @@ namespace TurnBased.Phases
 
         protected override void OnEventsComplete()
         {
+            Intention.UnitIntentionManager.Instance.ResetAllActiveUnitIntentions(); 
             InitaliseTurnOrderForTheRound();
             SubscribeEventsForStartOfRound();
         }
