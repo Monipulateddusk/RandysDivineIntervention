@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using TurnBased.Information;
 
 public readonly struct UnitIndex     
 {  
@@ -252,7 +253,8 @@ public class SceneUnitData
         if (!this.Units.ContainsKey(unitIndex.Index)) { return false; }
 
         BaseBattleUnit unit = this.Units[unitIndex.Index];
-        return unit.GetTeam() == team;
+        team = unit.GetTeam();
+        return true;
     }
 
     /// <summary>
@@ -328,15 +330,6 @@ public class SceneUnitData
 
         UnityEngine.Debug.LogError($"Active units count is: {activeUnits.Count}");
         return activeUnits;
-    }
-
-    public System.Collections.Generic.List<UnitIndex> GetAllUnits()
-    {
-        System.Collections.Generic.List<UnitIndex> units = new();
-        if(this.Units.Count < 0) { return new(); }
-
-        return null;
-
     }
 
     /// <summary>
@@ -892,43 +885,43 @@ public static class StationManagerUtilities
         return true;
     }
 
-    public static bool TryCreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)
+    public static bool TryCreateUnitDataSceneDataForUnitIndex(UnitIndex unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)
     {
         resolutionSceneData = default;
 
-        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> allyUnitInformation = new();
-        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> enemyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.Information.UnitInformation> allyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.Information.UnitInformation> enemyUnitInformation = new();
 
         /*  Get the stationIndexes for each active unit in the scene to loop through them and retrieve their data.  */
         if (!TryCreateCombatSceneDataForUnitIndex(unitIndex, out UnitTurnStationIndexesSceneData sceneData)) { return false; }
 
         foreach (StationIndex allyStationIndex in sceneData.AllyStationIndexes) 
         {
-            if (!TryCreateUnitInformation(allyStationIndex, UnitTeam.ALLY, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(allyStationIndex, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (StationIndex enemyStationIndex in sceneData.EnemyStationIndexes)
         {
-            if (!TryCreateUnitInformation(enemyStationIndex, UnitTeam.ENEMY, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(enemyStationIndex, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
 
             enemyUnitInformation.Add(unitInformation);
         }
 
-        if (!TryCreateUnitInformation(sceneData.SourceStationIndex, UnitTeam.ENEMY, out TurnBased.AttackResolution.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
+        if (!TryGetUnitInformation(sceneData.SourceStationIndex, out TurnBased.Information.UnitInformation ownerUnitInformation)) { return false; throw new NullReferenceException("ERROR — STATION_HANDLER: SOURCE UNIT INDEX UNABLE TO GET UNIT DATA!"); }
         System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement>  imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
 
 
-        resolutionSceneData = new TurnBased.AttackResolution.ResolutionSceneData(ownerUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
+        resolutionSceneData = new TurnBased.Information.ResolutionSceneData(ownerUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
         return true;
     }
-    public static bool TryCreateUnitDataSceneDataForElementalMove(UnitTeam team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)
+    public static bool TryCreateUnitDataSceneDataForElementalMove(UnitTeam team, out TurnBased.Information.ResolutionSceneData resolutionSceneData)
     {
         resolutionSceneData = default;
 
-        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> allyUnitInformation = new();
-        System.Collections.Generic.List<TurnBased.AttackResolution.UnitInformation> enemyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.Information.UnitInformation> allyUnitInformation = new();
+        System.Collections.Generic.List<TurnBased.Information.UnitInformation> enemyUnitInformation = new();
 
         UnitTeam oppositeTeam = GetOppositeTeamType(team);
 
@@ -937,45 +930,39 @@ public static class StationManagerUtilities
 
         foreach (UnitIndex unitIndexOnTeam in unitIndexesOnTeam)
         {
-            if (!TryCreateUnitInformation(unitIndexOnTeam, team, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnTeam, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             allyUnitInformation.Add(unitInformation);
         }
 
         foreach (UnitIndex unitIndexOnOppositeTeam in unitIndexesOnOppositeTeam)
         {
-            if (!TryCreateUnitInformation(unitIndexOnOppositeTeam, team, out TurnBased.AttackResolution.UnitInformation unitInformation)) { continue; }
+            if (!TryGetUnitInformation(unitIndexOnOppositeTeam, out TurnBased.Information.UnitInformation unitInformation)) { continue; }
             enemyUnitInformation.Add(unitInformation);
         }
 
         if (allyUnitInformation.Count <= 0 || enemyUnitInformation.Count <= 0) { return false; }
 
-        TurnBased.AttackResolution.UnitInformation sourceUnitInformation = allyUnitInformation.FirstOrDefault();
+        TurnBased.Information.UnitInformation sourceUnitInformation = allyUnitInformation.FirstOrDefault();
         System.Collections.Generic.List<TurnBased.Elements.ImbuedEnvironmentElement> imbuedElements = TurnBased.Elements.CombatEnvironmentController.Instance.GetImbuedEnvironmentElements();
 
-        resolutionSceneData = new TurnBased.AttackResolution.ResolutionSceneData(sourceUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
+        resolutionSceneData = new TurnBased.Information.ResolutionSceneData(sourceUnitInformation, allyUnitInformation, enemyUnitInformation, imbuedElements);
         return true;
     }
 
-    private static bool TryCreateUnitInformation(StationIndex stationIndex, UnitTeam team, out TurnBased.AttackResolution.UnitInformation information) 
+    private static bool TryGetUnitInformation(StationIndex stationIndex, out TurnBased.Information.UnitInformation information) 
     {
         information = default;
 
-        if (!StationManager.Instance.TryGetUnitDataOnStation(stationIndex, out UnitData unitData)) { return false; }
         if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndexOnStation)) { return false; }
-        if (!TurnBased.Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndexOnStation, out int currentHealth)) { return false; }
+        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetUnitInformationOfUnitIndex(unitIndexOnStation, out information)) { return false; }
 
-        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndexOnStation);
         return true;
     }
 
-    private static bool TryCreateUnitInformation(UnitIndex unitIndex, UnitTeam team, out TurnBased.AttackResolution.UnitInformation information)
+    private static bool TryGetUnitInformation(UnitIndex unitIndex, out TurnBased.Information.UnitInformation information)
     {
-        information = default;
+        if (!TurnBased.Information.UnitInformationManager.Instance.TryGetUnitInformationOfUnitIndex(unitIndex, out information)) { return false; }
 
-        if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return false; }
-        if (!TurnBased.Health.UnitHealthManager.Instance.TryGetCurrentHealthOfUnitIndex(unitIndex, out int currentHealth)) { return false; }
-
-        information = new(currentHealth, unitData.maxHP, unitData.attack, unitData.speed, team, unitData.element, unitIndex);
         return true;
     }
 
@@ -1104,15 +1091,12 @@ public static class StationManagerUtilities
 
     public static UnitTeam GetOppositeTeamType(UnitTeam team)
     {
-        switch (team)
+        return team switch
         {
-            case UnitTeam.ALLY:
-                return UnitTeam.ENEMY;
-            case UnitTeam.ENEMY:
-                return UnitTeam.ALLY;
-            default:
-                return UnitTeam.ALLY;
-        }
+            UnitTeam.ALLY => UnitTeam.ENEMY,
+            UnitTeam.ENEMY => UnitTeam.ALLY,
+            _ => UnitTeam.ALLY,
+        };
     }
     public static System.Collections.Generic.List<UnitIndex> GetUnitIndexCollectionRemovingSourceIndex(System.Collections.Generic.List<UnitIndex> unitIndexes, UnitIndex sourceIndex)
     {

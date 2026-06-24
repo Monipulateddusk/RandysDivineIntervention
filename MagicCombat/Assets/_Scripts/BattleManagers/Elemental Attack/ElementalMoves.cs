@@ -5,7 +5,7 @@ namespace TurnBased
 {
     public interface IElementalMove
     {
-        public abstract AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData);
+        public abstract AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData);
         public abstract string GetMoveName();
         public abstract UnitTargetSelectorType GetTargetSelectorType();
         public string GetElementalMoveDescription();
@@ -19,7 +19,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Inferno : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalFireAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.FIRE);
 
@@ -57,7 +57,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Steam : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.WATER);
 
@@ -98,7 +98,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Frostburn : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -135,7 +135,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Volcano : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.EARTH);
 
@@ -179,7 +179,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Tsunami : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalWaterAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.WATER);
 
@@ -216,7 +216,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Wellspring : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -257,7 +257,7 @@ namespace TurnBased
     /// </summary>
     public class EM_IceAge : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalIceAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.ICE);
 
@@ -294,7 +294,7 @@ namespace TurnBased
     /// </summary>
     public class EM_HailCloak : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -333,7 +333,7 @@ namespace TurnBased
     /// </summary>
     public class EM_Fissure : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int totalEarthAttack = ElementalMoveUtilities.GetTotalAttackValueOfUsersWithElement(resolutionSceneData.AllyUnitInformation, Element.EARTH);
 
@@ -372,7 +372,7 @@ namespace TurnBased
     /// </summary>
     public class EM_FrostLock : IElementalMove
     {
-        public AttackResolutionInfo ExecuteElementalMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteElementalMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -412,7 +412,7 @@ namespace TurnBased
 
     public static class ElementalMoveUtilities
     {
-        public static int GetTotalAttackValueOfUsersWithElement(System.Collections.Generic.List<UnitInformation> usersInfo, Element element)
+        public static int GetTotalAttackValueOfUsersWithElement(System.Collections.Generic.List<TurnBased.Information.UnitInformation> usersInfo, Element element)
         {
             int totalAttackValue = 0;
             foreach (var unit in usersInfo)

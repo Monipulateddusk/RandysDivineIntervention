@@ -46,9 +46,10 @@ namespace TurnBased
 
     public interface IBattleMove
     {
-        public abstract AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData);
+        public abstract AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData);
         public MoveResolutionTiming GetResolutionTiming();
         public int GetMaxTargets();
+        public int GetAPCost();
         public bool DoesSourceUnitMove();
         public string GetMoveName();
     }
@@ -58,7 +59,7 @@ namespace TurnBased
     /// </summary>
     public class HeavyAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -78,12 +79,14 @@ namespace TurnBased
             return resolutionInfo;
         }
 
-        public int GetMaxTargets() => 1;
+        public int GetMaxTargets()  => 1;
+        public int GetAPCost()      => 0;
         public bool DoesSourceUnitMove() => true;
 
-        public string GetMoveName() => "HeavyAttack";
+        public string GetMoveName() => "Heavy Attack";
 
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
+
     }
 
     /// <summary>
@@ -91,7 +94,7 @@ namespace TurnBased
     /// </summary>
     public class LightAttack : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             int damage = resolutionSceneData.OwnerUnitInformation.UnitAttack / 3;
             AttackResolutionInfo resolutionInfo = new()
@@ -121,18 +124,52 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 1;
+        public int GetAPCost() => 0;
         public bool DoesSourceUnitMove() => true;
 
-        public string GetMoveName() => "LightAttack";
+        public string GetMoveName() => "Light Attack";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
+
+    public class InstantQuickAttack : IBattleMove
+    {
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
+        {
+            int damage = resolutionSceneData.OwnerUnitInformation.UnitAttack / 3;
+            AttackResolutionInfo resolutionInfo = new()
+            {
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+
+                Steps =
+                {
+                    new AttackStep()
+                    {
+                        Actions =
+                        {
+                            new AttackResolution.DamageAttackAction(damageAmount: 5, 1, groupID: 0)
+                        }
+                    },
+                }
+
+            };
+            return resolutionInfo;
+        }
+
+        public int GetMaxTargets() => 1;
+        public int GetAPCost() => 1;
+        public bool DoesSourceUnitMove() => true;
+
+        public string GetMoveName() => "Instant Quick Attack";
+        public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.Instant;
+    }
+
 
     /// <summary>
     /// An attack that imbues the environment with the user's element. Used for the joint attacks proc-ing
     /// </summary>
     public class ImbueEnvrionment : IBattleMove
     {
-        public AttackResolutionInfo ExecuteMove(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             AttackResolutionInfo resolutionInfo = new()
             {
@@ -154,8 +191,9 @@ namespace TurnBased
         }
 
         public int GetMaxTargets() => 0;
+        public int GetAPCost() => 1;
         public bool DoesSourceUnitMove() => false;
-        public string GetMoveName() => "ImbueEnvironment";
+        public string GetMoveName() => "Imbue Environment";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
     }
     

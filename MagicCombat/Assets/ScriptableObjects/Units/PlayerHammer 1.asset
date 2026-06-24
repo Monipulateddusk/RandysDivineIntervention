@@ -20,7 +20,7 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
   element: 1
   moves:
-  - rid: 5303009918508859395
+  - rid: 5066282868326531073
   - rid: 5303009918508859394
   - rid: 618058911503876096
   moveSelectorType: 2
@@ -32,9 +32,9 @@ MonoBehaviour:
     - rid: 618058911503876096
       type: {class: ImbueEnvrionment, ns: TurnBased, asm: Assembly-CSharp}
       data: 
+    - rid: 5066282868326531073
+      type: {class: InstantQuickAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
     - rid: 5303009918508859394
       type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
-      data: 
-    - rid: 5303009918508859395
-      type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
       data: 

@@ -1,3 +1,5 @@
+using TurnBased.GameState;
+
 namespace TurnBased.Combat
 {
     public class IntentionCombatResolver
@@ -25,6 +27,10 @@ namespace TurnBased.Combat
 
             this.resolvingRequests = new();
             this.isResolving = false;
+        }
+
+        public void Update()
+        {
         }
 
         public void OnDestroy()
@@ -59,6 +65,7 @@ namespace TurnBased.Combat
         public void AddResolvingStateToBack(AttackResolution.CombatResolvingRequest resolvingRequest)
         {
             this.resolvingRequests.AddLast(resolvingRequest);
+            UnityEngine.Debug.LogWarning("Adding resolving state to back");
 
             ProcessNextRequest();
         }
@@ -155,9 +162,9 @@ namespace TurnBased.Combat
 
             UnityEngine.Debug.LogWarning($"source unit index is: {sourceUnitIndex.Index}");
 
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
+            //if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
 
-            UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {intention.MoveSelection.GetMoveName()}! ");
+            UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {resolvingState.ResolvingSource.SourceUnitMove.GetMoveName()}! ");
 
             /*  Obtain the Unit Data for resolving this attack. */
             if (!TryGetUnitDataForCombatResolution(sourceUnitIndex, out var UnitDataForCombatResolution)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO OBTAIN UNIT DATA FOR UNIT_INDEX!"); return; }
@@ -176,7 +183,7 @@ namespace TurnBased.Combat
 
             /*  Process each step individually   */
 
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(intention.ResolvingState);
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
 
 
             UnityEngine.Debug.LogWarning($"Moving back to station");
@@ -189,11 +196,11 @@ namespace TurnBased.Combat
 
 
             /*  Clear the intention of the attack once done.    */
-            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex);
+            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, resolvingState.ResolvingSource.SourceUnitMove);
 
             UnityEngine.Debug.LogWarning($"Determining dead units");
 
-            AttackResolution.UnitDeathResolver.DetermineDeadUnits();
+            GameStateManager.Instance.DetermineDeadUnits();
 
         }
 
@@ -203,14 +210,14 @@ namespace TurnBased.Combat
             await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
             UnityEngine.Debug.LogError($"Processed Status Resolving State!");
 
-            AttackResolution.UnitDeathResolver.DetermineDeadUnits();
+            GameStateManager.Instance.DetermineDeadUnits();
         }
 
         private async System.Threading.Tasks.Task ProcessEnvironmentResolvingState(Intention.ResolvingState resolvingState)
         {
             await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
 
-            AttackResolution.UnitDeathResolver.DetermineDeadUnits();
+            GameStateManager.Instance.DetermineDeadUnits();
         }
         
         public static bool TryGetUnitDataForCombatResolution(UnitIndex sourceUnitIndex, out UnitDataForCombatResolution outUnitDataForCombatResolution)

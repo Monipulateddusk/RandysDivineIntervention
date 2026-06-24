@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace TurnBased.Intention
@@ -37,46 +38,6 @@ namespace TurnBased.Intention
             this.SourceUnitMove = null;
         }
     }
-    public class ResolvingState
-    {
-        public ResolvingSource ResolvingSource { get; }
-        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
-
-        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
-
-        public ResolvingState(ResolvingSource resolvingSource)
-        {
-            this.ResolvingSource = resolvingSource;
-            this.ActionResolvingStates = new();
-            this.TargetGroupResolvingStates = new();     
-        }
-    }
-
-    public class UnitIntention
-    {
-        public IBattleMove MoveSelection { get; set; }
-        public UnitIntentionResolutionState IntentionResolutionState { get; set; }
-        public ResolvingState ResolvingState { get; set; }
-
-        public int CurrentProcessingTargetGroupIndex;
-
-        public UnitIntention()
-        {
-            this.MoveSelection = null;
-            this.IntentionResolutionState = UnitIntentionResolutionState.NONE;
-            this.CurrentProcessingTargetGroupIndex = 0;
-            this.ResolvingState = null;
-        }
-        public UnitIntention(IBattleMove move, UnitIndex unitIndex)
-        {
-            this.MoveSelection = move;
-            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
-            this.CurrentProcessingTargetGroupIndex = 0;
-
-            ResolvingSource resolvingSource = new(move, unitIndex);
-            this.ResolvingState = new(resolvingSource);
-        }
-    }
 
     public class AttackActionResolvingState
     {
@@ -84,15 +45,12 @@ namespace TurnBased.Intention
 
         public ResolvingSource ResolvingSource { get; set; }
 
-        public MoveResolutionTiming Timing { get; }
-
         public bool IsResolved;
 
-        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, ResolvingSource resolvingSource, MoveResolutionTiming timing)
+        public AttackActionResolvingState(AttackResolution.AttackAction attackAction, ResolvingSource resolvingSource)
         {
             this.Action = attackAction;
             this.ResolvingSource = resolvingSource;
-            this.Timing = timing;
 
             this.IsResolved = false;
         }
@@ -118,6 +76,72 @@ namespace TurnBased.Intention
         {
             this.DeclaredTargets = targets;
             this.IsResolved = true;
+        }
+    }
+
+    public class ResolvingState
+    {
+        public ResolvingSource ResolvingSource { get; }
+        public System.Collections.Generic.List<AttackActionResolvingState> ActionResolvingStates { get; set; }
+
+        public System.Collections.Generic.List<TargetGroupResolvingState> TargetGroupResolvingStates { get; set; }
+        public UnitIntentionResolutionState IntentionResolutionState { get; set; }
+        public MoveResolutionTiming ResolutionTiming { get; private set; }
+        public int CurrentProcessingTargetGroupIndex { get; set; }  
+
+        public ResolvingState()
+        {
+            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION;
+            this.ResolvingSource = null;
+            this.ActionResolvingStates = new();
+            this.TargetGroupResolvingStates = new();
+            this.CurrentProcessingTargetGroupIndex = 0;
+            this.ResolutionTiming = MoveResolutionTiming.TurnOrderSequence;
+        }
+        public ResolvingState(ResolvingSource resolvingSource, MoveResolutionTiming timing = MoveResolutionTiming.TurnOrderSequence)
+        {
+            this.IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION;
+            this.ResolvingSource = resolvingSource;
+            this.ActionResolvingStates = new();
+            this.TargetGroupResolvingStates = new();
+            this.CurrentProcessingTargetGroupIndex = 0;
+            this.ResolutionTiming = timing;
+        }
+    }
+
+    public class UnitIntention
+    {
+        public ResolvingState ResolvingState { get; set; }
+        public int UnitAP { get; private set; }
+
+
+        public UnitIntention()
+        {
+            this.ResolvingState = new();
+            this.UnitAP = 0;
+        }
+
+        public void IncrementAP() => this.UnitAP++;
+
+        /// <summary>
+        /// Removes UnitAP by the supplied APAmount.
+        /// </summary>
+        /// <param name="apAmount"></param>
+        /// <returns>False if the AP amount to be reduced would be less than 0. Returns True if the AP amount would be greater than or equal to 0.</returns>
+        public bool RecreaseAP(int apAmount)
+        {
+            int newAPAmount = this.UnitAP - apAmount;
+            if (newAPAmount < 0)
+            {
+                return false;
+            } 
+            this.UnitAP = newAPAmount;
+            return true;
+        }
+        public void IncreaseAP(int apAmount)
+        {
+            int newAPAmount = this.UnitAP + apAmount;
+            this.UnitAP = newAPAmount;
         }
     }
 
@@ -208,6 +232,42 @@ namespace TurnBased.Intention
             OnUnitIntentionRemoved?.Invoke(unitIndex);
         }
 
+        /// <summary>
+        /// Sets the AP value to 1 for the start of the round.
+        /// </summary>
+        /// <param name="unitIndex"></param>
+        public void ResetUnitAP(UnitIndex unitIndex)
+        {
+            IncreaseUnitAP(unitIndex, 1);
+        }
+
+        public void IncrementUnitAP(UnitIndex unitIndex)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].IncrementAP();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void IncreaseUnitAP(UnitIndex unitIndex, int apIncreaseValue)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].IncreaseAP(apIncreaseValue);
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void ReduceUnitAP(UnitIndex unitIndex, int apDecreaseValue)
+        {
+            if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            this.intentionDictionary[unitIndex.Index].RecreaseAP(apDecreaseValue);
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
         public void SetIntention(UnitIndex unitIndex, UnitIntention intention)
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
@@ -221,21 +281,43 @@ namespace TurnBased.Intention
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionAwaitingMove(unitIndex));
+            this.intentionDictionary[unitIndex.Index].ResolvingState = new();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public void SetMoveIntention(UnitIndex unitIndex, IBattleMove battleMove)
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, UnitIntentionFactory.CreateIntentionFromMoveForUnit(unitIndex, battleMove));
+            ResolvingState state = UnitIntentionFactory.CreateIntentionFromMoveForUnit(unitIndex, battleMove);
+            this.intentionDictionary[unitIndex.Index].ResolvingState = state;
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public void ClearIntention(UnitIndex unitIndex)
         {
             if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            SetIntention(unitIndex, new UnitIntention());
+            this.intentionDictionary[unitIndex.Index] = new();
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
+        }
+
+        public void ClearIntention(UnitIndex unitIndex, IBattleMove moveUsed)
+        {
+            if (!intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
+
+            UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX BEFORE {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
+
+            this.intentionDictionary[unitIndex.Index].ResolvingState = new();
+            this.intentionDictionary[unitIndex.Index].RecreaseAP(moveUsed.GetAPCost());
+
+            UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX AFTER {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
+
+
+            OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
 
         public bool TryGetIntention(UnitIndex unitIndex, out UnitIntention intention)
@@ -246,45 +328,42 @@ namespace TurnBased.Intention
             intention = this.intentionDictionary[unitIndex.Index];
             return true;
         }
+
+        public void ResetAllActiveUnitIntentions()
+        {
+            System.Collections.Generic.List<int> activeUnits = this.intentionDictionary.Keys.ToList();
+            foreach (int index in activeUnits)
+            {
+                UnitIndex unitIndex = new(index);
+                ClearIntention(unitIndex);
+                ResetUnitAP(unitIndex);
+            }
+        }
     }
 
 
     public static class UnitIntentionFactory
     {
-        public static UnitIntention CreateIntentionAwaitingMove(UnitIndex unitIndex)
+        public static ResolvingState CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
         {
-            return new UnitIntention()
-            {
-                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_MOVE_SELECTION
-            };
-        }
+            ResolvingSource resolvingSource = new(move, unitIndex);
+            ResolvingState resolvingState = new(resolvingSource, move.GetResolutionTiming());
 
-        public static UnitIntention CreateIntentionFromMoveForUnit(UnitIndex unitIndex, IBattleMove move)
-        {
-            UnitIntention intention = new(move, unitIndex)
-            {
-                MoveSelection = move,
-                IntentionResolutionState = UnitIntentionResolutionState.AWAITING_TARGET_SELECTION
-            };
-
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
             AttackResolutionInfo moveResolutionInfo = move.ExecuteMove(resolutionSceneData);
 
-            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, intention.ResolvingState, move.GetResolutionTiming())) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return intention; }
+            if (!BuildAttackActionResolvingState(unitIndex, moveResolutionInfo, resolvingState)) { UnityEngine.Debug.LogError("ERROR — UnitIntentionFactory: UNABLE TO SUCESSFULLY CREATE INTENTION"); return null; }
 
-            return intention;
+            return resolvingState;
         }
 
-        public static bool BuildAttackActionResolvingState(UnitIndex unitIndex, AttackResolutionInfo info, ResolvingState resolvingState, MoveResolutionTiming timing = MoveResolutionTiming.Instant)
+        public static bool BuildAttackActionResolvingState(UnitIndex unitIndex, AttackResolutionInfo info, ResolvingState resolvingState)
         {
             if (resolvingState == null) { return false; }
 
-
-            if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(unitIndex, out UnitData unitData)) { return false; }
-
             CreateTargetGroupResolvingStates(resolvingState, info);
 
-            CreateActionResolvingStates(resolvingState, info, resolvingState.ResolvingSource, timing);
+            CreateActionResolvingStates(resolvingState, info, resolvingState.ResolvingSource);
             return true;
         }
 
@@ -308,7 +387,7 @@ namespace TurnBased.Intention
             UnityEngine.Debug.LogError($"Done Creating target group resolving states    ");
         }
 
-        private static void CreateActionResolvingStates(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, ResolvingSource resolvingSource, MoveResolutionTiming timing)
+        private static void CreateActionResolvingStates(ResolvingState resolvingState, AttackResolutionInfo resolutionInfo, ResolvingSource resolvingSource)
         {
             for (int stepIndex = 0; stepIndex < resolutionInfo.Steps.Count; stepIndex++)
             {
@@ -318,7 +397,7 @@ namespace TurnBased.Intention
                 {
                     AttackResolution.AttackAction action = step.Actions[actionIndex];
 
-                    AttackActionResolvingState attackActionResolvingState = new(action, resolvingSource, timing);
+                    AttackActionResolvingState attackActionResolvingState = new(action, resolvingSource);
                     resolvingState.ActionResolvingStates.Add(attackActionResolvingState);
                 }
             }
@@ -326,13 +405,13 @@ namespace TurnBased.Intention
 
 
         /// <returns>True if all Target Groups are Resolved.</returns>
-        public static bool AssignTargetsToCurrentProcessingTargetGroup(ResolvingState resolvingState, int processingTargetGroupIndex, UnitTurnStationIndexesSceneData sceneData, MoveTarget moveTargetType, TargetSelection.ITargetSelector targetSelector)
+        public static bool AssignTargetsToCurrentProcessingTargetGroup(ResolvingState resolvingState, UnitTurnStationIndexesSceneData sceneData, MoveTarget moveTargetType, TargetSelection.ITargetSelector targetSelector)
         {
-            if (processingTargetGroupIndex < 0 || processingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (resolvingState.CurrentProcessingTargetGroupIndex < 0 || resolvingState.CurrentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
             if (targetSelector == null) { return false; }
 
             System.Collections.Generic.List<StationIndex> targets = targetSelector.SelectTargets(sceneData, moveTargetType);
-            resolvingState.TargetGroupResolvingStates[processingTargetGroupIndex].AssignTargets(targets);
+            resolvingState.TargetGroupResolvingStates[resolvingState.CurrentProcessingTargetGroupIndex].AssignTargets(targets);
 
             /*  Determine if all resolving states are resolved. */
             foreach (TargetGroupResolvingState targetGroupResolvingState in resolvingState.TargetGroupResolvingStates)
@@ -347,18 +426,18 @@ namespace TurnBased.Intention
         public static bool TryGetMoveTargetOfCurrentTargetGroup(UnitIntention intention, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (intention.CurrentProcessingTargetGroupIndex < 0 || intention.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (intention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || intention.ResolvingState.CurrentProcessingTargetGroupIndex >= intention.ResolvingState.TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = intention.ResolvingState.TargetGroupResolvingStates[intention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 
-        public static bool TryGetMoveTargetOfCurrentTargetGroup(ResolvingState resolvingState, int currentProcessingTargetGroupIndex, out MoveTarget moveTarget)
+        public static bool TryGetMoveTargetOfCurrentTargetGroup(ResolvingState resolvingState, out MoveTarget moveTarget)
         {
             moveTarget = default;
-            if (currentProcessingTargetGroupIndex < 0 || currentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
+            if (resolvingState.CurrentProcessingTargetGroupIndex < 0 || resolvingState.CurrentProcessingTargetGroupIndex >= resolvingState.TargetGroupResolvingStates.Count) { return false; }
 
-            moveTarget = resolvingState.TargetGroupResolvingStates[currentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = resolvingState.TargetGroupResolvingStates[resolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 

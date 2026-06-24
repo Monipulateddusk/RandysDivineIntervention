@@ -119,7 +119,7 @@ namespace TurnBased.Elements
 
         private void ProcessElementalMove(Element elementValueA, Element elementValueB, UnitIndex unitIndex, UnitTeam team)
         {
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return; }
             if (!StationManagerUtilities.TryCreateSceneDataForTeam(team, out UnitTurnStationIndexesSceneData stationIndexesSceneData)) { return; }
 
             //  -=-=-=-=-=-=-=-=-
@@ -140,7 +140,7 @@ namespace TurnBased.Elements
             AttackResolution.CombatResolvingRequest resolvingRequest = Combat.IntentionCombatResolverUtility.AddToCombatResolverFront(elementalMoveResolvingState);
         }
 
-        private void DeclareElementalMoveTargets(UnitIndex unitIndex, TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData, UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
+        private void DeclareElementalMoveTargets(UnitIndex unitIndex, TurnBased.Information.ResolutionSceneData resolutionSceneData, UnitTurnStationIndexesSceneData stationIndexesSceneData, Intention.ResolvingState elementalMoveResolvingState, IElementalMove elementalAttackMoveAction)
         {
             //  -=-=-=-=-=-=-=-=-
             //  Execute the elemental move to pass to the Factory the ResolutionInfo

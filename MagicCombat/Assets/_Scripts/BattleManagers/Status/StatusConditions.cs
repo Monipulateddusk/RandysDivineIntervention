@@ -21,9 +21,9 @@ namespace TurnBased.Status
             this.StatusTargetType = statusTargetType;
         }
 
-        public virtual AttackResolutionInfo OnStatusAdded(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
-        public virtual AttackResolutionInfo OnStatusRemoved(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); }
-        public virtual AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData) { return new(); } 
+        public virtual AttackResolutionInfo OnStatusAdded(TurnBased.Information.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual AttackResolutionInfo OnStatusRemoved(TurnBased.Information.ResolutionSceneData resolutionSceneData) { return new(); }
+        public virtual AttackResolutionInfo ProcessStatus(TurnBased.Information.ResolutionSceneData resolutionSceneData) { return new(); } 
         
         public virtual void ModifyIncomingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
         public virtual void ModifyOutgoingDamageRequest(AttackResolution.DamageRequest damageRequest) { }
@@ -62,7 +62,7 @@ namespace TurnBased.Status
         {
         }
 
-        public override AttackResolutionInfo OnStatusAdded(ResolutionSceneData resolutionSceneData)
+        public override AttackResolutionInfo OnStatusAdded(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             return new()
             {
@@ -81,7 +81,7 @@ namespace TurnBased.Status
             };
         }
 
-        public override AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public override AttackResolutionInfo ProcessStatus(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             return new()
             {
@@ -110,7 +110,7 @@ namespace TurnBased.Status
         {
         }
 
-        public override AttackResolutionInfo ProcessStatus(AttackResolution.ResolutionSceneData resolutionSceneData)
+        public override AttackResolutionInfo ProcessStatus(TurnBased.Information.ResolutionSceneData resolutionSceneData)
         {
             return new()
             {

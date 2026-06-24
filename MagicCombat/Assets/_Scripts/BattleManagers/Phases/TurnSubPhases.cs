@@ -1,19 +1,19 @@
+using System;
+using TurnBased.AttackResolution;
 using UnityEngine;
 
 namespace TurnBased.Phases
 {
     public abstract class SubPhase : Phase
     {
-        protected System.Action<SubPhaseState> OnSubPhaseComplete;
         protected UnitIndex currentUnitIndex;
-        public SubPhase(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem)
+        public SubPhase(EventHookSystem hookSystem) : base(hookSystem)
         {
-            this.OnSubPhaseComplete = onSubPhaseComplete;
         }
 
         ~SubPhase()
         {
-            OnSubPhaseComplete = null;
+
         }
 
         public void SetCurrentUnitIndex(UnitIndex unitIndex) { this.currentUnitIndex = unitIndex; }
@@ -21,7 +21,7 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_None : SubPhase
     {
-        public UnitTurnPhase_None(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        public UnitTurnPhase_None(EventHookSystem hookSystem, System.Action onSubPhaseComplete) : base(hookSystem)
         {
         }
 
@@ -54,8 +54,11 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_MoveSelection : SubPhase
     {
-        public UnitTurnPhase_MoveSelection(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        private readonly System.Action<UnitTurnPhase_MoveSelection> OnSubPhaseComplete;
+
+        public UnitTurnPhase_MoveSelection(EventHookSystem hookSystem, System.Action<UnitTurnPhase_MoveSelection> onSubPhaseComplete) : base(hookSystem)
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
             EventHookSystem.OnAwaitingUnitMoveSelection += EventHookSystem_OnAwaitingUnitMoveSelection;
         }
         ~UnitTurnPhase_MoveSelection()
@@ -127,7 +130,7 @@ namespace TurnBased.Phases
 
         protected override void OnPhaseComplete()
         {
-            OnSubPhaseComplete(SubPhaseState.AWAITING_MOVE_SELECTION);
+            OnSubPhaseComplete(this);
         }
 
 
@@ -135,8 +138,10 @@ namespace TurnBased.Phases
 
     public class UnitTurnPhase_TargetSelection : SubPhase
     {
-        public UnitTurnPhase_TargetSelection(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        private readonly System.Action<UnitTurnPhase_TargetSelection> OnSubPhaseComplete;
+        public UnitTurnPhase_TargetSelection(EventHookSystem hookSystem, System.Action<UnitTurnPhase_TargetSelection> onSubPhaseComplete) : base(hookSystem)
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
             EventHookSystem.OnAwaitingUnitTargetSelection += EventHookSystem_OnAwaitingUnitTargetSelection;
         }
         ~UnitTurnPhase_TargetSelection()
@@ -174,15 +179,18 @@ namespace TurnBased.Phases
         protected override void OnPhaseComplete()
         {
             Intention.TargetSelectionResolver.OnTargetSelected -= OnPhaseComplete;
-            OnSubPhaseComplete(SubPhaseState.AWAITING_TARGET_SELECTION);
+            OnSubPhaseComplete(this);
         }
     }
 
 
     public class UnitTurnPhase_ReadyToExecuteMove : SubPhase
     {
-        public UnitTurnPhase_ReadyToExecuteMove(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        private readonly System.Action<UnitTurnPhase_ReadyToExecuteMove> OnSubPhaseComplete;
+        private bool isResolvingInstantMove;
+        public UnitTurnPhase_ReadyToExecuteMove(EventHookSystem hookSystem, System.Action<UnitTurnPhase_ReadyToExecuteMove> onSubPhaseComplete) : base(hookSystem)
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;   
             EventHookSystem.OnUnitReadyToExecuteMove += EventHookSystem_OnUnitReadyToExecuteMove;
         }
 
@@ -214,19 +222,34 @@ namespace TurnBased.Phases
 
         protected override void OnEventsComplete()
         {
+            /*  Get the Resolving state from the Unit's Intention   */
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentUnitIndex, out Intention.UnitIntention intention)) { OnPhaseComplete(); }
+
+            /*  If the intention timing isn't Instant, we want to move onto the next unit. If it is a move that is resolved now, then we process that here.     */
+            if (intention.ResolvingState.ResolutionTiming != MoveResolutionTiming.Instant) { this.isResolvingInstantMove = false;  }
+            else
+            {
+                this.isResolvingInstantMove = true;
+            }
             OnPhaseComplete();
         }
 
         protected override void OnPhaseComplete()
         {
-            this.OnSubPhaseComplete(SubPhaseState.READY_TO_EXECUTE_MOVE);
+            this.OnSubPhaseComplete(this);
         }
+
+
+        public bool GetIsResolvingInstantMove() => this.isResolvingInstantMove;
+        public void ResetIsResolvingInstantMove() => this.isResolvingInstantMove = false;
     }
 
     public class UnitTurnPhase_ResolveAttack : SubPhase
     {
-        public UnitTurnPhase_ResolveAttack(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        private readonly System.Action<UnitTurnPhase_ResolveAttack> OnSubPhaseComplete;
+        public UnitTurnPhase_ResolveAttack(EventHookSystem hookSystem, System.Action<UnitTurnPhase_ResolveAttack> onSubPhaseComplete) : base(hookSystem)
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
             EventHookSystem.OnUnitResolveMove += EventHookSystem_OnUnitResolveMove;
         }
 
@@ -259,23 +282,38 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved += OnPhaseComplete;
-            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution();
+            /*  Get the Resolving state from the Unit's Intention   */
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.currentUnitIndex, out Intention.UnitIntention intention)) { OnPhaseComplete(); }
+            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
+
+            request.OnRequestComplete += WhenRequestCompleted;
+
+
+            OnPhaseComplete();
+        }
+
+        private void WhenRequestCompleted(CombatResolvingRequest request)
+        {
+            request.OnRequestComplete -= WhenRequestCompleted;
+
+            UnityEngine.Debug.LogError($"REQUEST DONE IN SUB PHASE. MOVING ONTO THE ATTACK COMPLETE PHASE");
+
+            OnPhaseComplete();
         }
 
         protected override void OnPhaseComplete()
         {
-            AttackResolution.AttackResolutionManager.OnAllAttacksFullyResolved -= OnPhaseComplete;
-
             /*  Once all attacks are done. Go to the Attack complete subphase for any triggers if implemented.  */
-            this.OnSubPhaseComplete(SubPhaseState.RESOLVE_ATTACK);
+            this.OnSubPhaseComplete(this);
         }
     }
 
     public class UnitTurnPhase_AttackComplete : SubPhase
     {
-        public UnitTurnPhase_AttackComplete(EventHookSystem hookSystem, System.Action<SubPhaseState> onSubPhaseComplete) : base(hookSystem, onSubPhaseComplete)
+        private readonly System.Action<UnitTurnPhase_AttackComplete> OnSubPhaseComplete;
+        public UnitTurnPhase_AttackComplete(EventHookSystem hookSystem, System.Action<UnitTurnPhase_AttackComplete> onSubPhaseComplete) : base(hookSystem)
         {
+            this.OnSubPhaseComplete = onSubPhaseComplete;
             EventHookSystem.OnUnitAttackComplete += EventHookSystem_OnUnitAttackComplete;
         }
         ~UnitTurnPhase_AttackComplete()
@@ -311,7 +349,7 @@ namespace TurnBased.Phases
 
         protected override void OnPhaseComplete()
         {
-            this.OnSubPhaseComplete(SubPhaseState.ATTACK_COMPLETE);
+            this.OnSubPhaseComplete(this);
         }
     }
 }

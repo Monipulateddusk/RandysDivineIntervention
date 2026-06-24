@@ -1,4 +1,3 @@
-using TurnBased.Intention;
 using UnityEngine;
 
 namespace TurnBased.Phases
@@ -132,6 +131,7 @@ namespace TurnBased.Phases
 
         protected override void OnEventsComplete()
         {
+            Intention.UnitIntentionManager.Instance.ResetAllActiveUnitIntentions(); 
             InitaliseTurnOrderForTheRound();
             SubscribeEventsForStartOfRound();
         }
@@ -146,7 +146,7 @@ namespace TurnBased.Phases
 
         private void InitaliseTurnOrderForTheRound()
         {
-            TurnOrderCreationState turnOrderCreationState = TurnOrder.TurnOrderManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
+            TurnOrderCreationState turnOrderCreationState = AttackResolution.AttackResolutionManager.Instance.TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> newTurnOrderList);
 
             Debug.LogWarning($"TurnOrder initalisation! State is {turnOrderCreationState}");
 
@@ -286,7 +286,7 @@ namespace TurnBased.Phases
 
     public class TurnOrderCombatResolutionPhase : MainPhase
     {
-        public TurnOrderCombatResolutionPhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
+        public TurnOrderCombatResolutionPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
             EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
         }
@@ -320,13 +320,15 @@ namespace TurnBased.Phases
         }
         protected override void OnEventsComplete()
         {
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved += OnPhaseComplete;
-            Combat.TurnOrderCombatHandler.Instance.StartTurnOrderCombat();
+            UnityEngine.Debug.LogError($"WE ARE STARTING THE TURN ORDER RESOLUTION PHASE! WEE WOO!");
+
+            AttackResolution.AttackResolutionManager.Instance.StartCombatResolution(OnPhaseComplete);
         }
 
         protected override void OnPhaseComplete()
         {
-            Combat.TurnOrderCombatHandler.OnTurnOrderAttacksFullyResolved -= OnPhaseComplete;
+            UnityEngine.Debug.LogError($"WE ARE LEAVING THE TURN ORDER RESOLUTION PHASE! WEE WOO!");
+
             this.OnMainPhaseComplete(CombatTurnOrchestrationPhase.TurnOrderRes);
         }
     }
@@ -379,7 +381,7 @@ namespace TurnBased.Phases
 
     public class EndOfBattlePhase : MainPhase
     {
-        public EndOfBattlePhase(CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
+        public EndOfBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
             EventHookSystem.OnEndOfBattle += EventHookSystem_OnEndOfBattle;
         }

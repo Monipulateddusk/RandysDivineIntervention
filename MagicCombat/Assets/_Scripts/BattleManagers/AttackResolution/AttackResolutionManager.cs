@@ -1,11 +1,19 @@
-
 namespace TurnBased.AttackResolution
 {
     public class AttackResolutionManager
     {
-        public static event System.Action OnAllAttacksFullyResolved;
+        TurnOrder.TurnOrderManager turnOrderManager;
+        Phases.SubPhaseManager subPhaseManager;
+        public event System.Action OnAllAttacksFullyResolved;
         private UnitIndex unitIndexToProcess;
 
+        private enum AttackResolutionState
+        {
+            None,
+            TurnOrderAttacking,
+            OneOffAttacking
+        }
+        private AttackResolutionState currentState = AttackResolutionState.None;
 
         private static AttackResolutionManager instance;
         public static AttackResolutionManager Instance
@@ -23,84 +31,113 @@ namespace TurnBased.AttackResolution
             }
         }
 
-        public void Awake()
+        public AttackResolutionManager()
+        {
+            this.turnOrderManager = new();
+        }
+
+        public void Awake(Phases.SubPhaseManager subPhaseManag)
         {
             Combat.IntentionCombatResolver.OnResolvingStatesComplete += OnResolvingStatesComplete;
             if (Instance == null)
             {
                 instance = this;
             }
+
+            this.subPhaseManager = subPhaseManag;
+            this.turnOrderManager.Awake();
         }
 
         public void OnDestroy()
         {
             Combat.IntentionCombatResolver.OnResolvingStatesComplete -= OnResolvingStatesComplete;
+
+            this.turnOrderManager.OnDestroy();
+
             if (instance != null && instance == this)
             {
                 instance = null;
             }
-            OnAllAttacksFullyResolved = null;
 
+            this.turnOrderManager = null;
+            this.subPhaseManager = null;
+            OnAllAttacksFullyResolved = null;
         }
 
         /// <summary>
         /// When called, goes through the TurnOrder Queue to process each Unit's intentions.
         /// </summary>
-        public void StartCombatResolution()
+        public void StartCombatResolution(System.Action OnTurnOrderCombatResolved)
         {
+            this.OnAllAttacksFullyResolved = OnTurnOrderCombatResolved;
+            this.currentState = AttackResolutionState.TurnOrderAttacking;
+
             UnityEngine.Debug.LogWarning($"Starting combat resolution!");
             ContinueNextUnit();
         }
 
-        private void ContinueNextUnit()
+        public void StartOneOffAttackCombatResolution(System.Action OnOneOffAttackResolved, UnitIndex unitIndexDoingOneOffMove)
         {
-            UnitIndex? turnOrderNextUnit = TurnOrder.TurnOrderManager.Instance.PopNextUnitInTurnOrder();
+            this.OnAllAttacksFullyResolved = OnOneOffAttackResolved;
+            this.currentState = AttackResolutionState.OneOffAttacking;
 
-            if (!turnOrderNextUnit.HasValue) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: CANNOT PROCESS NEXT UNIT IN TURN ORDER THAT DOESN'T EXIST!"); return; }
-            this.unitIndexToProcess = turnOrderNextUnit.Value;
-
-            ProcessNextUnitInTurnOrder();
+            UnityEngine.Debug.LogWarning($"Starting One Off Move resolution!");
+            this.unitIndexToProcess = unitIndexDoingOneOffMove;
+            ProcessUnitToProcess();
         }
 
-        private void ProcessNextUnitInTurnOrder()
+        public void IsContinuingNextUnit()
         {
-            UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
-            /*  Get the Resolving state from the Unit's Intention   */
-            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(this.unitIndexToProcess, out Intention.UnitIntention intention)) { return; }
-            AttackResolution.CombatResolvingRequest request = Combat.IntentionCombatResolverUtility.AddToCombatResolverBack(intention.ResolvingState);
-
-            request.OnRequestComplete -= WhenRequestCompleted;
-        }
-
-        private void WhenRequestCompleted(AttackResolution.CombatResolvingRequest request)
-        {
-            request.OnRequestComplete -= WhenRequestCompleted;
-
-            /*  Once the request is processed, reset the current unit and move on.  */
-            TurnOrder.TurnOrderManager.Instance.ResetCurrentUnit();
-
-            UnityEngine.Debug.LogWarning($"Done processing next unit in turn order");
-
-            if (IsProcessingIntentContinuing())
+            if (this.currentState != AttackResolutionState.OneOffAttacking && IsProcessingIntentContinuing() )
             {
                 UnityEngine.Debug.LogWarning($"Intentions continuing!");
 
                 ContinueNextUnit();
             }
-            else
-            {
-                UnityEngine.Debug.LogError($"ALL ATTACKS DONE!!! ");
-            }
+        }
+
+        private void ContinueNextUnit()
+        {
+            UnitIndex? turnOrderNextUnit = this.turnOrderManager.PopNextUnitInTurnOrder();
+
+            if (!turnOrderNextUnit.HasValue) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: CANNOT PROCESS NEXT UNIT IN TURN ORDER THAT DOESN'T EXIST!"); return; }
+            this.unitIndexToProcess = turnOrderNextUnit.Value;
+
+            ProcessUnitToProcess();
+        }
+
+        private void ProcessUnitToProcess()
+        {
+            UnityEngine.Debug.LogWarning($"Processing next unit in turn order");
+
+            this.subPhaseManager.SwitchSubPhase(SubPhaseState.RESOLVE_ATTACK, this.unitIndexToProcess);
         }
 
         private void OnResolvingStatesComplete()
         {
-            OnAllAttacksFullyResolved?.Invoke();
+            switch (this.currentState)
+            {
+                case AttackResolutionState.TurnOrderAttacking:
+                    if (!IsProcessingIntentContinuing())
+                    {
+                        this.OnAllAttacksFullyResolved?.Invoke();
+                        this.OnAllAttacksFullyResolved = null;
+                    }
+                    break;
+
+                default:
+                case AttackResolutionState.OneOffAttacking:  
+                case AttackResolutionState.None:
+                    this.OnAllAttacksFullyResolved?.Invoke();
+                    this.OnAllAttacksFullyResolved = null;
+                    break;
+            }
         }
 
-        private bool IsProcessingIntentContinuing() => TurnOrder.TurnOrderManager.Instance.GetTurnOrderList().Count > 0;
-
-
+        public TurnOrderCreationState TryCreateNewTurnOrderList(out System.Collections.Generic.List<UnitIndex> createdTurnOrderList) => this.turnOrderManager.TryCreateNewTurnOrderList(out createdTurnOrderList);
+        public bool IsProcessingIntentContinuing() => this.turnOrderManager.GetTurnOrderList().Count > 0;
+        public UnitIndex? GetCurrentUnit() => this.turnOrderManager.GetCurrentUnit();
+        public System.Collections.Generic.List<UnitIndex> GetTurnOrderList() => this.turnOrderManager.GetTurnOrderList();
     }
 
 
@@ -109,7 +146,7 @@ namespace TurnBased.AttackResolution
         public static string GetMoveDescription(UnitIndex unitIndex, IBattleMove selectedMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"Do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForUnitIndex(unitIndex, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return $"Do nothing."; }
             AttackResolutionInfo resolutionInfo = selectedMove.ExecuteMove(resolutionSceneData);
 
             /*  Get the target groups of the move.  */
@@ -166,7 +203,7 @@ namespace TurnBased.AttackResolution
         public static string GetElementalMoveIntentionString(UnitTeam team, IElementalMove elementalMove)
         {
             /*  Siliently Execute the selected move to retrieve the AttackAction descriptions.  */
-            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.AttackResolution.ResolutionSceneData resolutionSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
+            if (!StationManagerUtilities.TryCreateUnitDataSceneDataForElementalMove(team, out TurnBased.Information.ResolutionSceneData resolutionSceneData)) { return $"{elementalMove.GetMoveName()} is going to do nothing."; }
 
             AttackResolutionInfo resolutionInfo = elementalMove.ExecuteElementalMove(resolutionSceneData);
 
@@ -246,9 +283,9 @@ namespace TurnBased.AttackResolution
             moveTarget = MoveTarget.SingleEnemy;
             System.Collections.Generic.Dictionary<int, MoveTarget> groupIDMoveTargetDict = CreateMoveTargetGroupIdentifierDictionary(unitIntention);
 
-            if (unitIntention.CurrentProcessingTargetGroupIndex < 0 || unitIntention.CurrentProcessingTargetGroupIndex >= unitIntention.ResolvingState.TargetGroupResolvingStates.Count) {  return false; }
+            if (unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex < 0 || unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex >= unitIntention.ResolvingState.TargetGroupResolvingStates.Count) {  return false; }
 
-            moveTarget = unitIntention.ResolvingState.TargetGroupResolvingStates[unitIntention.CurrentProcessingTargetGroupIndex].MoveTarget;
+            moveTarget = unitIntention.ResolvingState.TargetGroupResolvingStates[unitIntention.ResolvingState.CurrentProcessingTargetGroupIndex].MoveTarget;
             return true;
         }
 
