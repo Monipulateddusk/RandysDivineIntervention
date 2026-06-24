@@ -15,11 +15,13 @@ namespace TurnBased.UI
         [SerializeField, Tooltip("Assign with the 'UnitHealthBuffer' object in 'HealthBuffer'")]        private UnitHealthDisplayUI healthDisplayUI;
         //  Status when created       
 
-        [Header("MoveSelection Variables")]
+        [Header("Move Selection Variables")]
         [SerializeField, Tooltip("Assign with the 'MoveSelectionRoot' Object in Content")]              private GameObject MoveSelectionRootGameObject;
         [SerializeField, Tooltip("Assign with the 'Content' Object in ScrollRectMask")]                 private Transform MoveSelectionContentTransform;
+        [SerializeField, Tooltip("Assign with the 'APIcon' Object in TabsBuffer")]                      private GameObject UnitAPTabGameObject;
+        [SerializeField, Tooltip("Assign with the 'APCountText' Object in APIcon")]                     private TMPro.TextMeshProUGUI UnitAPText;
 
-        [Header("MoveSelection Variables")]
+        [Header("Target Selection Variables")]
         [SerializeField, Tooltip("Assign with the 'MainTargetRoot' Object in Content")]                 private GameObject MainTargetRootGameObject;
         [SerializeField, Tooltip("Assign with the 'Content' Object in ScrollRectMask")]                 private Transform TargetSelectionContentTransform;
         [SerializeField, Tooltip("Assign with the 'Content' Object in ScrollRectMask")]                 private TMPro.TextMeshProUGUI TargetSelectionMoveReminderText;
@@ -83,9 +85,6 @@ namespace TurnBased.UI
 
         private void OnSelectionTabButtonPressed()
         {
-            Debug.LogError("SelectionTabButonPressed");
-
-
             /*  Get the intention of the Unit selected. Process the selection   */
             if (!StationSelectorManager.Instance.TryGetUnitIndexOfSelectedStation(out UnitIndex unitIndex)) { return; }
             if (!Intention.UnitIntentionManager.Instance.TryGetIntention(unitIndex, out Intention.UnitIntention intention)) { return; }
@@ -241,9 +240,10 @@ namespace TurnBased.UI
 
         private void VisualiseUnitSummary(UnitIndex selectedUnitIndex)
         {
-            if (this.SummaryTabButton == null || this.SelectionTabButton == null || this.UnitImage == null) { return; } 
+            if (this.SummaryTabButton == null || this.SelectionTabButton == null || this.UnitImage == null || this.UnitAPTabGameObject == null) { return; } 
 
             this.SummaryRootGameObject.SetActive(true);
+            this.UnitAPTabGameObject.SetActive(false);
 
             /*  Set the Summary button to disabled and selection to allowing switching. */
             this.SummaryTabButton.interactable      = false;
@@ -292,6 +292,9 @@ namespace TurnBased.UI
 
         private void VisualiseUnitTargetSelection(UnitIndex selectedUnitIndex)
         {
+            if (this.MainTargetRootGameObject == null || this.SummaryTabButton == null || this.SelectionTabButton == null || this.UnitAPTabGameObject == null || this.TargetSelectionMoveReminderText == null) { return; }
+
+            this.UnitAPTabGameObject.SetActive(false);
             this.MainTargetRootGameObject.SetActive(true);
 
             /*  Set the Summary button to disabled and selection to allowing switching. */
@@ -331,15 +334,20 @@ namespace TurnBased.UI
         private void CreateMoveUIElement(UnitIndex selectedUnitIndex)
         {
             /*  Get the UnitData of the selected Unit to determine which moves need to be made. */
-            if (this.MoveUIPrefab == null || this.MoveSelectionContentTransform == null) { return; }
+            if (this.MoveUIPrefab == null || this.MoveSelectionContentTransform == null || this.UnitAPTabGameObject == null || this.UnitAPText == null) { return; }
             if (!StationManager.Instance.TryGetUnitDataOfUnitIndex(selectedUnitIndex, out UnitData unitData)) { return; }
+            if (!Intention.UnitIntentionManager.Instance.TryGetIntention(selectedUnitIndex, out Intention.UnitIntention intention)) { return; }
+
+            this.UnitAPTabGameObject.SetActive(true);
+            this.UnitAPText.text = intention.UnitAP.ToString();
+
 
             foreach (IBattleMove move in unitData.moves)
             {
                 GameObject instanciatedObj = GameObject.Instantiate(this.MoveUIPrefab, this.MoveSelectionContentTransform);
                 if (instanciatedObj != null && instanciatedObj.TryGetComponent(out InspectionMoveUIPrefab instanciatedMove))
                 {
-                    instanciatedMove.Initalise(selectedUnitIndex, move);
+                    instanciatedMove.Initalise(selectedUnitIndex, move, intention.UnitAP);
                     instanciatedMove.OnButtonClicked += OnMoveButtonClick;
                     this.InstanciatedMoveUIElements.Add(instanciatedMove);
                 }

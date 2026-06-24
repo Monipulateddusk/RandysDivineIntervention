@@ -14,7 +14,7 @@ namespace TurnBased.UI
 
         private IBattleMove correlatingMove;
 
-
+        private int moveAPCost = 0;
         private bool isButtonClicked = false;
 
         public bool IsButtonClicked
@@ -65,14 +65,17 @@ namespace TurnBased.UI
           //  UnityEngine.Debug.LogError("Pointer Exit");
 
         }
-        public void Initalise(UnitIndex unitIndex, IBattleMove move)
+        public void Initalise(UnitIndex unitIndex, IBattleMove move, int unitCurrentAPAmount)
         {
             if (this.MoveNameUIElementText != null && this.MoveCostUIElementText != null && this.MoveDescriptionUIElementText != null)
             {
                 this.correlatingMove                        = move;
                 this.MoveNameUIElementText.text             = move.GetMoveName();
-                this.MoveCostUIElementText.text             = move.GetAPCost().ToString();
+                this.moveAPCost                             = move.GetAPCost();
+                this.MoveCostUIElementText.text             = this.moveAPCost.ToString();
                 this.MoveDescriptionUIElementText.text      = GetMoveDescription(unitIndex, move);
+
+                SetAPLockedStatus(unitCurrentAPAmount);
             }
         }
 
@@ -87,22 +90,26 @@ namespace TurnBased.UI
             this.IsButtonClicked = !this.IsButtonClicked;
         }
 
-        public void LockButtonClickedStatus(bool buttonClickedStatus)
+        public void LockButtonClickedStatus()
         {
-            this.MoveUIElementClickableButton.enabled = false;
-            SetClickedStatus(buttonClickedStatus);
+            this.MoveUIElementClickableButton.interactable = false;
         }
 
-        public void UnlockButtonClickedStatus(bool buttonClickedStatus)
+        public void UnlockButtonClickedStatus()
         {
-            this.MoveUIElementClickableButton.enabled = true;
-            SetClickedStatus(buttonClickedStatus);
+            this.MoveUIElementClickableButton.interactable = true;
         }
 
-        private void SetClickedStatus(bool buttonClickedStatus)
+        private void SetAPLockedStatus(int unitCurrentAPAmount)
         {
-            this.isButtonClicked = buttonClickedStatus;
-            OnPressed(this.isButtonClicked);
+            if (unitCurrentAPAmount >= this.moveAPCost)
+            {
+                UnlockButtonClickedStatus();
+            }
+            else
+            {
+                LockButtonClickedStatus();
+            }
         }
 
         public IBattleMove GetCorrelatingMove() => this.correlatingMove;
