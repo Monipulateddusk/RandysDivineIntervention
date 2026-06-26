@@ -1,128 +1,220 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class BattlePresentationManager : MonoBehaviour
+namespace TurnBased
 {
-    private static BattlePresentationManager instance;
-    public  static BattlePresentationManager Instance
+    public class BattlePresentationManager : MonoBehaviour
     {
-        get 
-        { 
-            return instance;
-        }
-        set
+        private static BattlePresentationManager instance;
+        public static BattlePresentationManager Instance
         {
-            if (instance == null)
+            get
             {
-                instance = value;
+                return instance;
+            }
+            set
+            {
+                if (instance == null)
+                {
+                    instance = value;
+                }
             }
         }
-    }
 
-    [SerializeField] GameObject tempVisual;
-    const float MOVEMENT_DURATION = 1.1f;
+        [SerializeField] GameObject tempVisual;
+        Vector3 allyCombatLocation = new(0,0,-2f), enemyCombatLocation = new(0, 0, -4f);
 
-    private void Awake()
-    {
-        Instance = this;
+        private readonly System.Collections.Generic.List<Vector2> LOCATION_MODIFIERS = new System.Collections.Generic.List<Vector2>
+        {   new(0,  0),     new(0, -1),     new(-1,-1),
+            new(-1, 1),     new(-1, 0),     new(1,  0),
+            new(0,  1),     new(-1, 1),     new(1,  1)
+        };
 
-        StationManager.OnDeployUnit                 += StationManager_OnDeployUnit;
-        StationSelectorManager.OnSelectionChange    += StationSelectorManager_OnSelectionChange;
-    }
+        private const float LOCATION_MODIFIER_DISTANCE = 1.25f;
+        private const float MOVEMENT_DURATION = 1.1f;
 
-    private void Start()
-    {
-        StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationIndex(), null);
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance != null && Instance == this)
+        private void Awake()
         {
-            Instance = null;
-        }
-        StationManager.OnDeployUnit                 -= StationManager_OnDeployUnit;
-        StationSelectorManager.OnSelectionChange    -= StationSelectorManager_OnSelectionChange;
-    }
+            Instance = this;
 
-    private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
-    {
-        /*  Get the station  and the BaseBattleUnit */
-        if (!StationManager.Instance.TryGetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)){ return; }
-
-        if(!StationManager.Instance.TryGetBattleUnitOfIndex(deployUnitIndex, out BaseBattleUnit battleUnit)) {  return; }
-
-        battleUnit.transform.position = stationOfStationIndex.Position;
-    }
-
-    private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
-    {
-        UnityEngine.Debug.Log($" BattlePresentationManager  OnSelectionChange!");
-        StationManagerUtilities.GetBattleUnitOnStation(selectedStationIndex, out BaseBattleUnit battleUnitOnStation);
-
-        if (tempVisual != null)
-        {
-            tempVisual.transform.position = battleUnitOnStation.transform.position;
+            StationManager.OnDeployUnit += StationManager_OnDeployUnit;
+            StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
         }
 
-        UnityEngine.Debug.Log($"Moved the visual!");
-    }
-
-    public async System.Threading.Tasks.Task MoveUnitToTarget(StationIndex stationOfTheSourceUnit, StationIndex targetStation)
-    {
-        /*  Get the baseBattleUnit of the source and Target */
-        if(!StationManager.Instance.TryGetBaseBattleUnitOnStation(stationOfTheSourceUnit,   out BaseBattleUnit sourceUnit)) { return; }
-        if(!StationManager.Instance.TryGetBaseBattleUnitOnStation(targetStation,            out BaseBattleUnit targetUnit)) { return; }
-
-        float startTime = Time.time;
-
-        Quaternion sourceRotation =  sourceUnit.transform.rotation;
-
-        while (Time.time < startTime + MOVEMENT_DURATION)
+        private void Start()
         {
-            Vector3 currentSourcePosition   = sourceUnit.transform.position; 
-            Vector3 currentTargetPosition   = targetUnit.transform.position;
-            float t = (Time.time - startTime) / MOVEMENT_DURATION;
+            StationSelectorManager_OnSelectionChange(StationSelectorManager.Instance.GetSelectedStationIndex(), null);
+        }
 
-            /*  Next incremental rotation and position values.  */
-            Vector3 pos = new(
-                Mathf.Lerp(currentSourcePosition.x, currentTargetPosition.x, t),
-                Mathf.Lerp(currentSourcePosition.y, currentTargetPosition.y, t),
-                Mathf.Lerp(currentSourcePosition.z, currentTargetPosition.z, t)
-                            );
+        private void OnDestroy()
+        {
+            if (Instance != null && Instance == this)
+            {
+                Instance = null;
+            }
+            StationManager.OnDeployUnit -= StationManager_OnDeployUnit;
+            StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+        }
 
-            sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
+        private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
+        {
+            /*  Get the station  and the BaseBattleUnit */
+            if (!StationManager.Instance.TryGetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)) { return; }
 
-            await System.Threading.Tasks.Task.Yield();
+            if (!StationManager.Instance.TryGetBattleUnitOfIndex(deployUnitIndex, out BaseBattleUnit battleUnit)) { return; }
+
+            battleUnit.transform.position = stationOfStationIndex.Position;
+        }
+
+        private void StationSelectorManager_OnSelectionChange(StationIndex selectedStationIndex, StationIndex? deselectedStationIndex)
+        {
+            UnityEngine.Debug.Log($" BattlePresentationManager  OnSelectionChange!");
+            StationManagerUtilities.GetBattleUnitOnStation(selectedStationIndex, out BaseBattleUnit battleUnitOnStation);
+
+            if (tempVisual != null)
+            {
+                tempVisual.transform.position = battleUnitOnStation.transform.position;
+            }
+
+            UnityEngine.Debug.Log($"Moved the visual!");
+        }
+
+        private void GetDeclaredTargetsFromResolvingState(Intention.ResolvingState resolvingState, out System.Collections.Generic.HashSet<StationIndex> targetStations)
+        {
+            targetStations = new();
+            foreach (Intention.TargetGroupResolvingState targetGroup in resolvingState.TargetGroupResolvingStates)
+            {
+                targetStations.AddRange(targetGroup.DeclaredTargets);
+            }
+        }
+
+        private void GetAllyAndEnemyLocationOnSourceTeam(UnitTeam team, out Vector3 sourceTransform, out Vector3 targetTransform)
+        {
+            if (team == UnitTeam.ENEMY)
+            {
+                sourceTransform = this.enemyCombatLocation;
+                targetTransform = this.allyCombatLocation;
+            }
+            else
+            {
+                sourceTransform = this.allyCombatLocation;
+                targetTransform = this.enemyCombatLocation;
+            }
+        }
+        public async System.Threading.Tasks.Task VisualiseUnitTeleportUserAndTargets(Intention.ResolvingState resolvingState)
+        {
+            /*  Get the baseBattleUnit of the source    */
+            if (!StationManager.Instance.TryGetBattleUnitOfIndex(resolvingState.ResolvingSource.SourceUnitIndex, out BaseBattleUnit sourceUnit)) { return; }
+            if (!StationManager.Instance.TryGetTeamOfUnitIndex(resolvingState.ResolvingSource.SourceUnitIndex, out UnitTeam sourceTeam)) { return; }
+
+            /*  Loop through all Target Groups and conglomerate all targets for this attack to teleport them in to the centre.  */
+            GetDeclaredTargetsFromResolvingState(resolvingState, out System.Collections.Generic.HashSet<StationIndex> targetStations);
+
+            /*  Get the locations for the source and the target based on the team.  */
+            GetAllyAndEnemyLocationOnSourceTeam(sourceTeam, out Vector3 sourceTransform, out Vector3 targetTransform);
+
+            /*  Put the targets on and around the targetTransform.  */
+            int modifierIndex = 0;
+            foreach (StationIndex targetStationIndex in targetStations)
+            {
+                if (!StationManager.Instance.TryGetBaseBattleUnitOnStation(targetStationIndex, out BaseBattleUnit targetUnit)) { continue; }
+                Quaternion targetRotation = targetUnit.transform.rotation;
+
+                /*  Put the target on the location around the target transform based on the modifier index. */
+                Vector2 positionModifier = LOCATION_MODIFIERS[modifierIndex] * LOCATION_MODIFIER_DISTANCE;
+                Vector3 newTargetPosition = new(targetTransform.x + positionModifier.x, 0, targetTransform.z + positionModifier.y);
+
+                UnityEngine.Debug.LogError($"Moving Unit Named: {targetUnit.name} to position: {newTargetPosition.x}, {newTargetPosition.y}, {newTargetPosition.z}");
+
+                targetUnit.transform.SetPositionAndRotation(newTargetPosition, targetRotation);
+                modifierIndex++;
+            }
+
+            /*  Put the Source on their transform   */
+            Quaternion sourceRotation = sourceUnit.transform.rotation;
+
+            /*  Put the target on the location around the target transform based on the modifier index. */
+            Vector3 newSourcePosition = new(sourceTransform.x, sourceTransform.y, sourceTransform.z);
+
+            UnityEngine.Debug.LogError($"Moving Unit Named: {sourceUnit.name} to position: {newSourcePosition.x}, {newSourcePosition.y}, {newSourcePosition.z}");
+
+
+            sourceUnit.transform.SetPositionAndRotation(newSourcePosition, sourceRotation);
+
+
+            //float startTime = Time.time;
+
+            //Quaternion sourceRotation = sourceUnit.transform.rotation;
+
+            //while (Time.time < startTime + MOVEMENT_DURATION)
+            //{
+            //    Vector3 currentSourcePosition = sourceUnit.transform.position;
+            //    Vector3 currentTargetPosition = targetUnit.transform.position;
+            //    float t = (Time.time - startTime) / MOVEMENT_DURATION;
+
+            //    /*  Next incremental rotation and position values.  */
+            //    Vector3 pos = new(
+            //        Mathf.Lerp(currentSourcePosition.x, currentTargetPosition.x, t),
+            //        Mathf.Lerp(currentSourcePosition.y, currentTargetPosition.y, t),
+            //        Mathf.Lerp(currentSourcePosition.z, currentTargetPosition.z, t)
+            //                    );
+
+            //    sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
+
+            //    await System.Threading.Tasks.Task.Yield();
+            //}
+        }
+
+
+        public async System.Threading.Tasks.Task ReturnSourceAndTargetsBackToStations(Intention.ResolvingState resolvingState)
+        {
+            /*  Get the baseBattleUnit of the source and Target */
+            if (!StationManager.Instance.TryGetBattleUnitOfIndex(resolvingState.ResolvingSource.SourceUnitIndex, out BaseBattleUnit sourceUnit)) { return; }
+
+            /*  Loop through all Target Groups and conglomerate all targets for this attack to teleport them in to the centre.  */
+            GetDeclaredTargetsFromResolvingState(resolvingState, out System.Collections.Generic.HashSet<StationIndex> targetStations);
+
+            /*  Put the targets on and around the targetTransform.  */
+            foreach (StationIndex targetStationIndex in targetStations)
+            {
+                if (!StationManager.Instance.TryGetStationOfStationIndex(targetStationIndex, out Station targetStation)) { continue; }
+
+                if (!StationManager.Instance.TryGetBaseBattleUnitOnStation(targetStationIndex, out BaseBattleUnit targetUnit)) { continue; }
+                Quaternion targetRotation = targetUnit.transform.rotation;
+
+                targetUnit.transform.SetPositionAndRotation(targetStation.Position, targetRotation);
+            }
+
+            if (!StationManager.Instance.TryGetStationOfUnitIndex(resolvingState.ResolvingSource.SourceUnitIndex, out Station sourceStation)) { return; }
+
+            /*  Put the Source on their transform   */
+            Quaternion sourceRotation = sourceUnit.transform.rotation;
+
+            sourceUnit.transform.SetPositionAndRotation(sourceStation.Position, sourceRotation);
+
+
+            //float startTime = Time.time;
+
+            //Quaternion sourceRotation = sourceUnit.transform.rotation;
+
+            //while (Time.time < startTime + MOVEMENT_DURATION)
+            //{
+            //    Vector3 currentSourcePosition = sourceUnit.transform.position;
+            //    float t = (Time.time - startTime) / MOVEMENT_DURATION;
+
+            //    /*  Next incremental rotation and position values.  */
+            //    Vector3 pos = new(
+            //        Mathf.Lerp(currentSourcePosition.x, sourceStation.Position.x, t),
+            //        Mathf.Lerp(currentSourcePosition.y, sourceStation.Position.y, t),
+            //        Mathf.Lerp(currentSourcePosition.z, sourceStation.Position.z, t)
+            //                    );
+
+            //    sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
+
+            //    await System.Threading.Tasks.Task.Yield();
+            //}
+
+
         }
     }
-
-
-    public async System.Threading.Tasks.Task MoveUnitToStation(StationIndex stationOfTheSourceUnit)
-    {
-        /*  Get the baseBattleUnit of the source and Target */
-        if (!StationManager.Instance.TryGetBaseBattleUnitOnStation(stationOfTheSourceUnit,  out BaseBattleUnit sourceUnit)) { return; }
-        if (!StationManager.Instance.TryGetStationOfStationIndex(stationOfTheSourceUnit,    out Station sourceStation)) { return; }
-
-        float startTime = Time.time;
-
-        Quaternion sourceRotation = sourceUnit.transform.rotation;
-
-        while (Time.time < startTime + MOVEMENT_DURATION)
-        {
-            Vector3 currentSourcePosition = sourceUnit.transform.position;
-            float t = (Time.time - startTime) / MOVEMENT_DURATION;
-
-            /*  Next incremental rotation and position values.  */
-            Vector3 pos = new(
-                Mathf.Lerp(currentSourcePosition.x, sourceStation.Position.x, t),
-                Mathf.Lerp(currentSourcePosition.y, sourceStation.Position.y, t),
-                Mathf.Lerp(currentSourcePosition.z, sourceStation.Position.z, t)
-                            );
-
-            sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
-
-            await System.Threading.Tasks.Task.Yield();
-        }
-    }
-
 }

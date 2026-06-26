@@ -176,7 +176,7 @@ namespace TurnBased.Combat
             UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
 
             /*  Determine if the Attack moves the user or not.  */
-            //await BattlePresentationManager.Instance.MoveUnitToTarget(sceneData.SourceStationIndex, intention.DeclaredTargetGroups.FirstOrDefault().Value.FirstOrDefault());
+            await BattlePresentationManager.Instance.VisualiseUnitTeleportUserAndTargets(resolvingState);
 
             UnityEngine.Debug.LogWarning($"Processing attack step");
 
@@ -189,7 +189,7 @@ namespace TurnBased.Combat
             UnityEngine.Debug.LogWarning($"Moving back to station");
 
             /*  Move the user back.  */
-            //await BattlePresentationManager.Instance.MoveUnitToStation(sceneData.SourceStationIndex);
+            await BattlePresentationManager.Instance.ReturnSourceAndTargetsBackToStations(resolvingState);
 
             UnityEngine.Debug.LogWarning($"Clearing intention");
 

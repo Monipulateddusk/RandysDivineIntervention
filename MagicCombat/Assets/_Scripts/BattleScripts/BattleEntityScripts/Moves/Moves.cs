@@ -138,7 +138,7 @@ namespace TurnBased
             int damage = resolutionSceneData.OwnerUnitInformation.UnitAttack / 3;
             AttackResolutionInfo resolutionInfo = new()
             {
-                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.SingleEnemy) },
+                TargetDeclarationGroups = { new TargetDeclarationGroup(groupID: 0, MoveTarget.AllEnemies) },
 
                 Steps =
                 {
