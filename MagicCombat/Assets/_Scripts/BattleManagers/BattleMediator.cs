@@ -60,8 +60,6 @@ namespace TurnBased
         private LoaderUnloader.UnitDeathHandler         UnitDeathHandler            = new();
         private GameState.GameStateManager              GameStateManager            = new();
 
-        private Intention.IntentionVisualiserManager    IntentionVisualiserManager = new();
-
         private void Awake()
         {
             if (instance == null)
@@ -75,7 +73,6 @@ namespace TurnBased
             this.CombatTurnOrchestrator = new();
             this.UnitDeathHandler = new();
             this.GameStateManager = new();
-            this.IntentionVisualiserManager = new();
 
 
             this.StationHandler.Awake();
@@ -85,8 +82,6 @@ namespace TurnBased
             this.CombatTurnOrchestrator.Awake();
             this.UnitDeathHandler.Awake();
             this.GameStateManager.Awake();
-
-            this.IntentionVisualiserManager.Awake();
 
             LoaderUnloader.LevelLoaderManager.OnCreateUnit += LevelLoaderManager_OnCreateUnit;
         }
@@ -102,8 +97,6 @@ namespace TurnBased
             {
                 instance = null;
             }
-
-            this.IntentionVisualiserManager.OnDestroy();  
 
             this.GameStateManager.OnDestroy();
             this.UnitDeathHandler.OnDestroy();

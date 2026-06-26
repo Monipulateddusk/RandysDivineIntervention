@@ -1,7 +1,6 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
-namespace TurnBased
+namespace TurnBased.Presentation
 {
     public class BattlePresentationManager : MonoBehaviour
     {
@@ -31,7 +30,6 @@ namespace TurnBased
         };
 
         private const float LOCATION_MODIFIER_DISTANCE = 1.25f;
-        private const float MOVEMENT_DURATION = 1.1f;
 
         private void Awake()
         {
@@ -84,7 +82,10 @@ namespace TurnBased
             targetStations = new();
             foreach (Intention.TargetGroupResolvingState targetGroup in resolvingState.TargetGroupResolvingStates)
             {
-                targetStations.AddRange(targetGroup.DeclaredTargets);
+                foreach (StationIndex targetStationIndex in targetGroup.DeclaredTargets)
+                {
+                    targetStations.Add(targetStationIndex);
+                }
             }
         }
 
@@ -140,6 +141,8 @@ namespace TurnBased
 
 
             sourceUnit.transform.SetPositionAndRotation(newSourcePosition, sourceRotation);
+
+            await System.Threading.Tasks.Task.Delay(1000);
 
 
             //float startTime = Time.time;
@@ -214,7 +217,7 @@ namespace TurnBased
             //    await System.Threading.Tasks.Task.Yield();
             //}
 
-
+            await System.Threading.Tasks.Task.Delay(1000);
         }
     }
 }
