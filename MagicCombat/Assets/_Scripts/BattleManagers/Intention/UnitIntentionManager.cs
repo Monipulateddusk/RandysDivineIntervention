@@ -128,7 +128,7 @@ namespace TurnBased.Intention
         /// </summary>
         /// <param name="apAmount"></param>
         /// <returns>False if the AP amount to be reduced would be less than 0. Returns True if the AP amount would be greater than or equal to 0.</returns>
-        public bool RecreaseAP(int apAmount)
+        public bool DecreaseAP(int apAmount)
         {
             int newAPAmount = this.UnitAP - apAmount;
             if (newAPAmount < 0)
@@ -263,7 +263,7 @@ namespace TurnBased.Intention
         {
             if (!this.intentionDictionary.ContainsKey(unitIndex.Index)) { return; }
 
-            this.intentionDictionary[unitIndex.Index].RecreaseAP(apDecreaseValue);
+            this.intentionDictionary[unitIndex.Index].DecreaseAP(apDecreaseValue);
 
             OnUnitIntentionChanged?.Invoke(unitIndex, this.intentionDictionary[unitIndex.Index]);
         }
@@ -312,7 +312,7 @@ namespace TurnBased.Intention
             UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX BEFORE {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
 
             this.intentionDictionary[unitIndex.Index].ResolvingState = new();
-            this.intentionDictionary[unitIndex.Index].RecreaseAP(moveUsed.GetAPCost());
+            this.intentionDictionary[unitIndex.Index].DecreaseAP(moveUsed.GetAPCost());
 
             UnityEngine.Debug.LogError($"AP VALUE OF UNIT INDEX AFTER {unitIndex.Index} is: {this.intentionDictionary[unitIndex.Index].UnitAP}");
 

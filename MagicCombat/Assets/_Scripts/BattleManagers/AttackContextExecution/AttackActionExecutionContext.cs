@@ -1,3 +1,5 @@
+using System;
+
 namespace TurnBased.AttackResolution
 {
     public class BaseRequest
@@ -93,72 +95,104 @@ namespace TurnBased.AttackResolution
         }
     }
 
-    public class AttackActionExecutionContext
+    public class RequestResolver
     {
-        public void HandleAttackEvent(AttackEvent ev)
+        private RequestTaskCompletionManager completionManager;
+
+        /// -=-=-=-=-=-=-=-=-=-=-
+        /// DAMAGE REQUEST
+        /// -=-=-=-=-=-=-=-=-=-=-
+
+        private void EventHookSystem_OnDamageRequestResolved(RequestTaskCompletionManager requestCompletionManager, DamageRequest request)
         {
-            if (ev == null) { return; }
-
-            if (ev is DamageEvent damageEvent)
-            {
-                DamageRequest damageRequest = new(damageEvent.Source, damageEvent.TargetUnitIndex, damageEvent.Damage);
-                DealDamage(damageRequest);
-            }
-            else if (ev is ElementalDamageEvent elementalDamageEvent)
-            {
-                DamageRequest damageRequest = new(elementalDamageEvent.Source, elementalDamageEvent.TargetUnitIndex, elementalDamageEvent.Damage, elementalDamageEvent.Element);
-
-                DealDamage(damageRequest);
-            }
-            else if (ev is HealEvent healEvent)
-            {
-                HealRequest healRequest = new(healEvent.Source, healEvent.TargetUnitIndex, healEvent.HealAmount);
-
-                HealDamage(healRequest);
-            }
-            else if (ev is ImbueElementEvent imbueElementEvent)
-            {
-                ImbueElementRequest imbueElementRequest = new(imbueElementEvent.Source, imbueElementEvent.TargetUnitIndex, imbueElementEvent.ImbuedElement);
-
-                ImbueEnvironment(imbueElementRequest);
-            }
-            else if (ev is AddStatusEvent addStatusEvent)
-            {
-                ApplyStatusRequest applyStatusRequest = new(addStatusEvent.Source, addStatusEvent.TargetUnitIndex, addStatusEvent.Status);
-
-                AddStatus(applyStatusRequest);
-            }
-            else if (ev is RemoveStatusEvent removeStatusEvent)
-            {
-                RemoveStatusRequest removeStatusRequest = new(removeStatusEvent.Source, removeStatusEvent.TargetUnitIndex, removeStatusEvent.Status);
-
-                RemoveStatus(removeStatusRequest);
-            }
-            else
-            {
-                UnityEngine.Debug.LogError("ERROR — AttackActionExecutionContext: INVALID ATTACK EVENT");
-                return;
-            }
+            EventHookSystem.OnDamageRequestResolved -= EventHookSystem_OnDamageRequestResolved;
+            this.completionManager = requestCompletionManager;
+            this.completionManager.AddAction();
         }
 
-
-        private void DealDamage(DamageRequest damageRequest)
+        public void DealDamage(EventHookSystem hookSystem, DamageRequest damageRequest)
         {
+            EventHookSystem.OnDamageRequestResolved += EventHookSystem_OnDamageRequestResolved;
+            hookSystem.InvokeDamageRequestResolved(damageRequest, ProcessDamageRequest);
+            this.completionManager.OnActionComplete(damageRequest);
+        }
+
+        private void ProcessDamageRequest(BaseRequest request)
+        {
+            DamageRequest damageRequest = request as DamageRequest;
             Information.UnitInformationManager.Instance.DamageUnitByDamageAmount(damageRequest.TargetUnit, damageRequest.DamageAmount);
         }
 
-        public void HealDamage(HealRequest healRequest)
+        /// -=-=-=-=-=-=-=-=-=-=-
+        /// HEAL REQUEST
+        /// -=-=-=-=-=-=-=-=-=-=-
+
+        private void EventHookSystem_OnHealRequestResolved(RequestTaskCompletionManager requestCompletionManager, HealRequest request)
         {
+            EventHookSystem.OnHealRequestResolved -= EventHookSystem_OnHealRequestResolved;
+            this.completionManager = requestCompletionManager;
+            this.completionManager.AddAction();
+        }
+
+        public void HealDamage(EventHookSystem hookSystem, HealRequest healRequest)
+        {
+            EventHookSystem.OnHealRequestResolved += EventHookSystem_OnHealRequestResolved;
+            hookSystem.InvokeHealRequestResolved(healRequest, ProcessHealRequest);
+            this.completionManager.OnActionComplete(healRequest);
+        }
+
+        private void ProcessHealRequest(BaseRequest request)
+        {
+            HealRequest healRequest = request as HealRequest;
             Information.UnitInformationManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
         }
 
-        private void ImbueEnvironment(ImbueElementRequest imbueElementRequest)
+        /// -=-=-=-=-=-=-=-=-=-=-
+        /// IMBUE ENVIRONMENT REQUEST
+        /// -=-=-=-=-=-=-=-=-=-=-
+
+        private void EventHookSystem_OnImbueElementRequestResolved(RequestTaskCompletionManager requestCompletionManager, ImbueElementRequest request)
         {
+            EventHookSystem.OnImbueElementRequestResolved -= EventHookSystem_OnImbueElementRequestResolved;
+            this.completionManager = requestCompletionManager;
+            this.completionManager.AddAction();
+        }
+
+        public void ImbueEnvironment(EventHookSystem hookSystem, ImbueElementRequest imbueElementRequest)
+        {
+            EventHookSystem.OnImbueElementRequestResolved += EventHookSystem_OnImbueElementRequestResolved;
+            hookSystem.InvokeImbueEnvironmentRequestResolved(imbueElementRequest, ProcessImbueEnvironmentRequest);
+            this.completionManager.OnActionComplete(imbueElementRequest);
+        }
+
+        private void ProcessImbueEnvironmentRequest(BaseRequest request)
+        {
+            ImbueElementRequest imbueElementRequest = request as ImbueElementRequest;
             Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, imbueElementRequest.TargetUnit);
         }
 
-        private void AddStatus(ApplyStatusRequest applyStatusRequest)
+        /// -=-=-=-=-=-=-=-=-=-=-
+        /// ADD STATUS REQUEST
+        /// -=-=-=-=-=-=-=-=-=-=-
+
+
+
+        private void EventHookSystem_OnApplyStatusRequestResolved(RequestTaskCompletionManager requestCompletionManager, ApplyStatusRequest request)
         {
+            EventHookSystem.OnApplyStatusRequestResolved -= EventHookSystem_OnApplyStatusRequestResolved;
+            this.completionManager = requestCompletionManager;
+            this.completionManager.AddAction();
+        }
+
+        public void AddStatus(EventHookSystem hookSystem, ApplyStatusRequest applyStatusRequest)
+        {
+            EventHookSystem.OnApplyStatusRequestResolved += EventHookSystem_OnApplyStatusRequestResolved;
+            hookSystem.InvokeApplyStatusRequestResolved(applyStatusRequest, ProcessAddStatusRequest);
+            this.completionManager.OnActionComplete(applyStatusRequest);
+        }
+        private void ProcessAddStatusRequest(BaseRequest request)
+        {
+            ApplyStatusRequest applyStatusRequest = request as ApplyStatusRequest;
             UnityEngine.Debug.LogError("Adding Status within AttackActionContext");
             Status.BaseStatus statusAdded = Status.UnitStatusHandler.AddStatusForUnitIndex(applyStatusRequest.TargetUnit, applyStatusRequest.ApplingStatus);
             if (statusAdded == null) { return; }
@@ -168,8 +202,27 @@ namespace TurnBased.AttackResolution
             Status.CombatStatusHandler.Instance.AddStatusEffect(applyStatusRequest, statusAdded);
         }
 
-        private void RemoveStatus(RemoveStatusRequest removeStatusRequest)
+
+        /// -=-=-=-=-=-=-=-=-=-=-
+        /// REMOVE STATUS REQUEST
+        /// -=-=-=-=-=-=-=-=-=-=-
+
+        private void EventHookSystem_OnRemoveStatusRequestResolved(RequestTaskCompletionManager requestCompletionManager, RemoveStatusRequest request)
         {
+            EventHookSystem.OnRemoveStatusRequestResolved -= EventHookSystem_OnRemoveStatusRequestResolved;
+            this.completionManager = requestCompletionManager;
+            this.completionManager.AddAction();
+        }
+
+        public void RemoveStatus(EventHookSystem hookSystem, RemoveStatusRequest removeStatusRequest)
+        {
+            EventHookSystem.OnRemoveStatusRequestResolved += EventHookSystem_OnRemoveStatusRequestResolved;
+            hookSystem.InvokeRemoveStatusRequestResolved(removeStatusRequest, ProcessRemoveStatusRequest);
+            this.completionManager.OnActionComplete(removeStatusRequest);
+        }
+        private void ProcessRemoveStatusRequest(BaseRequest request)
+        {
+            RemoveStatusRequest removeStatusRequest = request as RemoveStatusRequest;
             Status.BaseStatus statusRemoved = Status.UnitStatusHandler.RemoveStatusForUnitIndex(removeStatusRequest.TargetUnit, removeStatusRequest.RemovingStatus);
             if (statusRemoved == null) { return; }
 

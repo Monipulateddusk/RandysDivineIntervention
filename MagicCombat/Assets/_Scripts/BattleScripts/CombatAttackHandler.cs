@@ -8,7 +8,7 @@ namespace TurnBased.AttackResolution
     /// </summary>
     public static class CombatAttackHandler
     {
-        public async static System.Threading.Tasks.Task ProcessAttackStep(Intention.ResolvingState resolvingState)
+        public async static System.Threading.Tasks.Task ProcessAttackStep(EventHookSystem hookSystem, Intention.ResolvingState resolvingState)
         {
             if (resolvingState.ActionResolvingStates.Count <= 0)
             {
@@ -21,14 +21,14 @@ namespace TurnBased.AttackResolution
                 /*  Get the Declared Units in this Attack Action's Targetting Group.    */
                 if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(resolvingState, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
 
-                await ProcessAttackAction(resolvingState.ResolvingSource, actionResolvingState.Action, declaredTargets);
+                await ProcessAttackAction(hookSystem, resolvingState.ResolvingSource, actionResolvingState.Action, declaredTargets);
 
                 actionResolvingState.IsResolved = true;
             }
         }
 
 
-        public async static System.Threading.Tasks.Task ProcessAttackAction(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
+        public async static System.Threading.Tasks.Task ProcessAttackAction(EventHookSystem hookSystem, Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
         {
             if (!StationManagerUtilities.DoesStationIndexListContainExistantTarget(declaredTargets)) { return; }
             if (resolvingSource == null) { return; }
@@ -53,10 +53,10 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Converting to timeline");
 
-            await ConvertAttackEventsToTimeline(unitIndexTargetPerAttackEventDict);
+            await ConvertAttackEventsToTimeline(hookSystem, unitIndexTargetPerAttackEventDict);
         }
 
-        private async static System.Threading.Tasks.Task ConvertAttackEventsToTimeline(System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
+        private async static System.Threading.Tasks.Task ConvertAttackEventsToTimeline(EventHookSystem hookSystem, System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
         {
             if (unitIndexTargetPerAttackEventDict.Count <= 0) { return; }
 
@@ -97,7 +97,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Processing Timeline");
 
-            await Combat.AttackTimelineManager.ResolveCombatAttackTimeline(attackEventTimeline);
+            await Combat.AttackTimelineManager.ResolveCombatAttackTimeline(hookSystem, attackEventTimeline);
         }
     }
 }

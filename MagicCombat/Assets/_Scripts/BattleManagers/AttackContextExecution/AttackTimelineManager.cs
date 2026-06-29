@@ -1,19 +1,20 @@
-
 namespace TurnBased.Combat
 {
     public static class AttackTimelineManager
     {
-        public static async System.Threading.Tasks.Task ResolveCombatAttackTimeline(System.Collections.Generic.List<System.Collections.Generic.List<AttackResolution.AttackEvent>> attackEventTimeline)
+        public static async System.Threading.Tasks.Task ResolveCombatAttackTimeline(EventHookSystem hookSystem, System.Collections.Generic.List<System.Collections.Generic.List<AttackResolution.AttackEvent>> attackEventTimeline)
         {
             if (attackEventTimeline.Count <= 0) { return; }
-            AttackResolution.AttackActionExecutionContext executionContext = new();
+            AttackResolution.RequestResolver resolver = new();
 
             foreach (System.Collections.Generic.List<AttackResolution.AttackEvent> listOfEvents in attackEventTimeline)
             {
                 foreach (AttackResolution.AttackEvent attackEvent in listOfEvents)
                 {
                     UnityEngine.Debug.LogError("Processing Attack");
-                    executionContext.HandleAttackEvent(attackEvent);
+                    if (attackEvent == null) { continue; }
+
+                    attackEvent.ExecuteAttackEvent(hookSystem, resolver);
                 }
                 await System.Threading.Tasks.Task.Delay(500);
             }

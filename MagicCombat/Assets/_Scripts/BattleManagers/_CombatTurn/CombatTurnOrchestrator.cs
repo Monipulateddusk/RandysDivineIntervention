@@ -77,7 +77,7 @@ namespace TurnBased.Phases {
             this.UnitIntentionManager.Awake();
 
             this.IntentionResolverManager.Awake();
-            this.IntentionCombatResolver.Awake();
+            this.IntentionCombatResolver.Awake(this.EventHookSystem);
 
             this.MoveSelectorManager.Awake();
             this.UnitTargetSelectorManager.Awake();

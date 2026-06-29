@@ -59,7 +59,7 @@ namespace TurnBased.Phases
         public UnitTurnPhase_MoveSelection(EventHookSystem hookSystem, System.Action<UnitTurnPhase_MoveSelection> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
-            EventHookSystem.OnAwaitingUnitMoveSelection += EventHookSystem_OnAwaitingUnitMoveSelection;
+            EventHookSystem.OnAwaitingSubPhaseUnitMoveSelection += EventHookSystem_OnAwaitingSubPhaseUnitMoveSelection;
         }
         ~UnitTurnPhase_MoveSelection()
         {
@@ -68,7 +68,7 @@ namespace TurnBased.Phases
             Intention.MoveSelectionResolver.OnMoveSelected -= OnMoveSelected;
         }
 
-        private void EventHookSystem_OnAwaitingUnitMoveSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        private void EventHookSystem_OnAwaitingSubPhaseUnitMoveSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -142,14 +142,14 @@ namespace TurnBased.Phases
         public UnitTurnPhase_TargetSelection(EventHookSystem hookSystem, System.Action<UnitTurnPhase_TargetSelection> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
-            EventHookSystem.OnAwaitingUnitTargetSelection += EventHookSystem_OnAwaitingUnitTargetSelection;
+            EventHookSystem.OnAwaitingSubPhaseUnitTargetSelection += EventHookSystem_OnAwaitingSubPhaseUnitTargetSelection;
         }
         ~UnitTurnPhase_TargetSelection()
         {
-            EventHookSystem.OnAwaitingUnitTargetSelection -= EventHookSystem_OnAwaitingUnitTargetSelection;
+            EventHookSystem.OnAwaitingSubPhaseUnitTargetSelection -= EventHookSystem_OnAwaitingSubPhaseUnitTargetSelection;
             Intention.TargetSelectionResolver.OnTargetSelected -= OnPhaseComplete;
         }
-        private void EventHookSystem_OnAwaitingUnitTargetSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        private void EventHookSystem_OnAwaitingSubPhaseUnitTargetSelection(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -191,15 +191,15 @@ namespace TurnBased.Phases
         public UnitTurnPhase_ReadyToExecuteMove(EventHookSystem hookSystem, System.Action<UnitTurnPhase_ReadyToExecuteMove> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;   
-            EventHookSystem.OnUnitReadyToExecuteMove += EventHookSystem_OnUnitReadyToExecuteMove;
+            EventHookSystem.OnSubPhaseUnitReadyToExecuteMove += EventHookSystem_OnSubPhaseUnitReadyToExecuteMove;
         }
 
         ~UnitTurnPhase_ReadyToExecuteMove()
         {
-            EventHookSystem.OnUnitReadyToExecuteMove -= EventHookSystem_OnUnitReadyToExecuteMove;
+            EventHookSystem.OnSubPhaseUnitReadyToExecuteMove -= EventHookSystem_OnSubPhaseUnitReadyToExecuteMove;
         }
 
-        private void EventHookSystem_OnUnitReadyToExecuteMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        private void EventHookSystem_OnSubPhaseUnitReadyToExecuteMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -250,10 +250,10 @@ namespace TurnBased.Phases
         public UnitTurnPhase_ResolveAttack(EventHookSystem hookSystem, System.Action<UnitTurnPhase_ResolveAttack> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
-            EventHookSystem.OnUnitResolveMove += EventHookSystem_OnUnitResolveMove;
+            EventHookSystem.OnSubPhaseUnitResolveMove += EventHookSystem_OnSubPhaseUnitResolveMove;
         }
 
-        private void EventHookSystem_OnUnitResolveMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        private void EventHookSystem_OnSubPhaseUnitResolveMove(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -262,7 +262,7 @@ namespace TurnBased.Phases
 
         ~UnitTurnPhase_ResolveAttack()
         {
-            EventHookSystem.OnUnitResolveMove -= EventHookSystem_OnUnitResolveMove;
+            EventHookSystem.OnSubPhaseUnitResolveMove -= EventHookSystem_OnSubPhaseUnitResolveMove;
         }
 
         public override void OnEnter()
@@ -314,14 +314,14 @@ namespace TurnBased.Phases
         public UnitTurnPhase_AttackComplete(EventHookSystem hookSystem, System.Action<UnitTurnPhase_AttackComplete> onSubPhaseComplete) : base(hookSystem)
         {
             this.OnSubPhaseComplete = onSubPhaseComplete;
-            EventHookSystem.OnUnitAttackComplete += EventHookSystem_OnUnitAttackComplete;
+            EventHookSystem.OnSubPhaseUnitAttackComplete += EventHookSystem_OnSubPhaseUnitAttackComplete;
         }
         ~UnitTurnPhase_AttackComplete()
         {
-            EventHookSystem.OnUnitAttackComplete -= EventHookSystem_OnUnitAttackComplete;
+            EventHookSystem.OnSubPhaseUnitAttackComplete -= EventHookSystem_OnSubPhaseUnitAttackComplete;
         }
 
-        private void EventHookSystem_OnUnitAttackComplete(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
+        private void EventHookSystem_OnSubPhaseUnitAttackComplete(PhaseTaskCompletionManager completionManager, UnitIndex unitIndex)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();

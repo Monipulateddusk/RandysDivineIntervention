@@ -1,3 +1,4 @@
+using TurnBased.AttackResolution;
 using TurnBased.Phases;
 
 namespace TurnBased
@@ -5,141 +6,189 @@ namespace TurnBased
     public class EventHookSystem
     {
         private PhaseTaskCompletionManager phaseCompletionManager;
+        private RequestTaskCompletionManager requestTaskCompletionManager;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when starting the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfBattle;
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfBattlePhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when starting the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfRound;
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfRoundPhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other at the Start of the Player's Pre-Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPrePlayerTurn;
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPrePlayerTurnPhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other to the Start of the Player Turn. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPlayerTurn;
+        public static event System.Action<PhaseTaskCompletionManager> OnStartOfPlayerTurnPhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when Resolving Turn Order. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnResolvingTurnOrder;
+        public static event System.Action<PhaseTaskCompletionManager> OnResolvingTurnOrderPhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other at the end of the Round. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnEndOfRound;
+        public static event System.Action<PhaseTaskCompletionManager> OnEndOfRoundPhase;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other at the end of the Battle. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager> OnEndOfBattle;
+        public static event System.Action<PhaseTaskCompletionManager> OnEndOfBattlePhase;
 
         // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Move Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitMoveSelection;
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingSubPhaseUnitMoveSelection;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when a Unit is awaiting Target Selection. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingUnitTargetSelection;
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnAwaitingSubPhaseUnitTargetSelection;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when a Unit is ready to execute their Move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitReadyToExecuteMove;
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnSubPhaseUnitReadyToExecuteMove;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when a Unit is about to Resolve their move. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitResolveMove;
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnSubPhaseUnitResolveMove;
 
         /// <summary>
         /// Allows the hooking of any effects, presentation or other when a Unit's Attack is complete. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
         /// </summary>
-        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnUnitAttackComplete;
+        public static event System.Action<PhaseTaskCompletionManager, UnitIndex> OnSubPhaseUnitAttackComplete;
+
+        // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit's Battle Move occours during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// 
+        /// IBattleMove: Referance to the Move Processed.
+        /// UnitIndex: UnitIndex of the source unit who performed the move.
+        /// </summary>
+        public static event System.Action<PhaseTaskCompletionManager, IBattleMove, UnitIndex> OnUnitBattleMoveProcessed;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is inflicted damage during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+        public static event System.Action<RequestTaskCompletionManager, DamageRequest> OnDamageRequestResolved;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit is healed during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+
+        public static event System.Action<RequestTaskCompletionManager, HealRequest> OnHealRequestResolved;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit has a status applied to them during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+
+        public static event System.Action<RequestTaskCompletionManager, ApplyStatusRequest> OnApplyStatusRequestResolved;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when a Unit has a status removed from them during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+
+        public static event System.Action<RequestTaskCompletionManager, RemoveStatusRequest> OnRemoveStatusRequestResolved;
+
+        /// <summary>
+        /// Allows the hooking of any effects, presentation or other when an element is imbued to the environment during resolution. Remember to Call the 'AddAction' Method before, and 'OnActionComplete' when the action is done!
+        /// </summary>
+
+        public static event System.Action<RequestTaskCompletionManager, ImbueElementRequest> OnImbueElementRequestResolved;
 
 
         public void OnDestroy()
         {
             this.phaseCompletionManager = null;
+            this.requestTaskCompletionManager = null;
 
             /*  
              *  Remove all listeners to events. Doesn't prevent memory leaks, all listeners still need to unsubscribe.  
              *  But it resets it for next time.
              */
 
-            OnStartOfBattle = null;
-            OnStartOfRound = null;
-            OnStartOfPrePlayerTurn = null;
-            OnStartOfPlayerTurn = null;
-            OnResolvingTurnOrder = null;
-            OnEndOfRound = null;
-            OnEndOfBattle = null;
+            OnStartOfBattlePhase = null;
+            OnStartOfRoundPhase = null;
+            OnStartOfPrePlayerTurnPhase = null;
+            OnStartOfPlayerTurnPhase = null;
+            OnResolvingTurnOrderPhase = null;
+            OnEndOfRoundPhase = null;
+            OnEndOfBattlePhase = null;
 
-            OnAwaitingUnitMoveSelection = null;
-            OnAwaitingUnitTargetSelection = null;
-            OnUnitReadyToExecuteMove = null;
-            OnUnitResolveMove = null;
-            OnUnitAttackComplete = null;
+            OnAwaitingSubPhaseUnitMoveSelection = null;
+            OnAwaitingSubPhaseUnitTargetSelection = null;
+            OnSubPhaseUnitReadyToExecuteMove = null;
+            OnSubPhaseUnitResolveMove = null;
+            OnSubPhaseUnitAttackComplete = null;
+
+            OnUnitBattleMoveProcessed = null;
+            OnDamageRequestResolved = null;
+            OnHealRequestResolved = null;   
+            OnApplyStatusRequestResolved = null;
+            OnRemoveStatusRequestResolved = null;
+            OnImbueElementRequestResolved = null;
         }
 
         public void InvokeStartOfBattle(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnStartOfBattle?.Invoke(this.phaseCompletionManager);
+            OnStartOfBattlePhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeStartOfRound(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnStartOfRound?.Invoke(this.phaseCompletionManager);
+            OnStartOfRoundPhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeStartOfPrePlayerTurn(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnStartOfPrePlayerTurn?.Invoke(this.phaseCompletionManager);
+            OnStartOfPrePlayerTurnPhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeStartOfPlayerTurn(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnStartOfPlayerTurn?.Invoke(this.phaseCompletionManager);
+            OnStartOfPlayerTurnPhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeTurnOrderResolving(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnResolvingTurnOrder?.Invoke(this.phaseCompletionManager);
+            OnResolvingTurnOrderPhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeEndOfRound(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnEndOfRound?.Invoke(this.phaseCompletionManager);
+            OnEndOfRoundPhase?.Invoke(this.phaseCompletionManager);
         }
 
         public void InvokeEndOfBattle(System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnEndOfBattle?.Invoke(this.phaseCompletionManager);
+            OnEndOfBattlePhase?.Invoke(this.phaseCompletionManager);
         }
 
 
@@ -147,35 +196,79 @@ namespace TurnBased
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnAwaitingUnitMoveSelection?.Invoke(this.phaseCompletionManager, unitIndex);
+            OnAwaitingSubPhaseUnitMoveSelection?.Invoke(this.phaseCompletionManager, unitIndex);
         }
 
         public void InvokeAwaitingTargetSelection(UnitIndex unitIndex, System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnAwaitingUnitTargetSelection?.Invoke(this.phaseCompletionManager, unitIndex);
+            OnAwaitingSubPhaseUnitTargetSelection?.Invoke(this.phaseCompletionManager, unitIndex);
         }
 
         public void InvokeReadyToExecuteMove(UnitIndex unitIndex, System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnUnitReadyToExecuteMove?.Invoke(this.phaseCompletionManager, unitIndex);
+            OnSubPhaseUnitReadyToExecuteMove?.Invoke(this.phaseCompletionManager, unitIndex);
         }
 
         public void InvokeUnitResolveMove(UnitIndex unitIndex, System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnUnitResolveMove?.Invoke(this.phaseCompletionManager, unitIndex);
+            OnSubPhaseUnitResolveMove?.Invoke(this.phaseCompletionManager, unitIndex);
         }
 
         public void InvokeUnitAttackComplete(UnitIndex unitIndex, System.Action onComplete)
         {
             this.phaseCompletionManager = new(onComplete);
 
-            OnUnitAttackComplete?.Invoke(this.phaseCompletionManager, unitIndex);
+            OnSubPhaseUnitAttackComplete?.Invoke(this.phaseCompletionManager, unitIndex);
         }
+
+
+        public void InvokeUnitBattleMoveProcessed(UnitIndex unitIndex, IBattleMove battleMove, System.Action onComplete)
+        {
+            this.phaseCompletionManager = new(onComplete);
+
+            OnUnitBattleMoveProcessed?.Invoke(this.phaseCompletionManager, battleMove, unitIndex);
+        }
+
+        public void InvokeDamageRequestResolved(DamageRequest request, System.Action<BaseRequest> onComplete)
+        {
+            this.requestTaskCompletionManager = new(onComplete);
+
+            OnDamageRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
+        }
+
+        public void InvokeHealRequestResolved(HealRequest request, System.Action<BaseRequest> onComplete)
+        {
+            this.requestTaskCompletionManager = new(onComplete);
+
+            OnHealRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
+        }
+
+        public void InvokeApplyStatusRequestResolved(ApplyStatusRequest request, System.Action<BaseRequest> onComplete)
+        {
+            this.requestTaskCompletionManager = new(onComplete);
+
+            OnApplyStatusRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
+        }
+
+        public void InvokeRemoveStatusRequestResolved(RemoveStatusRequest request, System.Action<BaseRequest> onComplete)
+        {
+            this.requestTaskCompletionManager = new(onComplete);
+
+            OnRemoveStatusRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
+        }
+
+        public void InvokeImbueEnvironmentRequestResolved(ImbueElementRequest request, System.Action<BaseRequest> onComplete)
+        {
+            this.requestTaskCompletionManager = new(onComplete);
+
+            OnImbueElementRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
+        }
+
     }
 }

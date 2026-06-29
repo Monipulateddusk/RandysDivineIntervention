@@ -5,13 +5,13 @@ public class TestHookExample
 {
     public void Awake()
     {
-        EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
+        EventHookSystem.OnResolvingTurnOrderPhase += EventHookSystem_OnResolvingTurnOrder;
     }
 
 
     public void OnDestroy()
     {
-        EventHookSystem.OnResolvingTurnOrder -= EventHookSystem_OnResolvingTurnOrder;
+        EventHookSystem.OnResolvingTurnOrderPhase -= EventHookSystem_OnResolvingTurnOrder;
     }
     private void EventHookSystem_OnResolvingTurnOrder(TurnBased.Phases.PhaseTaskCompletionManager completionManager)
     {

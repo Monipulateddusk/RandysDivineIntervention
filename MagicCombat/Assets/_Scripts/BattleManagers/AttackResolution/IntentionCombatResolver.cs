@@ -13,18 +13,20 @@ namespace TurnBased.Combat
             }
         }
 
+        private EventHookSystem eventHookSystem;
         public static event System.Action OnResolvingStatesComplete;
 
         private System.Collections.Generic.LinkedList<AttackResolution.CombatResolvingRequest> resolvingRequests;
         private bool isResolving;
 
-        public void Awake()
+        public void Awake(EventHookSystem evHookSystem)
         {
             if (instance == null)
             {
                 instance = this;
             }
 
+            this.eventHookSystem = evHookSystem;
             this.resolvingRequests = new();
             this.isResolving = false;
         }
@@ -40,6 +42,7 @@ namespace TurnBased.Combat
                 instance = null;
             }
 
+            this.eventHookSystem = null;
             this.resolvingRequests.Clear();
             this.resolvingRequests = null;
 
@@ -183,7 +186,7 @@ namespace TurnBased.Combat
 
             /*  Process each step individually   */
 
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
 
 
             UnityEngine.Debug.LogWarning($"Moving back to station");
@@ -207,7 +210,7 @@ namespace TurnBased.Combat
         private async System.Threading.Tasks.Task ProcessStatusResolvingState(Intention.ResolvingState resolvingState)
         {
             UnityEngine.Debug.LogError($"Processing Status resolving state!");
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
             UnityEngine.Debug.LogError($"Processed Status Resolving State!");
 
             GameStateManager.Instance.DetermineDeadUnits();
@@ -215,7 +218,7 @@ namespace TurnBased.Combat
 
         private async System.Threading.Tasks.Task ProcessEnvironmentResolvingState(Intention.ResolvingState resolvingState)
         {
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(resolvingState);
+            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
 
             GameStateManager.Instance.DetermineDeadUnits();
         }

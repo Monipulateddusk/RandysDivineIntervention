@@ -19,11 +19,11 @@ namespace TurnBased.Status
                 instance = this;
             }
 
-            EventHookSystem.OnStartOfRound          += EventHookSystem_OnStartOfRound;
-            EventHookSystem.OnStartOfPrePlayerTurn  += EventHookSystem_OnStartOfPrePlayerTurn;
-            EventHookSystem.OnStartOfPlayerTurn     += EventHookSystem_OnStartOfPlayerTurn;
-            EventHookSystem.OnResolvingTurnOrder    += EventHookSystem_OnResolvingTurnOrder;
-            EventHookSystem.OnEndOfRound            += EventHookSystem_OnEndOfRound;
+            EventHookSystem.OnStartOfRoundPhase          += EventHookSystem_OnStartOfRoundPhase;
+            EventHookSystem.OnStartOfPrePlayerTurnPhase  += EventHookSystem_OnStartOfPrePlayerTurnPhase;
+            EventHookSystem.OnStartOfPlayerTurnPhase     += EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnResolvingTurnOrderPhase    += EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnEndOfRoundPhase            += EventHookSystem_OnEndOfRound;
 
         }
 
@@ -34,21 +34,21 @@ namespace TurnBased.Status
                 instance = null;
             }
 
-            EventHookSystem.OnStartOfRound          -= EventHookSystem_OnStartOfRound;
-            EventHookSystem.OnStartOfPrePlayerTurn  -= EventHookSystem_OnStartOfPrePlayerTurn;
-            EventHookSystem.OnStartOfPlayerTurn     -= EventHookSystem_OnStartOfPlayerTurn;
-            EventHookSystem.OnResolvingTurnOrder    -= EventHookSystem_OnResolvingTurnOrder;
-            EventHookSystem.OnEndOfRound            -= EventHookSystem_OnEndOfRound;
+            EventHookSystem.OnStartOfRoundPhase             -= EventHookSystem_OnStartOfRoundPhase;
+            EventHookSystem.OnStartOfPrePlayerTurnPhase     -= EventHookSystem_OnStartOfPrePlayerTurnPhase;
+            EventHookSystem.OnStartOfPlayerTurnPhase        -= EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnResolvingTurnOrderPhase       -= EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnEndOfRoundPhase               -= EventHookSystem_OnEndOfRound;
         }
 
 
-        private void EventHookSystem_OnStartOfRound(Phases.PhaseTaskCompletionManager completionManager)
+        private void EventHookSystem_OnStartOfRoundPhase(Phases.PhaseTaskCompletionManager completionManager)
         {
             AssignCompletionManager(completionManager);
             ProcessStatusAtPhase(CombatTurnOrchestrationPhase.StartOfRound);
         }
 
-        private void EventHookSystem_OnStartOfPrePlayerTurn(Phases.PhaseTaskCompletionManager completionManager)
+        private void EventHookSystem_OnStartOfPrePlayerTurnPhase(Phases.PhaseTaskCompletionManager completionManager)
         {
             AssignCompletionManager(completionManager);
             ProcessStatusAtPhase(CombatTurnOrchestrationPhase.PrePlayerTurn);

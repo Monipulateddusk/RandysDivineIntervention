@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 380c1eaf58fd98e4095bd3581412ee1b, type: 3}
+  m_Name: Particle Data
+  m_EditorClassIdentifier: 
+  ImplositionParticlePrefab: {fileID: 4843139774226262036, guid: cc824cd25cf59d443b06e1758861d332, type: 3}
+  ShockWaveParticlePrefab: {fileID: 3483025838490107236, guid: c91015e6f941a1741a22d726b76e4faf, type: 3}

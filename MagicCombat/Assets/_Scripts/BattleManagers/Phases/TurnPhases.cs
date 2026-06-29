@@ -45,15 +45,15 @@ namespace TurnBased.Phases
     {
         public BeginBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnStartOfBattle += EventHookSystem_OnStartOfBattle;
+            EventHookSystem.OnStartOfBattlePhase += EventHookSystem_OnStartOfBattlePhase;
         }
 
         ~BeginBattlePhase()
         {
-            EventHookSystem.OnStartOfBattle -= EventHookSystem_OnStartOfBattle;
+            EventHookSystem.OnStartOfBattlePhase -= EventHookSystem_OnStartOfBattlePhase;
         }
 
-        private void EventHookSystem_OnStartOfBattle(PhaseTaskCompletionManager completionManager)
+        private void EventHookSystem_OnStartOfBattlePhase(PhaseTaskCompletionManager completionManager)
         {
             this.completionManager = completionManager;
 
@@ -92,15 +92,15 @@ namespace TurnBased.Phases
     {
         public BeginRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnStartOfRound += EventHookSystem_OnStartOfRound;
+            EventHookSystem.OnStartOfRoundPhase += EventHookSystem_OnStartOfRoundPhase;
         }
 
         ~BeginRoundPhase()
         {
-            EventHookSystem.OnStartOfRound -= EventHookSystem_OnStartOfRound;
+            EventHookSystem.OnStartOfRoundPhase -= EventHookSystem_OnStartOfRoundPhase;
         }
 
-        private void EventHookSystem_OnStartOfRound(PhaseTaskCompletionManager completionManager)
+        private void EventHookSystem_OnStartOfRoundPhase(PhaseTaskCompletionManager completionManager)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -178,10 +178,10 @@ namespace TurnBased.Phases
 
         public PreTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnStartOfPrePlayerTurn += EventHookSystem_OnStartOfPrePlayerTurn;
+            EventHookSystem.OnStartOfPrePlayerTurnPhase += EventHookSystem_OnStartOfPrePlayerTurnPhase;
         }
 
-        private void EventHookSystem_OnStartOfPrePlayerTurn(PhaseTaskCompletionManager completionManager)
+        private void EventHookSystem_OnStartOfPrePlayerTurnPhase(PhaseTaskCompletionManager completionManager)
         {
             this.completionManager = completionManager;
             this.completionManager.AddAction();
@@ -219,7 +219,7 @@ namespace TurnBased.Phases
 
         ~PreTurnPhase()
         {
-            EventHookSystem.OnStartOfPrePlayerTurn -= EventHookSystem_OnStartOfPrePlayerTurn;
+            EventHookSystem.OnStartOfPrePlayerTurnPhase -= EventHookSystem_OnStartOfPrePlayerTurnPhase;
             this.OnMainPhaseComplete = null;
             this.RoundUnitIntentionManager = null;
         }
@@ -229,11 +229,11 @@ namespace TurnBased.Phases
     {
         public UnitTurnPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnStartOfPlayerTurn += EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnStartOfPlayerTurnPhase += EventHookSystem_OnStartOfPlayerTurn;
         }
         ~UnitTurnPhase()
         {
-            EventHookSystem.OnStartOfPlayerTurn -= EventHookSystem_OnStartOfPlayerTurn;
+            EventHookSystem.OnStartOfPlayerTurnPhase -= EventHookSystem_OnStartOfPlayerTurn;
         }
 
         private void EventHookSystem_OnStartOfPlayerTurn(PhaseTaskCompletionManager completionManager)
@@ -288,12 +288,12 @@ namespace TurnBased.Phases
     {
         public TurnOrderCombatResolutionPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnResolvingTurnOrder += EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnResolvingTurnOrderPhase += EventHookSystem_OnResolvingTurnOrder;
         }
 
         ~TurnOrderCombatResolutionPhase()
         {
-            EventHookSystem.OnResolvingTurnOrder -= EventHookSystem_OnResolvingTurnOrder;
+            EventHookSystem.OnResolvingTurnOrderPhase -= EventHookSystem_OnResolvingTurnOrder;
         }
 
         private void EventHookSystem_OnResolvingTurnOrder(PhaseTaskCompletionManager completionManager)
@@ -339,11 +339,11 @@ namespace TurnBased.Phases
     {
         public EndRoundPhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnEndOfRound += EventHookSystem_OnEndOfRound;
+            EventHookSystem.OnEndOfRoundPhase += EventHookSystem_OnEndOfRound;
         }
         ~EndRoundPhase()
         {
-            EventHookSystem.OnEndOfRound -= EventHookSystem_OnEndOfRound;
+            EventHookSystem.OnEndOfRoundPhase -= EventHookSystem_OnEndOfRound;
         }
 
         private void EventHookSystem_OnEndOfRound(PhaseTaskCompletionManager completionManager)
@@ -383,11 +383,11 @@ namespace TurnBased.Phases
     {
         public EndOfBattlePhase(Intention.CombatRoundUnitIntentionManager cRUIM, EventHookSystem hookSystem, System.Action<CombatTurnOrchestrationPhase> onMainPhaseComplete) : base(cRUIM, hookSystem, onMainPhaseComplete)
         {
-            EventHookSystem.OnEndOfBattle += EventHookSystem_OnEndOfBattle;
+            EventHookSystem.OnEndOfBattlePhase += EventHookSystem_OnEndOfBattle;
         }
         ~EndOfBattlePhase()
         {
-            EventHookSystem.OnEndOfBattle -= EventHookSystem_OnEndOfBattle;
+            EventHookSystem.OnEndOfBattlePhase -= EventHookSystem_OnEndOfBattle;
         }
 
         private void EventHookSystem_OnEndOfBattle(PhaseTaskCompletionManager completionManager)

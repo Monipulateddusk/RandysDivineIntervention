@@ -10,6 +10,8 @@ namespace TurnBased.AttackResolution
             this.Source = source;
             this.TargetUnitIndex = targetUnitIndex;
         }
+
+        public abstract void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver);
     }
 
 
@@ -19,6 +21,12 @@ namespace TurnBased.AttackResolution
         public DamageEvent(int damage, Intention.ResolvingSource source, UnitIndex targetUnitIndex) : base(source, targetUnitIndex)
         {
             this.Damage = damage;
+        }
+
+        public override void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver)
+        {
+            DamageRequest damageRequest = new(this.Source, this.TargetUnitIndex, this.Damage);
+            resolver.DealDamage(hookSystem, damageRequest);
         }
     }
 
@@ -38,6 +46,11 @@ namespace TurnBased.AttackResolution
         {
             this.HealAmount = healAmount;
         }
+        public override void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver)
+        {
+            HealRequest healRequest = new(this.Source, this.TargetUnitIndex, this.HealAmount);
+            resolver.HealDamage(hookSystem, healRequest);
+        }
     }
 
     public class ImbueElementEvent : AttackEvent
@@ -46,6 +59,11 @@ namespace TurnBased.AttackResolution
         public ImbueElementEvent(Element imbuedElement, Intention.ResolvingSource source, UnitIndex targetUnitIndex) : base(source, targetUnitIndex)
         {
             this.ImbuedElement = imbuedElement;
+        }
+        public override void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver)
+        {
+            ImbueElementRequest imbueElementRequest = new(this.Source, this.TargetUnitIndex, this.ImbuedElement);
+            resolver.ImbueEnvironment(hookSystem, imbueElementRequest);
         }
     }
 
@@ -57,6 +75,12 @@ namespace TurnBased.AttackResolution
         {
             this.Status = addedStatus;  
         }
+
+        public override void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver)
+        {
+            ApplyStatusRequest applyStatusRequest = new(this.Source, this.TargetUnitIndex, this.Status);
+            resolver.AddStatus(hookSystem, applyStatusRequest);
+        }
     }
     public class RemoveStatusEvent : AttackEvent
     {
@@ -65,6 +89,11 @@ namespace TurnBased.AttackResolution
         public RemoveStatusEvent(Status.BaseStatus addedStatus, Intention.ResolvingSource source, UnitIndex targetUnitIndex) : base(source, targetUnitIndex)
         {
             this.Status = addedStatus;
+        }
+        public override void ExecuteAttackEvent(EventHookSystem hookSystem, RequestResolver resolver)
+        {
+            RemoveStatusRequest removeStatusRequest = new(this.Source, this.TargetUnitIndex, this.Status);
+            resolver.RemoveStatus(hookSystem, removeStatusRequest);
         }
     }
 }

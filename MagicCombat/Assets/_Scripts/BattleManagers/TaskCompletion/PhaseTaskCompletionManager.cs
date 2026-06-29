@@ -13,8 +13,8 @@ namespace TurnBased.Phases
 
         ~PhaseTaskCompletionManager()
         {
-            phaseTaskCount = 0;
-            OnPhaseCompletion = null;
+            this.phaseTaskCount = 0;
+            this.OnPhaseCompletion = null;
         }
 
         public void AddAction()
@@ -29,6 +29,40 @@ namespace TurnBased.Phases
             if (this.phaseTaskCount <= 0)
             {
                 this.OnPhaseCompletion?.Invoke();
+            }
+        }
+    }
+}
+
+namespace TurnBased.AttackResolution
+{
+    public class RequestTaskCompletionManager
+    {
+        private int requestTaskCount;
+        private System.Action<BaseRequest> OnRequestTaskCompletion;
+
+        public RequestTaskCompletionManager(System.Action<BaseRequest> onRequestTaskCompletion)
+        {
+            this.requestTaskCount = 0;
+            this.OnRequestTaskCompletion = onRequestTaskCompletion;
+        }
+        ~RequestTaskCompletionManager()
+        {
+            this.requestTaskCount = 0;
+            this.OnRequestTaskCompletion = null;
+        }
+        public void AddAction()
+        {
+            this.requestTaskCount++;
+        }
+
+        public void OnActionComplete(BaseRequest baseRequest)
+        {
+            this.requestTaskCount--;
+
+            if (this.requestTaskCount <= 0)
+            {
+                this.OnRequestTaskCompletion?.Invoke(baseRequest);
             }
         }
     }

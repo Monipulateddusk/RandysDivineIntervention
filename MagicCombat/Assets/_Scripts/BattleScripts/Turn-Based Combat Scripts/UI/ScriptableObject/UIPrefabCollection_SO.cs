@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "UI Database", fileName = "UI Data")]
+[CreateAssetMenu(menuName="UI Database", fileName="UI Data")]
 public class UICollection_SO : ScriptableObject
 {
     [Header("UI Prefabs")]

@@ -20,8 +20,13 @@ namespace TurnBased.Presentation
             }
         }
 
+        [Header("Inspector Variables")]
+        [SerializeField] private ParticlesCollection_SO particlesCollectionData;
+        private PerticleSystemManager particleSystemManager;
+
+
         [SerializeField] GameObject tempVisual;
-        Vector3 allyCombatLocation = new(0,0,-2f), enemyCombatLocation = new(0, 0, -4f);
+        private Vector3 ALLY_COMBAT_LOCATION = new(0,0,-2f), ENEMY_COMBAT_LOCATION = new(0, 0, -4f);
 
         private readonly System.Collections.Generic.List<Vector2> LOCATION_MODIFIERS = new System.Collections.Generic.List<Vector2>
         {   new(0,  0),     new(0, -1),     new(-1,-1),
@@ -37,6 +42,9 @@ namespace TurnBased.Presentation
 
             StationManager.OnDeployUnit += StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
+
+            this.particleSystemManager = new();
+            this.particleSystemManager.Awake(this.particlesCollectionData);
         }
 
         private void Start()
@@ -52,11 +60,14 @@ namespace TurnBased.Presentation
             }
             StationManager.OnDeployUnit -= StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+
+            this.particleSystemManager.OnDestroy();
+            this.particleSystemManager = null;
         }
 
         private void StationManager_OnDeployUnit(StationIndex stationIndex, UnitIndex deployUnitIndex, UnitIndex? recallUnitIndex)
         {
-            /*  Get the station  and the BaseBattleUnit */
+            /*  Get the station and the BaseBattleUnit */
             if (!StationManager.Instance.TryGetStationOfStationIndex(stationIndex, out Station stationOfStationIndex)) { return; }
 
             if (!StationManager.Instance.TryGetBattleUnitOfIndex(deployUnitIndex, out BaseBattleUnit battleUnit)) { return; }
@@ -93,13 +104,13 @@ namespace TurnBased.Presentation
         {
             if (team == UnitTeam.ENEMY)
             {
-                sourceTransform = this.enemyCombatLocation;
-                targetTransform = this.allyCombatLocation;
+                sourceTransform = this.ENEMY_COMBAT_LOCATION;
+                targetTransform = this.ALLY_COMBAT_LOCATION;
             }
             else
             {
-                sourceTransform = this.allyCombatLocation;
-                targetTransform = this.enemyCombatLocation;
+                sourceTransform = this.ALLY_COMBAT_LOCATION;
+                targetTransform = this.ENEMY_COMBAT_LOCATION;
             }
         }
         public async System.Threading.Tasks.Task VisualiseUnitTeleportUserAndTargets(Intention.ResolvingState resolvingState)
