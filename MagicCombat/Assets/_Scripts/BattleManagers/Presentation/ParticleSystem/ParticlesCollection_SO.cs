@@ -4,6 +4,7 @@ using UnityEngine;
 public class ParticlesCollection_SO : ScriptableObject
 {
     [Header("Particle Prefabs")]
-    public ParticleSystemController ImplositionParticlePrefab;
+    public ParticleSystemController BurnParticlePrefab;
+    public ParticleSystemController PoisonParticlePrefab;
     public ParticleSystemController ShockWaveParticlePrefab;
 }

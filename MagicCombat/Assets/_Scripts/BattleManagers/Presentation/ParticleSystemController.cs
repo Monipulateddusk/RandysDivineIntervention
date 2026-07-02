@@ -28,6 +28,10 @@ public class ParticleSystemController : MonoBehaviour
             this.PrimaryColourParticleSystem.Play();
 
         }
+    }
 
+    public void PlayParticleSystem()
+    {
+        this.PrimaryColourParticleSystem.Play();
     }
 }
