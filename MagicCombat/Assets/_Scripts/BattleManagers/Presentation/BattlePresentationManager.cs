@@ -1,9 +1,11 @@
+using TurnBased.Combat;
 using UnityEngine;
 
 namespace TurnBased.Presentation
 {
     public class BattlePresentationManager : MonoBehaviour
     {
+
         private static BattlePresentationManager instance;
         public static BattlePresentationManager Instance
         {
@@ -20,9 +22,12 @@ namespace TurnBased.Presentation
             }
         }
 
+        private AttackResolution.ResolvingStatePhaseCompletionManager _CompletionManager;
+        private ParticleSystemManager particleSystemManager;
+
         [Header("Inspector Variables")]
         [SerializeField] private ParticlesCollection_SO particlesCollectionData;
-        private PerticleSystemManager particleSystemManager;
+        
 
 
         [SerializeField] GameObject tempVisual;
@@ -42,6 +47,9 @@ namespace TurnBased.Presentation
 
             StationManager.OnDeployUnit += StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
+            IntentionCombatResolver.OnUnitResolvingState_BeforeAttack += IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
+            IntentionCombatResolver.OnUnitResolvingState_AfterAttack += IntentionCombatResolver_OnUnitResolvingState_AfterAttack; 
+
 
             this.particleSystemManager = new();
             this.particleSystemManager.Awake(this.particlesCollectionData);
@@ -60,6 +68,8 @@ namespace TurnBased.Presentation
             }
             StationManager.OnDeployUnit -= StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+            IntentionCombatResolver.OnUnitResolvingState_BeforeAttack -= IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
+            IntentionCombatResolver.OnUnitResolvingState_AfterAttack -= IntentionCombatResolver_OnUnitResolvingState_AfterAttack;
 
             this.particleSystemManager.OnDestroy();
             this.particleSystemManager = null;
@@ -113,6 +123,20 @@ namespace TurnBased.Presentation
                 targetTransform = this.ENEMY_COMBAT_LOCATION;
             }
         }
+
+        private void IntentionCombatResolver_OnUnitResolvingState_BeforeAttack(AttackResolution.ResolvingStatePhaseCompletionManager completionManager, Intention.ResolvingState resolvingState)
+        {
+            this._CompletionManager = completionManager;
+            this._CompletionManager.AddAction();
+            _ = ProcessUnitPresentationBeforeAttack(resolvingState);
+        }
+
+        private async System.Threading.Tasks.Task ProcessUnitPresentationBeforeAttack(Intention.ResolvingState resolvingState)
+        {
+            await VisualiseUnitTeleportUserAndTargets(resolvingState);
+            this._CompletionManager.OnActionComplete();
+        }
+
         public async System.Threading.Tasks.Task VisualiseUnitTeleportUserAndTargets(Intention.ResolvingState resolvingState)
         {
             /*  Get the baseBattleUnit of the source    */
@@ -154,31 +178,20 @@ namespace TurnBased.Presentation
             sourceUnit.transform.SetPositionAndRotation(newSourcePosition, sourceRotation);
 
             await System.Threading.Tasks.Task.Delay(1000);
-
-
-            //float startTime = Time.time;
-
-            //Quaternion sourceRotation = sourceUnit.transform.rotation;
-
-            //while (Time.time < startTime + MOVEMENT_DURATION)
-            //{
-            //    Vector3 currentSourcePosition = sourceUnit.transform.position;
-            //    Vector3 currentTargetPosition = targetUnit.transform.position;
-            //    float t = (Time.time - startTime) / MOVEMENT_DURATION;
-
-            //    /*  Next incremental rotation and position values.  */
-            //    Vector3 pos = new(
-            //        Mathf.Lerp(currentSourcePosition.x, currentTargetPosition.x, t),
-            //        Mathf.Lerp(currentSourcePosition.y, currentTargetPosition.y, t),
-            //        Mathf.Lerp(currentSourcePosition.z, currentTargetPosition.z, t)
-            //                    );
-
-            //    sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
-
-            //    await System.Threading.Tasks.Task.Yield();
-            //}
         }
 
+        private void IntentionCombatResolver_OnUnitResolvingState_AfterAttack(AttackResolution.ResolvingStatePhaseCompletionManager completionManager, Intention.ResolvingState resolvingState)
+        {
+            this._CompletionManager = completionManager;
+            this._CompletionManager.AddAction();
+            _ = ProcessUnitPresentationAfterAttack(resolvingState);
+        }
+
+        private async System.Threading.Tasks.Task ProcessUnitPresentationAfterAttack(Intention.ResolvingState resolvingState)
+        {
+            await ReturnSourceAndTargetsBackToStations(resolvingState);
+            this._CompletionManager.OnActionComplete();
+        }
 
         public async System.Threading.Tasks.Task ReturnSourceAndTargetsBackToStations(Intention.ResolvingState resolvingState)
         {
@@ -205,28 +218,6 @@ namespace TurnBased.Presentation
             Quaternion sourceRotation = sourceUnit.transform.rotation;
 
             sourceUnit.transform.SetPositionAndRotation(sourceStation.Position, sourceRotation);
-
-
-            //float startTime = Time.time;
-
-            //Quaternion sourceRotation = sourceUnit.transform.rotation;
-
-            //while (Time.time < startTime + MOVEMENT_DURATION)
-            //{
-            //    Vector3 currentSourcePosition = sourceUnit.transform.position;
-            //    float t = (Time.time - startTime) / MOVEMENT_DURATION;
-
-            //    /*  Next incremental rotation and position values.  */
-            //    Vector3 pos = new(
-            //        Mathf.Lerp(currentSourcePosition.x, sourceStation.Position.x, t),
-            //        Mathf.Lerp(currentSourcePosition.y, sourceStation.Position.y, t),
-            //        Mathf.Lerp(currentSourcePosition.z, sourceStation.Position.z, t)
-            //                    );
-
-            //    sourceUnit.transform.SetPositionAndRotation(pos, sourceRotation);
-
-            //    await System.Threading.Tasks.Task.Yield();
-            //}
 
             await System.Threading.Tasks.Task.Delay(1000);
         }

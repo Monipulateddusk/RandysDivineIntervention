@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 380c1eaf58fd98e4095bd3581412ee1b, type: 3}
   m_Name: Particle Data
   m_EditorClassIdentifier: 
+  ApplyBurnParticleSystem: {fileID: 4843139774226262036, guid: a7b361a7a2a2c5a4e843bda7774e082b, type: 3}
   BurnParticlePrefab: {fileID: 4843139774226262036, guid: 26622996fa196ae459115ba25cebac53, type: 3}
   PoisonParticlePrefab: {fileID: 4843139774226262036, guid: cc824cd25cf59d443b06e1758861d332, type: 3}
   ShockWaveParticlePrefab: {fileID: 3483025838490107236, guid: c91015e6f941a1741a22d726b76e4faf, type: 3}
+  CollisionParticlePrefab: {fileID: 4843139774226262036, guid: 9b87ef8ae38c09b4c8912bd6ce2c7a45, type: 3}

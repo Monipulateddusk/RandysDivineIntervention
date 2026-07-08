@@ -1,22 +1,27 @@
-using System;
-
 namespace TurnBased.AttackResolution
 {
     public class BaseRequest
     {
         public Intention.ResolvingSource ResolvingSource;
+        public UnitIndex TargetUnit;
         public bool IsNegated;
+        public bool IsResolved { get; protected set; }
+
 
         public BaseRequest(Intention.ResolvingSource resolvingSource)
         {
             this.ResolvingSource = resolvingSource;
             this.IsNegated = false;
         }
+        public BaseRequest(Intention.ResolvingSource resolvingSource, bool isNegated)
+        {
+            this.ResolvingSource = resolvingSource;
+            this.IsNegated = isNegated;
+        }
     }
 
     public class DamageRequest : BaseRequest
     {
-        public UnitIndex TargetUnit;
         public Element Element;
         public int DamageAmount;
         public bool IsCrit;
@@ -38,11 +43,19 @@ namespace TurnBased.AttackResolution
             this.IsCrit = false;
             this.IsNegated = false;
         }
+
+        public DamageRequest(DamageRequest resolvedDamageRequest) : base(resolvedDamageRequest.ResolvingSource, resolvedDamageRequest.IsNegated)
+        {
+            this.Element = resolvedDamageRequest.Element;
+            this.DamageAmount = resolvedDamageRequest.DamageAmount;
+            this.IsCrit = resolvedDamageRequest.IsCrit;
+
+            this.IsResolved = true;
+        }
     }
 
     public class HealRequest : BaseRequest
     {
-        public UnitIndex TargetUnit;
         public int HealAmount;
 
         public HealRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, int healValue) : base(resolvingSource)
@@ -52,11 +65,17 @@ namespace TurnBased.AttackResolution
             this.HealAmount = healValue;
             this.IsNegated = false;
         }
+
+        public HealRequest(HealRequest resolvedHealRequest) : base(resolvedHealRequest.ResolvingSource, resolvedHealRequest.IsNegated)
+        {
+            this.HealAmount = resolvedHealRequest.HealAmount;
+
+            this.IsResolved = true;
+        }
     }
     public class ApplyStatusRequest : BaseRequest
     {
         public Status.BaseStatus ApplingStatus;
-        public UnitIndex TargetUnit;
 
         public ApplyStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status) : base(resolvingSource)
         {
@@ -65,12 +84,18 @@ namespace TurnBased.AttackResolution
             this.TargetUnit = targetIndex;
             this.IsNegated = false;
         }
+
+        public ApplyStatusRequest(ApplyStatusRequest resolvedApplyStatusRequest) : base(resolvedApplyStatusRequest.ResolvingSource, resolvedApplyStatusRequest.IsNegated)
+        {
+            this.ApplingStatus = resolvedApplyStatusRequest.ApplingStatus;
+
+            this.IsResolved = true;
+        }
     }
 
     public class RemoveStatusRequest : BaseRequest
     {
         public Status.BaseStatus RemovingStatus;
-        public UnitIndex TargetUnit;
 
         public RemoveStatusRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Status.BaseStatus status) : base(resolvingSource)
         {
@@ -79,11 +104,17 @@ namespace TurnBased.AttackResolution
             this.TargetUnit = targetIndex;
             this.IsNegated = false;
         }
+
+        public RemoveStatusRequest(RemoveStatusRequest resolvedRemoveStatusRequest) : base(resolvedRemoveStatusRequest.ResolvingSource, resolvedRemoveStatusRequest.IsNegated)
+        {
+            this.RemovingStatus = resolvedRemoveStatusRequest.RemovingStatus;
+
+            this.IsResolved = true;
+        }
     }
 
     public class ImbueElementRequest : BaseRequest
     {
-        public UnitIndex TargetUnit;
         public Element ImbuedElementType;
 
         public ImbueElementRequest(Intention.ResolvingSource resolvingSource, UnitIndex targetIndex, Element imbuedElementType) : base(resolvingSource)
@@ -93,11 +124,23 @@ namespace TurnBased.AttackResolution
             this.ImbuedElementType = imbuedElementType;
             this.IsNegated = false;
         }
+        public ImbueElementRequest(ImbueElementRequest resolvedImbueElementRequest) : base(resolvedImbueElementRequest.ResolvingSource, resolvedImbueElementRequest.IsNegated)
+        {
+            this.ImbuedElementType = resolvedImbueElementRequest.ImbuedElementType;
+
+            this.IsResolved = true;
+        }
     }
 
     public class RequestResolver
     {
         private RequestTaskCompletionManager completionManager;
+        private System.Action OnRequestResolverComplete;
+
+        public void Awake(System.Action onCompleteResolving)
+        {
+            this.OnRequestResolverComplete = onCompleteResolving;
+        }
 
         /// -=-=-=-=-=-=-=-=-=-=-
         /// DAMAGE REQUEST
@@ -121,6 +164,7 @@ namespace TurnBased.AttackResolution
         {
             DamageRequest damageRequest = request as DamageRequest;
             Information.UnitInformationManager.Instance.DamageUnitByDamageAmount(damageRequest.TargetUnit, damageRequest.DamageAmount);
+            this.OnRequestResolverComplete?.Invoke();
         }
 
         /// -=-=-=-=-=-=-=-=-=-=-
@@ -145,6 +189,7 @@ namespace TurnBased.AttackResolution
         {
             HealRequest healRequest = request as HealRequest;
             Information.UnitInformationManager.Instance.HealUnitByHealAmount(healRequest.TargetUnit, healRequest.HealAmount);
+            this.OnRequestResolverComplete?.Invoke();
         }
 
         /// -=-=-=-=-=-=-=-=-=-=-
@@ -169,6 +214,7 @@ namespace TurnBased.AttackResolution
         {
             ImbueElementRequest imbueElementRequest = request as ImbueElementRequest;
             Elements.CombatEnvironmentController.Instance.AddEnvironmentalEffect(imbueElementRequest.ImbuedElementType, imbueElementRequest.TargetUnit);
+            this.OnRequestResolverComplete?.Invoke();
         }
 
         /// -=-=-=-=-=-=-=-=-=-=-
@@ -200,6 +246,7 @@ namespace TurnBased.AttackResolution
             UnityEngine.Debug.LogError($"Added Status: {statusAdded.StatusName}");
 
             Status.CombatStatusHandler.Instance.AddStatusEffect(applyStatusRequest, statusAdded);
+            this.OnRequestResolverComplete?.Invoke();
         }
 
 
@@ -227,6 +274,7 @@ namespace TurnBased.AttackResolution
             if (statusRemoved == null) { return; }
 
             Status.CombatStatusHandler.Instance.RemoveStatusEffect(removeStatusRequest, statusRemoved);
+            this.OnRequestResolverComplete?.Invoke();
         }
     }
 }

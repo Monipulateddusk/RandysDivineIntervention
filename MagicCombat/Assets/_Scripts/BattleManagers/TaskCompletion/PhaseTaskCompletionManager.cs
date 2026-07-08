@@ -1,3 +1,5 @@
+using TurnBased.Intention;
+
 namespace TurnBased.Phases
 {
     public class PhaseTaskCompletionManager
@@ -63,6 +65,37 @@ namespace TurnBased.AttackResolution
             if (this.requestTaskCount <= 0)
             {
                 this.OnRequestTaskCompletion?.Invoke(baseRequest);
+            }
+        }
+    }
+
+    public class ResolvingStatePhaseCompletionManager
+    {
+        private int requestTaskCount;
+        private System.Action OnResolvingStateCompletion;
+
+        public ResolvingStatePhaseCompletionManager(System.Action onRequestTaskCompletion)
+        {
+            this.requestTaskCount = 0;
+            this.OnResolvingStateCompletion = onRequestTaskCompletion;
+        }
+        ~ResolvingStatePhaseCompletionManager()
+        {
+            this.requestTaskCount = 0;
+            this.OnResolvingStateCompletion = null;
+        }
+        public void AddAction()
+        {
+            this.requestTaskCount++;
+        }
+
+        public void OnActionComplete()
+        {
+            this.requestTaskCount--;
+
+            if (this.requestTaskCount <= 0)
+            {
+                this.OnResolvingStateCompletion?.Invoke();
             }
         }
     }

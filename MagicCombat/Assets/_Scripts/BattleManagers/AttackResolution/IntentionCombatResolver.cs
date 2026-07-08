@@ -1,9 +1,13 @@
-using TurnBased.GameState;
-
 namespace TurnBased.Combat
 {
     public class IntentionCombatResolver
     {
+        public static event System.Action OnResolvingStatesComplete;
+        public static event System.Action<AttackResolution.ResolvingStatePhaseCompletionManager, Intention.ResolvingState> OnUnitResolvingState_BeforeAttack, OnUnitResolvingState_AfterAttack;
+        public static event System.Action<AttackResolution.ResolvingStatePhaseCompletionManager, Intention.ResolvingState> OnEnvironmentResolvingState_BeforeAttack, OnEnvironmentResolvingState_AfterAttack;
+        public static event System.Action<AttackResolution.ResolvingStatePhaseCompletionManager, Intention.ResolvingState> OnStatusResolvingState_BeforeAttack, OnStatusResolvingState_AfterAttack;
+
+
         private static IntentionCombatResolver instance;
         public static IntentionCombatResolver Instance
         {
@@ -13,10 +17,13 @@ namespace TurnBased.Combat
             }
         }
 
+        private AttackResolution.CombatAttackHandler _CombatAttackHandler;
+
         private EventHookSystem eventHookSystem;
-        public static event System.Action OnResolvingStatesComplete;
 
         private System.Collections.Generic.LinkedList<AttackResolution.CombatResolvingRequest> resolvingRequests;
+        private AttackResolution.CombatResolvingRequest currentResolvingRequest;
+        private AttackResolution.ResolvingStatePhaseCompletionManager completionManager;
         private bool isResolving;
 
         public void Awake(EventHookSystem evHookSystem)
@@ -27,8 +34,12 @@ namespace TurnBased.Combat
             }
 
             this.eventHookSystem = evHookSystem;
+
             this.resolvingRequests = new();
             this.isResolving = false;
+
+            this._CombatAttackHandler = new();
+            this._CombatAttackHandler.Awake(evHookSystem);
         }
 
         public void Update()
@@ -47,6 +58,8 @@ namespace TurnBased.Combat
             this.resolvingRequests = null;
 
             OnResolvingStatesComplete = null;
+
+            this._CombatAttackHandler = null;
         }
 
         public readonly struct UnitDataForCombatResolution
@@ -107,7 +120,7 @@ namespace TurnBased.Combat
             }
             else
             {
-                _ = ProcessRequest(firstNode.Value);
+                ProcessRequest(firstNode.Value);
             }
         }
 
@@ -129,99 +142,216 @@ namespace TurnBased.Combat
         }
 
 
-        private async System.Threading.Tasks.Task ProcessRequest(AttackResolution.CombatResolvingRequest resolvingRequest)
+        private void ProcessRequest(AttackResolution.CombatResolvingRequest resolvingRequest)
         {
             this.isResolving = true;
+            this.currentResolvingRequest = resolvingRequest;
             switch (resolvingRequest.ResolvingState.ResolvingSource.Type)
             {
                 case DamageOriginType.UnitMove:
 
                     UnityEngine.Debug.LogWarning($"Processing Unit resolving state of unit index: {resolvingRequest.ResolvingState.ResolvingSource.SourceUnitIndex}");
 
-
-                    await ProcessUnitResolvingState(resolvingRequest.ResolvingState);
-
+                    ProcessUnitResolvingState_BeforeAttack();
                     break;
 
                 case DamageOriginType.Status:
-                    await ProcessStatusResolvingState(resolvingRequest.ResolvingState);
+                    ProcessStatusResolvingState_BeforeAttack();
+
+                   // await ProcessStatusResolvingState(resolvingRequest.ResolvingState);
                     break;
 
                 case DamageOriginType.Environment:
-                    await ProcessEnvironmentResolvingState(resolvingRequest.ResolvingState);
+                    ProcessEnvironmentResolvingState_BeforeAttack();
                     break;
 
                 default:
                     break;
             }
 
-            resolvingRequest.CompleteRequest();
+           // OnCombatResolvingRequestComplete();
+        }
+
+        private void OnCombatResolvingRequestComplete()
+        {
+            this.currentResolvingRequest.CompleteRequest();
+            this.currentResolvingRequest = null;
             RemoveFrontResolvingState();
         }
 
-        private async System.Threading.Tasks.Task ProcessUnitResolvingState(Intention.ResolvingState resolvingState)
+
+        //private async System.Threading.Tasks.Task ProcessUnitResolvingState(Intention.ResolvingState resolvingState)
+        //{
+        //    UnitIndex sourceUnitIndex = resolvingState.ResolvingSource.SourceUnitIndex;
+
+        //    UnityEngine.Debug.LogWarning($"source unit index is: {sourceUnitIndex.Index}");
+
+
+        //    UnityEngine.Debug.LogWarning($"Executing attack action in order inside process attack. Is there a valid target?    ");
+
+        //    /*  If there is a targeted unit, proceed */
+        //    UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
+
+        //    /*  Determine if the Attack moves the user or not.  */
+        //    await Presentation.BattlePresentationManager.Instance.VisualiseUnitTeleportUserAndTargets(resolvingState);
+
+        //    UnityEngine.Debug.LogWarning($"Processing attack step");
+
+
+        //    /*  Process each step individually   */
+
+        //    await this._CombatAttackHandler.ProcessAttackStep(resolvingState);
+
+
+        //    UnityEngine.Debug.LogWarning($"Moving back to station");
+
+        //    /*  Move the user back.  */
+        //    await Presentation.BattlePresentationManager.Instance.ReturnSourceAndTargetsBackToStations(resolvingState);
+
+        //    UnityEngine.Debug.LogWarning($"Clearing intention");
+
+
+
+        //    /*  Clear the intention of the attack once done.    */
+        //    Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, resolvingState.ResolvingSource.SourceUnitMove);
+
+        //    UnityEngine.Debug.LogWarning($"Determining dead units");
+
+        //    GameState.GameStateManager.Instance.DetermineDeadUnits();
+
+        //}
+
+        #region Unit Process Sequence
+
+        /*  
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+            UNIT PROCESS SEQUENCE
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=         
+         */
+
+        private void ProcessUnitResolvingState_BeforeAttack()
         {
-            UnitIndex sourceUnitIndex = resolvingState.ResolvingSource.SourceUnitIndex;
+            // After we teleport or don't teleport the player and targets depending on the move, we want to wait for any things that want to happen after this.
+            this.completionManager = new(ProcessUnitResolvingState_Attack);
 
-            UnityEngine.Debug.LogWarning($"source unit index is: {sourceUnitIndex.Index}");
+            this.completionManager.AddAction();
+            OnUnitResolvingState_BeforeAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
+        }
+        private void ProcessUnitResolvingState_Attack()
+        {
+            // We want to play the animation for this move and the units. When a specific part in the animation occours, then we want to process the attack step. 
+            // Unlike previously, we want to check when all attack steps are resolved. I.e. each attack step inside the handler should track if they are resolved or not. When all attack steps are fully complete then we can move on.
+            // This gives the opportunity to handle animations from the targets upon taking damage, particle effects with delayed triggers to deal damage or heal, etc. Once all of that is done, then we should move on to after the attack is done. 
+            
 
-            //if (!Intention.UnitIntentionManager.Instance.TryGetIntention(sourceUnitIndex, out Intention.UnitIntention intention)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO RETRIEVE INTENTION OF UNIT_INDEX!"); return; }
+            this._CombatAttackHandler.StartProcessingResolvingState(this.currentResolvingRequest.ResolvingState, ProcessUnitResolvingState_AfterAttack);
+        }
+        private void ProcessUnitResolvingState_AfterAttack()
+        {
+            this.completionManager = new(OnCompleteUnitResolvingState);
 
-            UnityEngine.Debug.LogWarning($"Trying to exectute Move named: {resolvingState.ResolvingSource.SourceUnitMove.GetMoveName()}! ");
+            this.completionManager.AddAction();
+            OnUnitResolvingState_AfterAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
+        }
 
-            /*  Obtain the Unit Data for resolving this attack. */
-            if (!TryGetUnitDataForCombatResolution(sourceUnitIndex, out var UnitDataForCombatResolution)) { UnityEngine.Debug.LogError("ERROR — ATTACK RESOLUTION MANAGER: UNABLE TO OBTAIN UNIT DATA FOR UNIT_INDEX!"); return; }
-            UnitTurnStationIndexesSceneData sceneData = UnitDataForCombatResolution.SceneUnitData;
-
-            UnityEngine.Debug.LogWarning($"Executing attack action in order inside process attack. Is there a valid target?    ");
-
-            /*  If there is a targeted unit, proceed */
-            UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
-
-            /*  Determine if the Attack moves the user or not.  */
-            await Presentation.BattlePresentationManager.Instance.VisualiseUnitTeleportUserAndTargets(resolvingState);
-
-            UnityEngine.Debug.LogWarning($"Processing attack step");
-
-
-            /*  Process each step individually   */
-
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
-
-
-            UnityEngine.Debug.LogWarning($"Moving back to station");
-
-            /*  Move the user back.  */
-            await Presentation.BattlePresentationManager.Instance.ReturnSourceAndTargetsBackToStations(resolvingState);
-
-            UnityEngine.Debug.LogWarning($"Clearing intention");
-
-
+        private void OnCompleteUnitResolvingState()
+        {
+            UnitIndex sourceUnitIndex = this.currentResolvingRequest.ResolvingState.ResolvingSource.SourceUnitIndex;
 
             /*  Clear the intention of the attack once done.    */
-            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, resolvingState.ResolvingSource.SourceUnitMove);
+            Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, this.currentResolvingRequest.ResolvingState.ResolvingSource.SourceUnitMove);
+            GameState.GameStateManager.Instance.DetermineDeadUnits();
 
-            UnityEngine.Debug.LogWarning($"Determining dead units");
-
-            GameStateManager.Instance.DetermineDeadUnits();
-
+            OnCombatResolvingRequestComplete();
         }
 
-        private async System.Threading.Tasks.Task ProcessStatusResolvingState(Intention.ResolvingState resolvingState)
+        #endregion
+
+        #region Status Process Sequence
+
+        /*  
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+            STATUS PROCESS SEQUENCE
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=         
+         */
+
+        private void ProcessStatusResolvingState_BeforeAttack()
         {
-            UnityEngine.Debug.LogError($"Processing Status resolving state!");
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
-            UnityEngine.Debug.LogError($"Processed Status Resolving State!");
+            // Process some kind of event if existant before status.
+            this.completionManager = new(ProcessStatusResolvingState_Attack);
 
-            GameStateManager.Instance.DetermineDeadUnits();
+            this.completionManager.AddAction();
+            OnStatusResolvingState_BeforeAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
         }
 
-        private async System.Threading.Tasks.Task ProcessEnvironmentResolvingState(Intention.ResolvingState resolvingState)
+        private void ProcessStatusResolvingState_Attack()
         {
-            await AttackResolution.CombatAttackHandler.ProcessAttackStep(this.eventHookSystem, resolvingState);
-
-            GameStateManager.Instance.DetermineDeadUnits();
+            this._CombatAttackHandler.StartProcessingResolvingState(this.currentResolvingRequest.ResolvingState, ProcessStatusResolvingState_AfterAttack);
         }
+
+
+        private void ProcessStatusResolvingState_AfterAttack()
+        {
+            this.completionManager = new(OnCompleteStatusResolvingState);
+
+            this.completionManager.AddAction();
+            OnUnitResolvingState_AfterAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
+        }
+
+        private void OnCompleteStatusResolvingState()
+        {
+            GameState.GameStateManager.Instance.DetermineDeadUnits();
+
+            OnCombatResolvingRequestComplete();
+        }
+
+        #endregion
+
+        #region Environment Process Sequence
+
+        /*  
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+            ENVIRONMENT PROCESS SEQUENCE
+        -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=         
+         */
+
+        private void ProcessEnvironmentResolvingState_BeforeAttack()
+        {
+            // Process some kind of event if existant before status.
+            this.completionManager = new(ProcessEnvironmentResolvingState_Attack);
+
+            this.completionManager.AddAction();
+            OnEnvironmentResolvingState_BeforeAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
+        }
+
+        private void ProcessEnvironmentResolvingState_Attack()
+        {
+            this._CombatAttackHandler.StartProcessingResolvingState(this.currentResolvingRequest.ResolvingState, ProcessEnvironmentResolvingState_AfterAttack);
+        }
+
+
+        private void ProcessEnvironmentResolvingState_AfterAttack()
+        {
+            this.completionManager = new(OnCompleteProcessEnvironmentResolvingState);
+
+            this.completionManager.AddAction();
+            OnEnvironmentResolvingState_AfterAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            this.completionManager.OnActionComplete();
+        }
+
+        private void OnCompleteProcessEnvironmentResolvingState()
+        {
+            GameState.GameStateManager.Instance.DetermineDeadUnits();
+
+            OnCombatResolvingRequestComplete();
+        }
+
+        #endregion
         
         public static bool TryGetUnitDataForCombatResolution(UnitIndex sourceUnitIndex, out UnitDataForCombatResolution outUnitDataForCombatResolution)
         {
