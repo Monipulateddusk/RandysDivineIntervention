@@ -42,10 +42,13 @@ namespace TurnBased.AttackResolution
     {
         private int requestTaskCount;
         private System.Action<BaseRequest> OnRequestTaskCompletion;
+        private BaseRequest request;
 
-        public RequestTaskCompletionManager(System.Action<BaseRequest> onRequestTaskCompletion)
+
+        public RequestTaskCompletionManager(BaseRequest request, System.Action<BaseRequest> onRequestTaskCompletion)
         {
             this.requestTaskCount = 0;
+            this.request = request;
             this.OnRequestTaskCompletion = onRequestTaskCompletion;
         }
         ~RequestTaskCompletionManager()
@@ -58,13 +61,13 @@ namespace TurnBased.AttackResolution
             this.requestTaskCount++;
         }
 
-        public void OnActionComplete(BaseRequest baseRequest)
+        public void OnActionComplete()
         {
             this.requestTaskCount--;
 
             if (this.requestTaskCount <= 0)
             {
-                this.OnRequestTaskCompletion?.Invoke(baseRequest);
+                this.OnRequestTaskCompletion?.Invoke(this.request);
             }
         }
     }

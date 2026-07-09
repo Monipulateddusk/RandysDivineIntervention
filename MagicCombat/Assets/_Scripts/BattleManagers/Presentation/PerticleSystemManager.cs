@@ -45,7 +45,7 @@ namespace TurnBased.Presentation
             /*  Destroy the Prefab after a second and a half.  */
             UnityEngine.GameObject.Destroy(instanciatedParticleSystem);
 
-            completionManager.OnActionComplete(damageRequest);
+            completionManager.OnActionComplete();
         }
 
     }

@@ -73,9 +73,7 @@ namespace TurnBased
                         {
                         
                             // Afflicting status: Burned to enemies
-                            new AttackResolution.ElementalDamageAttackAction(Element.WATER, 0, 1, groupID: 0),
-                            new AttackResolution.InflictStatusAttackAction(new BurnStatus(), groupID: 0),
-                            new AttackResolution.HealingAttackAction(totalWaterAttack, groupID: 1)
+                            new AttackResolution.InflictStatusAttackAction(new BurnStatus(), groupID: 0)
                         }
 
                     }

@@ -3,7 +3,6 @@ namespace TurnBased.Presentation
     public class StatusPresentationManager
     {
         public System.Collections.Generic.Dictionary<TurnBased.Status.BaseStatus, ParticleSystemController> StatusEffects;
-        private AttackResolution.RequestTaskCompletionManager _RequestCompleitonManager;
         private ParticlesCollection_SO _ParticlesData;
 
         public void Awake(ParticlesCollection_SO particlesData)
@@ -26,49 +25,54 @@ namespace TurnBased.Presentation
 
         private void EventHookSystem_OnDamageRequestResolved(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest request)
         {
-            this._RequestCompleitonManager = completionManager;
-
             /*  Determine what status made this damage request to visualise it. */
             if (request.ResolvingSource.Type == DamageOriginType.Status)
             {
                 if (!StationManager.Instance.TryGetBattleUnitOfIndex(request.TargetUnit, out BaseBattleUnit battleUnit)) { return; }
-                VisualiseStatusRequest(request, battleUnit);
+                _ = VisualiseStatusRequest(completionManager, request, battleUnit);
             }
         }
 
         private void EventHookSystem_OnApplyStatusRequestResolved(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request)
         {
-            this._RequestCompleitonManager = completionManager;
             if (!StationManager.Instance.TryGetBattleUnitOfIndex(request.TargetUnit, out BaseBattleUnit battleUnit)) { return; }
 
-            VisualiseStatusRequest(request, battleUnit);
+            _ = VisualiseStatusRequest(completionManager, request, battleUnit);
         }
 
+        private void CompleteRequest(AttackResolution.RequestTaskCompletionManager completionManager)
+        {
+            completionManager.OnActionComplete();
+        }
 
-        private void VisualiseStatusRequest(AttackResolution.DamageRequest request, BaseBattleUnit battleUnit)
+        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest request, BaseBattleUnit battleUnit)
         {
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ResolvingSource.SourceStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            SpawnParticleSystemOfStatus(particleSystemController, battleUnit);
+            await SpawnParticleSystemOfStatus(completionManager, particleSystemController, battleUnit);
         }
 
-        private void VisualiseStatusRequest(AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
+        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
         {
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ApplingStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            SpawnParticleSystemOfStatus(particleSystemController, battleUnit);
+            await SpawnParticleSystemOfStatus(completionManager, particleSystemController, battleUnit);
         }
 
-        private void SpawnParticleSystemOfStatus(ParticleSystemController particleSystemController, BaseBattleUnit battleUnit)
+        private async System.Threading.Tasks.Task SpawnParticleSystemOfStatus(AttackResolution.RequestTaskCompletionManager completionManager, ParticleSystemController particleSystemController, BaseBattleUnit battleUnit)
         {
+            completionManager.AddAction();
+
             UnityEngine.GameObject instanciatedParticleSystem = UnityEngine.GameObject.Instantiate(particleSystemController.gameObject, battleUnit.transform.position, UnityEngine.Quaternion.identity);
             instanciatedParticleSystem.GetComponent<ParticleSystemController>().PlayParticleSystem();
 
+            await System.Threading.Tasks.Task.Delay(1500);
 
             /*  Destroy the Prefab after a second and a half.  */
-            UnityEngine.GameObject.Destroy(instanciatedParticleSystem, 1.5f);
+            UnityEngine.GameObject.Destroy(instanciatedParticleSystem);
+            CompleteRequest(completionManager);
         }
 
         private bool TryGetParticleSystemOfStatusChildSubClass(Status.BaseStatus baseStatusOfRequest, out ParticleSystemController particleSystemPrefab)

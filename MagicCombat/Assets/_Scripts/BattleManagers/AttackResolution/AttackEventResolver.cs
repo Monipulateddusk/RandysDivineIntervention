@@ -53,6 +53,7 @@ namespace TurnBased.AttackResolution
 
 
                 attackEvent.ExecuteAttackEvent(this._EventHookSystem, this._RequestResolver);
+                UnityEngine.Debug.LogError($"RESOLVING ATTACK EVENT OF TYPE: {attackEvent.Source.Type}");
 
             }
         }

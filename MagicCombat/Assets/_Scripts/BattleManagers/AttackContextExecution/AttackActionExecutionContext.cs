@@ -157,7 +157,7 @@ namespace TurnBased.AttackResolution
         {
             EventHookSystem.OnDamageRequestResolved += EventHookSystem_OnDamageRequestResolved;
             hookSystem.InvokeDamageRequestResolved(damageRequest, ProcessDamageRequest);
-            this.completionManager.OnActionComplete(damageRequest);
+            this.completionManager.OnActionComplete();
         }
 
         private void ProcessDamageRequest(BaseRequest request)
@@ -182,7 +182,7 @@ namespace TurnBased.AttackResolution
         {
             EventHookSystem.OnHealRequestResolved += EventHookSystem_OnHealRequestResolved;
             hookSystem.InvokeHealRequestResolved(healRequest, ProcessHealRequest);
-            this.completionManager.OnActionComplete(healRequest);
+            this.completionManager.OnActionComplete();
         }
 
         private void ProcessHealRequest(BaseRequest request)
@@ -207,7 +207,7 @@ namespace TurnBased.AttackResolution
         {
             EventHookSystem.OnImbueElementRequestResolved += EventHookSystem_OnImbueElementRequestResolved;
             hookSystem.InvokeImbueEnvironmentRequestResolved(imbueElementRequest, ProcessImbueEnvironmentRequest);
-            this.completionManager.OnActionComplete(imbueElementRequest);
+            this.completionManager.OnActionComplete();
         }
 
         private void ProcessImbueEnvironmentRequest(BaseRequest request)
@@ -234,7 +234,7 @@ namespace TurnBased.AttackResolution
         {
             EventHookSystem.OnApplyStatusRequestResolved += EventHookSystem_OnApplyStatusRequestResolved;
             hookSystem.InvokeApplyStatusRequestResolved(applyStatusRequest, ProcessAddStatusRequest);
-            this.completionManager.OnActionComplete(applyStatusRequest);
+            this.completionManager.OnActionComplete();
         }
         private void ProcessAddStatusRequest(BaseRequest request)
         {
@@ -265,7 +265,7 @@ namespace TurnBased.AttackResolution
         {
             EventHookSystem.OnRemoveStatusRequestResolved += EventHookSystem_OnRemoveStatusRequestResolved;
             hookSystem.InvokeRemoveStatusRequestResolved(removeStatusRequest, ProcessRemoveStatusRequest);
-            this.completionManager.OnActionComplete(removeStatusRequest);
+            this.completionManager.OnActionComplete();
         }
         private void ProcessRemoveStatusRequest(BaseRequest request)
         {

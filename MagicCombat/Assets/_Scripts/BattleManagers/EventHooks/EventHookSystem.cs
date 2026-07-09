@@ -237,35 +237,35 @@ namespace TurnBased
 
         public void InvokeDamageRequestResolved(DamageRequest request, System.Action<BaseRequest> onComplete)
         {
-            this.requestTaskCompletionManager = new(onComplete);
+            this.requestTaskCompletionManager = new(request, onComplete);
 
             OnDamageRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
         }
 
         public void InvokeHealRequestResolved(HealRequest request, System.Action<BaseRequest> onComplete)
         {
-            this.requestTaskCompletionManager = new(onComplete);
+            this.requestTaskCompletionManager = new(request, onComplete);
 
             OnHealRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
         }
 
         public void InvokeApplyStatusRequestResolved(ApplyStatusRequest request, System.Action<BaseRequest> onComplete)
         {
-            this.requestTaskCompletionManager = new(onComplete);
+            this.requestTaskCompletionManager = new(request, onComplete);
 
             OnApplyStatusRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
         }
 
         public void InvokeRemoveStatusRequestResolved(RemoveStatusRequest request, System.Action<BaseRequest> onComplete)
         {
-            this.requestTaskCompletionManager = new(onComplete);
+            this.requestTaskCompletionManager = new(request, onComplete);
 
             OnRemoveStatusRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
         }
 
         public void InvokeImbueEnvironmentRequestResolved(ImbueElementRequest request, System.Action<BaseRequest> onComplete)
         {
-            this.requestTaskCompletionManager = new(onComplete);
+            this.requestTaskCompletionManager = new(request, onComplete);
 
             OnImbueElementRequestResolved?.Invoke(this.requestTaskCompletionManager, request);
         }
