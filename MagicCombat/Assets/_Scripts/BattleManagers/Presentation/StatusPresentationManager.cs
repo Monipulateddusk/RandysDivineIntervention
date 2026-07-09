@@ -2,14 +2,18 @@ namespace TurnBased.Presentation
 {
     public class StatusPresentationManager
     {
-        public System.Collections.Generic.Dictionary<TurnBased.Status.BaseStatus, ParticleSystemController> StatusEffects;
+        private ParticleSystemManager particleSystemManager;
+        private System.Collections.Generic.Dictionary<TurnBased.Status.BaseStatus, ParticleSystemController> StatusEffects;
         private ParticlesCollection_SO _ParticlesData;
 
-        public void Awake(ParticlesCollection_SO particlesData)
+
+        public void Awake(ParticleSystemManager particleManager, ParticlesCollection_SO particlesData)
         {
             EventHookSystem.OnDamageRequestResolved         += EventHookSystem_OnDamageRequestResolved;
             EventHookSystem.OnApplyStatusRequestResolved    += EventHookSystem_OnApplyStatusRequestResolved; 
+
             this._ParticlesData = particlesData;
+            this.particleSystemManager = particleManager;
 
             this.StatusEffects = new() {
                 { new Status.PoisonStatus(),    particlesData.PoisonParticlePrefab  },
@@ -50,7 +54,7 @@ namespace TurnBased.Presentation
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ResolvingSource.SourceStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            await SpawnParticleSystemOfStatus(completionManager, particleSystemController, battleUnit);
+            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
         }
 
         private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
@@ -58,7 +62,7 @@ namespace TurnBased.Presentation
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ApplingStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            await SpawnParticleSystemOfStatus(completionManager, particleSystemController, battleUnit);
+            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
         }
 
         private async System.Threading.Tasks.Task SpawnParticleSystemOfStatus(AttackResolution.RequestTaskCompletionManager completionManager, ParticleSystemController particleSystemController, BaseBattleUnit battleUnit)
@@ -68,7 +72,7 @@ namespace TurnBased.Presentation
             UnityEngine.GameObject instanciatedParticleSystem = UnityEngine.GameObject.Instantiate(particleSystemController.gameObject, battleUnit.transform.position, UnityEngine.Quaternion.identity);
             instanciatedParticleSystem.GetComponent<ParticleSystemController>().PlayParticleSystem();
 
-            await System.Threading.Tasks.Task.Delay(1500);
+            await System.Threading.Tasks.Task.Delay(800);
 
             /*  Destroy the Prefab after a second and a half.  */
             UnityEngine.GameObject.Destroy(instanciatedParticleSystem);

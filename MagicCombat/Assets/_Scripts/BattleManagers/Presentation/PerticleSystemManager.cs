@@ -14,7 +14,7 @@ namespace TurnBased.Presentation
             EventHookSystem.OnDamageRequestResolved += EventHookSystem_OnDamageRequestResolved;
 
             this._StatusPresentationManager = new();
-            this._StatusPresentationManager.Awake(data);
+            this._StatusPresentationManager.Awake(this, data);
         }
 
         private void EventHookSystem_OnDamageRequestResolved(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest damageRequest)
@@ -23,8 +23,7 @@ namespace TurnBased.Presentation
             {
                 if (!StationManager.Instance.TryGetBattleUnitOfIndex(damageRequest.TargetUnit, out BaseBattleUnit battleUnit)) { return; }
 
-                completionManager.AddAction();
-                _ = SpawnParticleSystem(completionManager, damageRequest, this._ParticlesData.CollisionParticlePrefab, battleUnit);
+                _ = SpawnParticleSystem(completionManager, this._ParticlesData.CollisionParticlePrefab, battleUnit.transform.position);
             }
         }
 
@@ -35,9 +34,11 @@ namespace TurnBased.Presentation
         }
 
 
-        private async System.Threading.Tasks.Task SpawnParticleSystem(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest damageRequest, ParticleSystemController particleSystemController, BaseBattleUnit battleUnit)
+        public async System.Threading.Tasks.Task SpawnParticleSystem(AttackResolution.RequestTaskCompletionManager completionManager, ParticleSystemController particleSystemController, UnityEngine.Vector3 position)
         {
-            UnityEngine.GameObject instanciatedParticleSystem = UnityEngine.GameObject.Instantiate(particleSystemController.gameObject, battleUnit.transform.position, UnityEngine.Quaternion.identity);
+            completionManager.AddAction();
+
+            UnityEngine.GameObject instanciatedParticleSystem = UnityEngine.GameObject.Instantiate(particleSystemController.gameObject, position, UnityEngine.Quaternion.identity);
             instanciatedParticleSystem.GetComponent<ParticleSystemController>().PlayParticleSystem();
 
             await System.Threading.Tasks.Task.Delay(800);
