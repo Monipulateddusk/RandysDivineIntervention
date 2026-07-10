@@ -157,8 +157,6 @@ namespace TurnBased.Combat
 
                 case DamageOriginType.Status:
                     ProcessStatusResolvingState_BeforeAttack();
-
-                   // await ProcessStatusResolvingState(resolvingRequest.ResolvingState);
                     break;
 
                 case DamageOriginType.Environment:
@@ -178,48 +176,6 @@ namespace TurnBased.Combat
             this.currentResolvingRequest = null;
             RemoveFrontResolvingState();
         }
-
-
-        //private async System.Threading.Tasks.Task ProcessUnitResolvingState(Intention.ResolvingState resolvingState)
-        //{
-        //    UnitIndex sourceUnitIndex = resolvingState.ResolvingSource.SourceUnitIndex;
-
-        //    UnityEngine.Debug.LogWarning($"source unit index is: {sourceUnitIndex.Index}");
-
-
-        //    UnityEngine.Debug.LogWarning($"Executing attack action in order inside process attack. Is there a valid target?    ");
-
-        //    /*  If there is a targeted unit, proceed */
-        //    UnityEngine.Debug.LogWarning($"There is a valid target moving to target");
-
-        //    /*  Determine if the Attack moves the user or not.  */
-        //    await Presentation.BattlePresentationManager.Instance.VisualiseUnitTeleportUserAndTargets(resolvingState);
-
-        //    UnityEngine.Debug.LogWarning($"Processing attack step");
-
-
-        //    /*  Process each step individually   */
-
-        //    await this._CombatAttackHandler.ProcessAttackStep(resolvingState);
-
-
-        //    UnityEngine.Debug.LogWarning($"Moving back to station");
-
-        //    /*  Move the user back.  */
-        //    await Presentation.BattlePresentationManager.Instance.ReturnSourceAndTargetsBackToStations(resolvingState);
-
-        //    UnityEngine.Debug.LogWarning($"Clearing intention");
-
-
-
-        //    /*  Clear the intention of the attack once done.    */
-        //    Intention.UnitIntentionManager.Instance.ClearIntention(sourceUnitIndex, resolvingState.ResolvingSource.SourceUnitMove);
-
-        //    UnityEngine.Debug.LogWarning($"Determining dead units");
-
-        //    GameState.GameStateManager.Instance.DetermineDeadUnits();
-
-        //}
 
         #region Unit Process Sequence
 
@@ -298,7 +254,7 @@ namespace TurnBased.Combat
             this.completionManager = new(OnCompleteStatusResolvingState);
 
             this.completionManager.AddAction();
-            OnUnitResolvingState_AfterAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
+            OnStatusResolvingState_AfterAttack?.Invoke(this.completionManager, this.currentResolvingRequest.ResolvingState);
             this.completionManager.OnActionComplete();
         }
 

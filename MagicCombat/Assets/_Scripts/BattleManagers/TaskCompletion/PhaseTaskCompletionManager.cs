@@ -1,5 +1,3 @@
-using TurnBased.Intention;
-
 namespace TurnBased.Phases
 {
     public class PhaseTaskCompletionManager
@@ -42,7 +40,7 @@ namespace TurnBased.AttackResolution
     {
         private int requestTaskCount;
         private System.Action<BaseRequest> OnRequestTaskCompletion;
-        private BaseRequest request;
+        private readonly BaseRequest request;
 
 
         public RequestTaskCompletionManager(BaseRequest request, System.Action<BaseRequest> onRequestTaskCompletion)

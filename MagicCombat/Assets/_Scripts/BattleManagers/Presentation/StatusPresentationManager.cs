@@ -44,22 +44,6 @@ namespace TurnBased.Presentation
             _ = VisualiseStatusRequest(completionManager, request, battleUnit);
         }
 
-        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest request, BaseBattleUnit battleUnit)
-        {
-            if (!TryGetParticleSystemOfStatusChildSubClass(request.ResolvingSource.SourceStatus, out ParticleSystemController particleSystemController)) { return; }
-            if (particleSystemController == null) { return; }
-
-            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
-        }
-
-        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
-        {
-            if (!TryGetParticleSystemOfStatusChildSubClass(request.ApplingStatus, out ParticleSystemController particleSystemController)) { return; }
-            if (particleSystemController == null) { return; }
-
-            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
-        }
-
         private bool TryGetParticleSystemOfStatusChildSubClass(Status.BaseStatus baseStatusOfRequest, out ParticleSystemController particleSystemPrefab)
         {
             particleSystemPrefab = default;
@@ -76,7 +60,24 @@ namespace TurnBased.Presentation
                 }
             }
 
-           return false;
+            return false;
+        }
+
+
+        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest request, BaseBattleUnit battleUnit)
+        {
+            if (!TryGetParticleSystemOfStatusChildSubClass(request.ResolvingSource.SourceStatus, out ParticleSystemController particleSystemController)) { return; }
+            if (particleSystemController == null) { return; }
+
+            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
+        }
+
+        private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
+        {
+            if (!TryGetParticleSystemOfStatusChildSubClass(request.ApplingStatus, out ParticleSystemController particleSystemController)) { return; }
+            if (particleSystemController == null) { return; }
+
+            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
         }
     }
 }

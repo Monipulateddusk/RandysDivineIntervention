@@ -2,6 +2,8 @@ namespace TurnBased.AttackResolution
 {
     public class AttackEventResolver
     {
+        public static event System.Action<ResolvingStatePhaseCompletionManager, System.Collections.Generic.List<AttackResolution.AttackEvent>> OnResolveAttackEventSequenceSection;
+
         private EventHookSystem _EventHookSystem;
         private AttackResolution.RequestResolver _RequestResolver;
         private System.Action _OnEventSequenceComplete;
@@ -34,7 +36,10 @@ namespace TurnBased.AttackResolution
         {
             if (this._AttackEventTimeline.Count > this._AttackEventTimelineIndex)
             {
-                ProcessAttackEventSequence(this._AttackEventTimeline[this._AttackEventTimelineIndex]);
+                ResolvingStatePhaseCompletionManager completionManager = new(ResolveAttackEventSequenceSection);
+                completionManager.AddAction();
+                OnResolveAttackEventSequenceSection?.Invoke(completionManager, this._AttackEventTimeline[this._AttackEventTimelineIndex]);
+                completionManager.OnActionComplete();
             }
             // Attack Event Sequence is complete, proceeding to the next Resolving State
             else
@@ -42,6 +47,13 @@ namespace TurnBased.AttackResolution
                 this._OnEventSequenceComplete?.Invoke();
             }
         }
+
+        private void ResolveAttackEventSequenceSection()
+        {
+            ProcessAttackEventSequence(this._AttackEventTimeline[this._AttackEventTimelineIndex]);
+        }
+
+
 
         private void ProcessAttackEventSequence(System.Collections.Generic.List<AttackResolution.AttackEvent> attackEvents)
         {

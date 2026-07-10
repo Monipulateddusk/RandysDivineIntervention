@@ -61,25 +61,6 @@ namespace TurnBased.AttackResolution
             }
         }
 
-        //private void ProcessAttackStep(Intention.ResolvingState resolvingState)
-        //{
-        //    if (resolvingState.ActionResolvingStates.Count <= 0)
-        //    {
-        //        UnityEngine.Debug.LogError("COMBAT_ATTACK_HANDLER_ERROR: Unable to process ActionResolvingStates! List is Empty!");
-        //        return;
-        //    }
-
-        //    foreach (Intention.AttackActionResolvingState actionResolvingState in resolvingState.ActionResolvingStates)
-        //    {
-        //        /*  Get the Declared Units in this Attack Action's Targetting Group.    */
-        //        if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(resolvingState, actionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { continue; }
-
-        //        ProcessAttackAction(resolvingState.ResolvingSource, actionResolvingState.Action, declaredTargets);
-
-        //        actionResolvingState.IsResolved = true;
-        //    }
-        //}
-
 
         private void ProcessAttackAction(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
         {
@@ -149,29 +130,6 @@ namespace TurnBased.AttackResolution
             UnityEngine.Debug.LogWarning($"Processing Timeline");
 
             this.attackEventResolver.StartResolvingCombatAttackTimeline(attackEventTimeline);
-
-            //await ResolveCombatAttackTimeline(attackEventTimeline);
-        }
-
-
-        //private async System.Threading.Tasks.Task ResolveCombatAttackTimeline(System.Collections.Generic.List<System.Collections.Generic.List<AttackResolution.AttackEvent>> attackEventTimeline)
-        //{
-        //    if (attackEventTimeline.Count <= 0 || this._EventHookSystem == null) { return; }
-        //    AttackResolution.RequestResolver resolver = new();
-
-        //    foreach (System.Collections.Generic.List<AttackResolution.AttackEvent> listOfEvents in attackEventTimeline)
-        //    {
-        //        foreach (AttackResolution.AttackEvent attackEvent in listOfEvents)
-        //        {
-        //            UnityEngine.Debug.LogError("Processing Attack");
-        //            if (attackEvent == null) { continue; }
-
-        //            attackEvent.ExecuteAttackEvent(this._EventHookSystem, resolver);
-        //        }
-        //        await System.Threading.Tasks.Task.Delay(500);
-        //    }
-        //}
-
- 
+        } 
     }
 }
