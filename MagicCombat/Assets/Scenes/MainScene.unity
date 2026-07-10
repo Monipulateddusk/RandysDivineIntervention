@@ -618,7 +618,7 @@ MonoBehaviour:
   m_ChildScaleWidth: 1
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!213 &261870247
+--- !u!213 &342239057
 Sprite:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1852,7 +1852,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 261870247}
+  m_Sprite: {fileID: 342239057}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

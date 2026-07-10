@@ -1,8 +1,12 @@
+
 namespace TurnBased.AttackResolution
 {
     public class AttackEventResolver
     {
-        public static event System.Action<ResolvingStatePhaseCompletionManager, System.Collections.Generic.List<AttackResolution.AttackEvent>> OnResolveAttackEventSequenceSection;
+        public static event System.Action<ResolvingStatePhaseCompletionManager, Intention.ResolvingSource, AttackAction, System.Collections.Generic.List<AttackResolution.AttackEvent>> OnResolveAttackEventSequenceSection;
+        private Intention.ResolvingSource currentResolvingSource;
+        private AttackAction currentAttackAction;
+
 
         private EventHookSystem _EventHookSystem;
         private AttackResolution.RequestResolver _RequestResolver;
@@ -20,7 +24,12 @@ namespace TurnBased.AttackResolution
             this._OnEventSequenceComplete = onEventSequenceComplete;
         }
 
-        public void StartResolvingCombatAttackTimeline(System.Collections.Generic.List<System.Collections.Generic.List<AttackResolution.AttackEvent>> attackEventTimeline)
+        public void OnDestroy()
+        {
+            OnResolveAttackEventSequenceSection = null;
+        }
+
+        public void StartResolvingCombatAttackTimeline(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<System.Collections.Generic.List<AttackResolution.AttackEvent>> attackEventTimeline)
         {
             /*  If it is empty, proceed to the next Attack Action Resolving State   */
             if (attackEventTimeline.Count <= 0 || this._EventHookSystem == null || this._RequestResolver == null) { return; }
@@ -28,6 +37,9 @@ namespace TurnBased.AttackResolution
             this._AttackEventTimeline = attackEventTimeline;
             this._AttackEventTimelineIndex = 0;
             this._AttackEventCount = 0;
+
+            this.currentAttackAction = attackAction;
+            this.currentResolvingSource = resolvingSource;
 
             GetAttackEventSequenceForProcessing();
         }
@@ -38,7 +50,7 @@ namespace TurnBased.AttackResolution
             {
                 ResolvingStatePhaseCompletionManager completionManager = new(ResolveAttackEventSequenceSection);
                 completionManager.AddAction();
-                OnResolveAttackEventSequenceSection?.Invoke(completionManager, this._AttackEventTimeline[this._AttackEventTimelineIndex]);
+                OnResolveAttackEventSequenceSection?.Invoke(completionManager, this.currentResolvingSource, this.currentAttackAction, this._AttackEventTimeline[this._AttackEventTimelineIndex]);
                 completionManager.OnActionComplete();
             }
             // Attack Event Sequence is complete, proceeding to the next Resolving State

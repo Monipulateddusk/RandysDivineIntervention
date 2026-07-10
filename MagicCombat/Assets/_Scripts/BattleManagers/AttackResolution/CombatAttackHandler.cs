@@ -21,7 +21,8 @@ namespace TurnBased.AttackResolution
 
         public void OnDestroy()
         {
-
+            this.attackEventResolver.OnDestroy();
+            this.attackEventResolver = null;
         }
 
         public void StartProcessingResolvingState(Intention.ResolvingState resolvingState, System.Action onActionResolvingStatesComplete)
@@ -87,10 +88,10 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Converting to timeline");
 
-            ConvertAttackEventsToTimeline(unitIndexTargetPerAttackEventDict);
+            ConvertAttackEventsToTimeline(resolvingSource, attackAction, unitIndexTargetPerAttackEventDict);
         }
 
-        private void ConvertAttackEventsToTimeline(System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
+        private void ConvertAttackEventsToTimeline(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
         {
             if (unitIndexTargetPerAttackEventDict.Count <= 0) { return; }
 
@@ -129,7 +130,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Processing Timeline");
 
-            this.attackEventResolver.StartResolvingCombatAttackTimeline(attackEventTimeline);
+            this.attackEventResolver.StartResolvingCombatAttackTimeline(resolvingSource, attackAction, attackEventTimeline);
         } 
     }
 }

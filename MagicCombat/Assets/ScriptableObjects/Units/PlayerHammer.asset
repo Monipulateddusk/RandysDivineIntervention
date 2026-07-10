@@ -23,6 +23,7 @@ MonoBehaviour:
   - rid: 5066282868326531072
   - rid: 5544377919140265986
   - rid: 618058911503876097
+  - rid: 6350586987557945344
   moveSelectorType: 2
   targetSelectorType: 2
   unitAnimator: {fileID: 9100000, guid: 212fd75ee11e56848afcb4a2c3d4fc0c, type: 2}
@@ -37,4 +38,7 @@ MonoBehaviour:
       data: 
     - rid: 5544377919140265986
       type: {class: HeavyAttack, ns: TurnBased, asm: Assembly-CSharp}
+      data: 
+    - rid: 6350586987557945344
+      type: {class: LightAttack, ns: TurnBased, asm: Assembly-CSharp}
       data: 
