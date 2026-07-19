@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SpriteComponent : BaseComponent
 {
-
     SpriteRenderer spriteRenderer;
 
     public SpriteComponent()
@@ -25,6 +22,8 @@ public class SpriteComponent : BaseComponent
 
     public void SetSpriteRenderTransparency(float transparencyValue)
     {
+        if (this.spriteRenderer != null) { return; }
+        
         this.spriteRenderer.color = 
             new Color(
             this.spriteRenderer.color.r, 
@@ -34,6 +33,7 @@ public class SpriteComponent : BaseComponent
     }
     public void FlipSpriteRendererX(bool flipValue)
     {
+        if (this.spriteRenderer != null) { return; }
         this.spriteRenderer.flipX = flipValue;
     }
 }

@@ -127,8 +127,7 @@ namespace TurnBased.LoaderUnloader
             instanciatedGameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 1);
 
             BaseBattleUnit instanciatedBaseBattleUnit = instanciatedGameObject.AddComponent<BaseBattleUnit>();
-            instanciatedBaseBattleUnit.Initialise(unitData);
-            instanciatedBaseBattleUnit.SetTeam(unitTeam);
+            instanciatedBaseBattleUnit.Initialise(unitData, unitTeam);
 
             instanciatedBaseBattleUnit.gameObject.transform.localScale = new UnityEngine.Vector3(0.5f, 0.5f, 1);
 

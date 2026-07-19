@@ -1,4 +1,5 @@
 using UnityEngine;
+
 [RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
@@ -11,11 +12,10 @@ public class BaseBattleUnit : MonoBehaviour
     /*  Custom Components for the Unit. Using Dependency Injection  */
     SpriteComponent unitSpriteComponent;
 
-    public void Initialise(UnitData unitData)
+    public void Initialise(UnitData unitData, UnitTeam team)
     {
+        /*  Don't initalise the unit if it already has unitData.    */
         if (this.unitData != null) { return; }
-
-        this.unitData = unitData;
 
         /*  Get Unity Components and Attach them    */
         if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
@@ -31,14 +31,15 @@ public class BaseBattleUnit : MonoBehaviour
         }
 
         /*  Gain a referance to the required components for a Unit.   */
-        unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
+        this.unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
+        this.unitData = unitData;
+        this.team = team;
     }
 
     #region Getter/Setter Methods
-    public UnitData GetBaseUnit() { return unitData; }
-    public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
-    public void SetTeam(UnitTeam team) { this.team = team; }
-    public UnitTeam GetTeam() { return team; }
+    public UnitData GetBaseUnit() { return this.unitData; }
+    public SpriteComponent GetSpriteComponent() {  return this.unitSpriteComponent; }
+    public UnitTeam GetTeam() { return this.team; }
 
     #endregion
 }
