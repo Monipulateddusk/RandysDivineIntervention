@@ -10,7 +10,6 @@ public class BaseBattleUnit : MonoBehaviour
 
     /*  Custom Components for the Unit. Using Dependency Injection  */
     SpriteComponent unitSpriteComponent;
-    CombatComponent unitCombatComponent;
 
     public void Initialise(UnitData unitData)
     {
@@ -33,51 +32,11 @@ public class BaseBattleUnit : MonoBehaviour
 
         /*  Gain a referance to the required components for a Unit.   */
         unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
-        unitCombatComponent = new CombatComponent(this, unitData, gameObject.transform);
-
-
     }
-
-
-    #region Animation Methods
-
-
-    /// <summary>
-    /// Play the Animation within the Animation Node correlating to the Attack Name
-    /// </summary>
-    public void PlayCombatAttackAnimation()
-    {
-        if (unitAnimator != null)
-        {
-           // unitAnimator.Play(unitCombatComponent.GetCurrentAttackInformation().moveName);
-        }
-    }
-
-
-    /// <summary>
-    /// ANIMATION EVENT: Called when an Attack Animation Event triggers to do the Attack Action. Process that part of the Attack
-    /// </summary>
-    public void OnAttackActionAnimationTrigger()
-    {
-       
-    }
-
-
-    /// <summary>
-    /// ANIMATION EVENT: Called when the End Attack Animation Event is triggered. 
-    /// </summary>
-    public async void OnAttackAnimationEnd()
-    {
-        await GetCombatComponent().OnEndAttackAnimation();
-    }
-
-
-    #endregion
 
     #region Getter/Setter Methods
     public UnitData GetBaseUnit() { return unitData; }
     public SpriteComponent GetSpriteComponent() {  return unitSpriteComponent; }
-    public CombatComponent GetCombatComponent() { return unitCombatComponent; }
     public void SetTeam(UnitTeam team) { this.team = team; }
     public UnitTeam GetTeam() { return team; }
 
