@@ -36,7 +36,13 @@ public class BaseBattleUnit : MonoBehaviour
         this.team = team;
     }
 
+    public void OnAnimationEventTriggered(string eventTriggered)
+    {
+
+    }
+
     #region Getter/Setter Methods
+
     public UnitData GetBaseUnit() { return this.unitData; }
     public SpriteComponent GetSpriteComponent() {  return this.unitSpriteComponent; }
     public UnitTeam GetTeam() { return this.team; }

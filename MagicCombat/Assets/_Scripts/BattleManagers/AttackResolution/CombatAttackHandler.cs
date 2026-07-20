@@ -50,11 +50,15 @@ namespace TurnBased.AttackResolution
         
         private void ProcessCurrentResolvingState()
         {
-            if (this.currentResolvingState.ActionResolvingStates.Count > this.ResolvingStateIndex)
+            int STATES_COUNT = this.currentResolvingState.ActionResolvingStates.Count;
+            if (STATES_COUNT > this.ResolvingStateIndex)
             {
+                /*  Get the current attackActionResolvingState and determine if it is the last one for purposes of Presentation.    */
                 Intention.AttackActionResolvingState currentAttackActionResolvingState = this.currentResolvingState.ActionResolvingStates[this.ResolvingStateIndex];
+
+
                 if (!Intention.UnitIntentionFactory.TryGetDeclaredTargetsForTargetGroup(this.currentResolvingState, currentAttackActionResolvingState.Action.TargetGroupID, out System.Collections.Generic.List<StationIndex> declaredTargets)) { ProcessNextResolvingState(); }
-                ProcessAttackAction(this.currentResolvingState.ResolvingSource, currentAttackActionResolvingState.Action, declaredTargets);
+                ProcessAttackAction(this.currentResolvingState.ResolvingSource, currentAttackActionResolvingState.Action, declaredTargets, statesCount: STATES_COUNT);
             }
             else
             {
@@ -63,7 +67,7 @@ namespace TurnBased.AttackResolution
         }
 
 
-        private void ProcessAttackAction(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets)
+        private void ProcessAttackAction(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.List<StationIndex> declaredTargets, int statesCount)
         {
             if (!StationManagerUtilities.DoesStationIndexListContainExistantTarget(declaredTargets)) { return; }
             if (resolvingSource == null) { return; }
@@ -88,10 +92,10 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Converting to timeline");
 
-            ConvertAttackEventsToTimeline(resolvingSource, attackAction, unitIndexTargetPerAttackEventDict);
+            ConvertAttackEventsToTimeline(resolvingSource, attackAction, unitIndexTargetPerAttackEventDict, statesCount);
         }
 
-        private void ConvertAttackEventsToTimeline(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict)
+        private void ConvertAttackEventsToTimeline(Intention.ResolvingSource resolvingSource, AttackAction attackAction, System.Collections.Generic.Dictionary<UnitIndex, System.Collections.Generic.List<AttackEvent>> unitIndexTargetPerAttackEventDict, int statesCount)
         {
             if (unitIndexTargetPerAttackEventDict.Count <= 0) { return; }
 
@@ -130,7 +134,7 @@ namespace TurnBased.AttackResolution
 
             UnityEngine.Debug.LogWarning($"Processing Timeline");
 
-            this.attackEventResolver.StartResolvingCombatAttackTimeline(resolvingSource, attackAction, attackEventTimeline);
+            this.attackEventResolver.StartResolvingCombatAttackTimeline(resolvingSource, attackAction, attackEventTimeline, statesCount, this.ResolvingStateIndex);
         } 
     }
 }
