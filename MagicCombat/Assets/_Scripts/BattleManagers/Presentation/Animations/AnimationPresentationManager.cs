@@ -1,5 +1,3 @@
-using static Unity.VisualScripting.Member;
-
 namespace TurnBased.Presentation
 {
     public class AnimationPresentationManager
