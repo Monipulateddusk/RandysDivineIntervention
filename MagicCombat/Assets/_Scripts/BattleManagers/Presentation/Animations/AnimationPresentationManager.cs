@@ -1,3 +1,5 @@
+using static Unity.VisualScripting.Member;
+
 namespace TurnBased.Presentation
 {
     public class AnimationPresentationManager
@@ -5,11 +7,26 @@ namespace TurnBased.Presentation
         public void Awake()
         {
             AttackResolution.AttackEventResolver.OnResolveAttackEventSequenceSection += AttackEventResolver_OnResolveAttackEventSequenceSection;
+            StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
         }
+
 
         public void OnDestroy()
         {
             AttackResolution.AttackEventResolver.OnResolveAttackEventSequenceSection -= AttackEventResolver_OnResolveAttackEventSequenceSection;
+            StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+        }
+
+        private void StationSelectorManager_OnSelectionChange(StationIndex selectedStation, StationIndex? previousSelectedStation)
+        {
+            if (previousSelectedStation != null) { SetUnitAnimatorSelectedStatus(previousSelectedStation.Value, false); }
+            SetUnitAnimatorSelectedStatus(selectedStation, true);
+        }
+
+        private void SetUnitAnimatorSelectedStatus(StationIndex stationIndex, bool isSelected)
+        {
+            if (!StationManager.Instance.TryGetUnitIndexOnStation(stationIndex, out UnitIndex unitIndex)) { return; }
+            AnimationUnitManager.Instance.SetBooleanFlagForUnitAnimator(unitIndex, "IsSelected", isSelected);
         }
 
         private void AttackEventResolver_OnResolveAttackEventSequenceSection(
@@ -40,25 +57,41 @@ namespace TurnBased.Presentation
             int timelineCount,
             int timelineIndex)
         {
+            completionManager.AddAction();
+
             if (IsStartingAnimation(resolvingStateIndex, timelineIndex))
             {
-                UnityEngine.Debug.LogError($"<color=green>Starting Animation: Count is: {resolvingStatesCount} and Index is: {resolvingStateIndex}</color>");
+                AnimationUnitManager.Instance.SetBooleanFlagForUnitAnimator(source.SourceUnitIndex, "IsAttacking", true);
+                AnimationUnitManager.Instance.PlayAnimationForUnit(source.SourceUnitIndex, "LightAttack");
+
+                await System.Threading.Tasks.Task.Yield();
+
+
+                AnimationUnitManager.Instance.GetAnimationDurationForUnitAnimator(source.SourceUnitIndex, out float lightAttackIdleDuration);
+
+
+                await System.Threading.Tasks.Task.Delay((int)(lightAttackIdleDuration * 1000));
             }
 
+            AnimationUnitManager.Instance.SetTriggerFlagForUnitAnimator(source.SourceUnitIndex, "TriggerAction");
+            await System.Threading.Tasks.Task.Yield();
+            AnimationUnitManager.Instance.GetDurationToNextAnimationEvent(source.SourceUnitIndex, out float lightAttackSwingDuration);
 
-            int textIndex = UnityEngine.Random.Range(0, 3);
 
-            string[] text = { "BANG!", "POW!", "ZAM!" };
-
-            UnityEngine.Debug.LogError($"<color=red>{text[textIndex]}</color>");
-
-            AnimationUnitManager.Instance.PlayAnimationForUnit(source.SourceUnitIndex, "LightAttack", out float duration);
-            await AnimationDelay(completionManager, (int)duration);
+            await System.Threading.Tasks.Task.Delay((int)(lightAttackSwingDuration * 1000));
+            completionManager.OnActionComplete();
 
             if (IsEndingAnimation(resolvingStatesCount, resolvingStateIndex, timelineCount, timelineIndex))
             {
-                UnityEngine.Debug.LogError($"<color=purple>Ending Animation: Count is: {resolvingStatesCount} and Index is: {resolvingStateIndex}</color>");
+                AnimationUnitManager.Instance.SetBooleanFlagForUnitAnimator(source.SourceUnitIndex, "IsAttacking", false);
+
+                await System.Threading.Tasks.Task.Yield();
+                AnimationUnitManager.Instance.GetAnimationDurationForUnitAnimator(source.SourceUnitIndex, out float lightAttackEndDuration);
+
+                await System.Threading.Tasks.Task.Delay((int)(lightAttackEndDuration * 1000));
             }
+
+
         }
 
 
@@ -68,13 +101,5 @@ namespace TurnBased.Presentation
 
 
 
-
-        private async System.Threading.Tasks.Task AnimationDelay(AttackResolution.ResolvingStatePhaseCompletionManager completionManager, int duration)
-        {
-            completionManager.AddAction();
-            await System.Threading.Tasks.Task.Delay(duration * 1000);
-
-            completionManager.OnActionComplete();
-        }
     }
 }

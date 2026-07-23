@@ -42,16 +42,16 @@ public class CameraController : MonoBehaviour
     private readonly float[] AllyRotationsCamera =
     {
         15,
-        -75,
-        -120,
+        70,
+        70,
         50
     };
 
     private readonly float[] EnemyRotationsCamera =
     {
         50,
-        -125,
-        -135,
+        70,
+        70,
         90
     };
 

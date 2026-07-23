@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
+//[RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
     [Header("Debugging")]
@@ -17,27 +17,37 @@ public class BaseBattleUnit : MonoBehaviour
         /*  Don't initalise the unit if it already has unitData.    */
         if (this.unitData != null) { return; }
 
-        /*  Get Unity Components and Attach them    */
-        if(TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
-        {
-            this.unitSpriteRenderer = spriteRenderer;
-            this.unitAnimator = animator;
-            this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
-        }
-        else
-        {
-            Debug.LogError("UNABLE TO RETRIEVE UNITY COMPONENTS ON: " + gameObject.name);
-            Debug.Break();
-        }
+        this.unitData = unitData;
+        this.team = team;
+
+
+        /*  Create a child GameObject that handles visuals. This way we can rotate the Unit in accordance to the Camera, and have full rotation movement via Animations.    */
+        GameObject childGameObject = new($"{this.unitData.name} Visuals");
+
+        /*  Add the Sprite Render and Animator to the Child, and attach it to this parent GameObject.   */
+        childGameObject.AddComponent<BattleUnitAnimationHandler>();
+
+        this.unitSpriteRenderer = childGameObject.AddComponent<SpriteRenderer>();
+        this.unitAnimator = childGameObject.AddComponent<Animator>();
+        this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
+
+        childGameObject.transform.parent = this.gameObject.transform;
+
+        ///*  Get Unity Components and Attach them    */
+        //if (TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
+        //{
+        //    this.unitSpriteRenderer = spriteRenderer;
+        //    this.unitAnimator = animator;
+        //    this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
+        //}
+        //else
+        //{
+        //    Debug.LogError("UNABLE TO RETRIEVE UNITY COMPONENTS ON: " + gameObject.name);
+        //    Debug.Break();
+        //}
 
         /*  Gain a referance to the required components for a Unit.   */
         this.unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
-        this.unitData = unitData;
-        this.team = team;
-    }
-
-    public void OnAnimationEventTriggered(string eventTriggered)
-    {
 
     }
 
@@ -45,6 +55,7 @@ public class BaseBattleUnit : MonoBehaviour
 
     public UnitData GetBaseUnit() { return this.unitData; }
     public SpriteComponent GetSpriteComponent() {  return this.unitSpriteComponent; }
+    public Animator GetAnimator() { return this.unitAnimator; }
     public UnitTeam GetTeam() { return this.team; }
 
     #endregion
