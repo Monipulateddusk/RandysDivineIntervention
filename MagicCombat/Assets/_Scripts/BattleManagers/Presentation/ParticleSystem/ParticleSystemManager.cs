@@ -12,20 +12,8 @@ namespace TurnBased.Presentation
         {
             this._ParticlesData = data;
 
-            EventHookSystem.OnDamageRequestResolved += EventHookSystem_OnDamageRequestResolved;
-
             this._StatusPresentationManager = new();
             this._StatusPresentationManager.Awake(this, data);
-        }
-
-        private void EventHookSystem_OnDamageRequestResolved(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.DamageRequest damageRequest)
-        {
-            //if (damageRequest.ResolvingSource.Type == DamageOriginType.UnitMove)
-            //{
-            //    if (!StationManager.Instance.TryGetBattleUnitOfIndex(damageRequest.TargetUnit, out BaseBattleUnit battleUnit)) { return; }
-
-            //    _ = SpawnParticleSystem(completionManager, this._ParticlesData.CollisionParticlePrefab, battleUnit.transform.position);
-            //}
         }
 
         public void OnDestroy()
