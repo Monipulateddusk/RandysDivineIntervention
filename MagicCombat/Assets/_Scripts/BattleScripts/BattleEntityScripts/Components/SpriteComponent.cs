@@ -1,15 +1,13 @@
-using UnityEngine;
-
 public class SpriteComponent : BaseComponent
 {
-    SpriteRenderer spriteRenderer;
+    private readonly UnityEngine.SpriteRenderer spriteRenderer;
 
     public SpriteComponent()
     {
         spriteRenderer = null;
     }
 
-    public SpriteComponent(BaseBattleUnit battleUnit, UnitData unitData, SpriteRenderer spriteRenderer)
+    public SpriteComponent(BaseBattleUnit battleUnit, UnitData unitData, UnityEngine.SpriteRenderer spriteRenderer)
     {
         this.battleUnit = battleUnit;
         this.unitData = unitData;
@@ -25,7 +23,7 @@ public class SpriteComponent : BaseComponent
         if (this.spriteRenderer != null) { return; }
         
         this.spriteRenderer.color = 
-            new Color(
+            new UnityEngine.Color(
             this.spriteRenderer.color.r, 
             this.spriteRenderer.color.g, 
             this.spriteRenderer.color.b, 

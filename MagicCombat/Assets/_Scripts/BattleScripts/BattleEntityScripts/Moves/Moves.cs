@@ -48,6 +48,7 @@ namespace TurnBased
     {
         public abstract AttackResolutionInfo ExecuteMove(TurnBased.Information.ResolutionSceneData resolutionSceneData);
         public MoveResolutionTiming GetResolutionTiming();
+        public MoveAnimationType GetAnimationType();
         public int GetMaxTargets();
         public int GetAPCost();
         public bool DoesSourceUnitMove();
@@ -87,6 +88,7 @@ namespace TurnBased
 
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
 
+        public MoveAnimationType GetAnimationType() => MoveAnimationType.HeavyAttack;
     }
 
     /// <summary>
@@ -129,6 +131,7 @@ namespace TurnBased
 
         public string GetMoveName() => "Light Attack";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
+                public MoveAnimationType GetAnimationType() => MoveAnimationType.LightAttack;
     }
 
     public class InstantQuickAttack : IBattleMove
@@ -161,6 +164,7 @@ namespace TurnBased
 
         public string GetMoveName() => "Instant Quick Attack";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.Instant;
+        public MoveAnimationType GetAnimationType() => MoveAnimationType.LightAttack;
     }
 
 
@@ -195,6 +199,7 @@ namespace TurnBased
         public bool DoesSourceUnitMove() => false;
         public string GetMoveName() => "Imbue Environment";
         public MoveResolutionTiming GetResolutionTiming() => MoveResolutionTiming.TurnOrderSequence;
+        public MoveAnimationType GetAnimationType() => MoveAnimationType.Imbuement;
     }
     
 }

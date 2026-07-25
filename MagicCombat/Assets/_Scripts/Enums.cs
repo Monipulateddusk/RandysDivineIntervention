@@ -227,3 +227,17 @@ public enum StatusType
     Buff,
     Debuff,
 }
+
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+/// PRESENTATION ENUMERATIONS
+/// 
+/// =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+/// 
+public enum MoveAnimationType
+{
+    LightAttack,
+    HeavyAttack,
+    Imbuement
+    
+}

@@ -56,7 +56,7 @@ namespace TurnBased.Presentation
             this.particleSystemManager.Awake(this.particlesCollectionData);
 
             this.animationPresentationManager = new();
-            this.animationPresentationManager.Awake();
+            this.animationPresentationManager.Awake(this.particleSystemManager, this.particlesCollectionData);
         }
 
         private void Start()
