@@ -1,6 +1,5 @@
 using UnityEngine;
 
-//[RequireComponent(typeof(Animator), typeof(SpriteRenderer))]
 public class BaseBattleUnit : MonoBehaviour
 {
     [Header("Debugging")]
@@ -32,19 +31,6 @@ public class BaseBattleUnit : MonoBehaviour
         this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
 
         childGameObject.transform.parent = this.gameObject.transform;
-
-        ///*  Get Unity Components and Attach them    */
-        //if (TryGetComponent(out SpriteRenderer spriteRenderer) && TryGetComponent(out Animator animator))
-        //{
-        //    this.unitSpriteRenderer = spriteRenderer;
-        //    this.unitAnimator = animator;
-        //    this.unitAnimator.runtimeAnimatorController = unitData.unitAnimator;
-        //}
-        //else
-        //{
-        //    Debug.LogError("UNABLE TO RETRIEVE UNITY COMPONENTS ON: " + gameObject.name);
-        //    Debug.Break();
-        //}
 
         /*  Gain a referance to the required components for a Unit.   */
         this.unitSpriteComponent = new SpriteComponent(this, unitData, this.unitSpriteRenderer);
