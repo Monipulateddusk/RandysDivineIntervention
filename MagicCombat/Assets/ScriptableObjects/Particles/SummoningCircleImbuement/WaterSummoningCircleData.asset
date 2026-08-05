@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da5728f21167104e9a95dfdcfa3dc28, type: 3}
+  m_Name: WaterSummoningCircleData
+  m_EditorClassIdentifier: 
+  _particleSystem: {fileID: 7659466757913528877, guid: f683503f4e9f3594ab1c7e4332f11f8a, type: 3}
+  summoningCircleTexture2D: {fileID: 2800000, guid: d678c57ac26677c47bc4508b49800b57, type: 3}
+  materialColour: {r: 0, g: 0.50650287, b: 1, a: 1}
+  materialEmissionColour: {r: 0.050980397, g: 0.16375524, b: 0.4509804, a: 1}
+  lightColour: {r: 0, g: 0.26026773, b: 1, a: 1}
+  materialMetallic: 0.1
+  materialSmoothness: 0.5
+  materialEmissionIntensity: 0.8
+  materialEmissionExposure: 0.25
+  rotateCircleAngle: 45
+  growCircleDuration: 1
+  glowLightDuration: 0.5
+  lightGlowIntensity: 5
+  circleMoveDuration: 1

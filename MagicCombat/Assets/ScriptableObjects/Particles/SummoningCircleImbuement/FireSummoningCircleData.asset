@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da5728f21167104e9a95dfdcfa3dc28, type: 3}
+  m_Name: FireSummoningCircleData
+  m_EditorClassIdentifier: 
+  _particleSystem: {fileID: 4331565915068172586, guid: 73649a2550e26174fa90477989d5e03a, type: 3}
+  summoningCircleTexture2D: {fileID: 2800000, guid: d678c57ac26677c47bc4508b49800b57, type: 3}
+  materialColour: {r: 1, g: 0.12481457, b: 0, a: 1}
+  materialEmissionColour: {r: 0.4509804, g: 0.054820884, b: 0.050980397, a: 1}
+  lightColour: {r: 1, g: 0.11576627, b: 0, a: 1}
+  materialMetallic: 0.1
+  materialSmoothness: 0.5
+  materialEmissionIntensity: 0.8
+  materialEmissionExposure: 0.25
+  rotateCircleAngle: 45
+  growCircleDuration: 1
+  glowLightDuration: 0.5
+  lightGlowIntensity: 5
+  circleMoveDuration: 1

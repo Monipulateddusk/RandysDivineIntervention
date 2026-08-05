@@ -24,6 +24,7 @@ namespace TurnBased.Presentation
 
         private AttackResolution.ResolvingStatePhaseCompletionManager _CompletionManager;
         private ParticleSystemManager particleSystemManager;
+        private EnvironmentPresentationManager environmentPresentationManager;
         private AnimationPresentationManager animationPresentationManager;
 
         [Header("Inspector Variables")]
@@ -55,8 +56,11 @@ namespace TurnBased.Presentation
             this.particleSystemManager = new();
             this.particleSystemManager.Awake(this.particlesCollectionData);
 
+            this.environmentPresentationManager = new();
+            this.environmentPresentationManager.Awake(this.particlesCollectionData);
+
             this.animationPresentationManager = new();
-            this.animationPresentationManager.Awake(this.particleSystemManager, this.particlesCollectionData);
+            this.animationPresentationManager.Awake(this.particleSystemManager, this.environmentPresentationManager, this.particlesCollectionData);
         }
 
         private void Start()
@@ -77,6 +81,9 @@ namespace TurnBased.Presentation
 
             this.particleSystemManager.OnDestroy();
             this.particleSystemManager = null;
+
+            this.environmentPresentationManager.OnDestroy();
+            this.environmentPresentationManager = null;
 
             this.animationPresentationManager.OnDestroy();
             this.animationPresentationManager = null;

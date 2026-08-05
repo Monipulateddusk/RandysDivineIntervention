@@ -2,12 +2,14 @@ namespace TurnBased.Presentation
 {
     public class AnimationPresentationManager
     {
-        private ParticleSystemManager particleSystemManager;
+        private ParticleSystemManager particleSystemManagerRef;
+        private EnvironmentPresentationManager environmentPresentationManagerRef;
         private ParticlesCollection_SO particlesCollectionData;
 
-        public void Awake(ParticleSystemManager pSM, ParticlesCollection_SO particleData)
+        public void Awake(ParticleSystemManager pSM, EnvironmentPresentationManager ePM, ParticlesCollection_SO particleData)
         {
-            this.particleSystemManager = pSM;   
+            this.particleSystemManagerRef = pSM;   
+            this.environmentPresentationManagerRef = ePM;
             this.particlesCollectionData = particleData;
 
             AttackResolution.AttackEventResolver.OnResolveAttackEventSequenceSection += AttackEventResolver_OnResolveAttackEventSequenceSection;
@@ -19,6 +21,9 @@ namespace TurnBased.Presentation
         {
             AttackResolution.AttackEventResolver.OnResolveAttackEventSequenceSection -= AttackEventResolver_OnResolveAttackEventSequenceSection;
             StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
+
+            this.particleSystemManagerRef = null;
+            this.particleSystemManagerRef = null;
         }
 
         private void StationSelectorManager_OnSelectionChange(StationIndex selectedStation, StationIndex? previousSelectedStation)
@@ -128,16 +133,28 @@ namespace TurnBased.Presentation
 
         private async System.Threading.Tasks.Task AwaitParticleEffectsForTargets(Intention.ResolvingSource source, System.Collections.Generic.List<AttackResolution.AttackEvent> attackEventList)
         {
-            /*  For each target in the attackEventList, spawn a particle and wait until the last one has resolved.  */
-            foreach (AttackResolution.AttackEvent ev in attackEventList)
+            // Depending if it is imbuing or anything else, we want different particle systems
+            MoveAnimationType animationType = source.SourceUnitMove.GetAnimationType();
+
+            switch (animationType)
             {
-                if (ev.TargetUnitIndex.Index == source.SourceUnitIndex.Index) { continue; }
-                if (!StationManager.Instance.TryGetBattleUnitOfIndex(ev.TargetUnitIndex, out BaseBattleUnit battleUnit)) { continue; }
+                // As we are imbuing the environment, we want to spawn some summoning circles of the imbuement
+                case MoveAnimationType.Imbuement:
+                    this.environmentPresentationManagerRef.CreateImbuementSummoningCircleFromUnit(source);
+                    break;
+                default:
+                    /*  For each target in the attackEventList, spawn a particle and wait until the last one has resolved.  */
+                    foreach (AttackResolution.AttackEvent ev in attackEventList)
+                    {
+                        if (ev.TargetUnitIndex.Index == source.SourceUnitIndex.Index) { continue; }
+                        if (!StationManager.Instance.TryGetBattleUnitOfIndex(ev.TargetUnitIndex, out BaseBattleUnit battleUnit)) { continue; }
 
-                _ = this.particleSystemManager.SpawnParticleSystem(this.particlesCollectionData.CollisionParticlePrefab, battleUnit.transform.position);
+                        _ = this.particleSystemManagerRef.SpawnParticleSystem(this.particlesCollectionData.CollisionParticlePrefab, battleUnit.transform.position);
+                    }
+
+                    await System.Threading.Tasks.Task.Delay(800);
+                    break;
             }
-
-            await System.Threading.Tasks.Task.Delay(800);
         }
 
 

@@ -2,36 +2,45 @@ using UnityEngine;
 
 public class ParticleSystemController : MonoBehaviour
 {
-    [Header("Particle System Variables")]
-    [SerializeField] private Color PrimaryColour, SecondaryColour;
-
-
-    [Header("Particle System Referances")]
-    [SerializeField] private ParticleSystem PrimaryColourParticleSystem, SecondaryColourParticleSystem;
-
-    public bool test;
-
-    private void OnValidate()
+    public void PlayParticleSystem()
     {
-        if (this.PrimaryColourParticleSystem == null || this.SecondaryColourParticleSystem == null) { return; }
-
-        var primarySystem = this.PrimaryColourParticleSystem.main;
-        primarySystem.startColor = this.PrimaryColour;
-
-        var secondarySystem = this.SecondaryColourParticleSystem.main;
-        secondarySystem.startColor = this.SecondaryColour;
-
-        if (this.test)
+        if (this.gameObject.TryGetComponent(out ParticleSystem pS))
         {
-            this.test = false;
-
-            this.PrimaryColourParticleSystem.Play();
-
+            pS.Play();
         }
     }
 
-    public void PlayParticleSystem()
+    public void PlayAllParticleSystems()
     {
-        this.PrimaryColourParticleSystem.Play();
+        if (this.gameObject.TryGetComponent(out ParticleSystem particleSystem))
+        {
+            particleSystem.Play();
+        }
+
+        foreach (Transform child in this.transform)
+        {
+            if (child.gameObject.TryGetComponent(out particleSystem))
+            {
+                particleSystem.Play();  
+            }
+        }
+    }
+
+    public void StopAllParticleSystems()
+    {
+        if (this.gameObject.TryGetComponent(out ParticleSystem particleSystem))
+        {
+            particleSystem.Stop();
+            particleSystem.Clear();
+        }
+
+        foreach (Transform child in this.transform)
+        {
+            if (child.gameObject.TryGetComponent(out particleSystem))
+            {
+                particleSystem.Stop();
+                particleSystem.Clear();
+            }
+        }
     }
 }

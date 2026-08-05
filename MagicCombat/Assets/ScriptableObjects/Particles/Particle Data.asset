@@ -17,3 +17,10 @@ MonoBehaviour:
   PoisonParticlePrefab: {fileID: 4843139774226262036, guid: cc824cd25cf59d443b06e1758861d332, type: 3}
   ShockWaveParticlePrefab: {fileID: 3483025838490107236, guid: c91015e6f941a1741a22d726b76e4faf, type: 3}
   CollisionParticlePrefab: {fileID: 4843139774226262036, guid: 9b87ef8ae38c09b4c8912bd6ce2c7a45, type: 3}
+  summoningCircleImbuementPrefab: {fileID: 4381881182893606627, guid: abab2596a0b53d14a8c6a7fd2bea8b59, type: 3}
+  darkImbuementCircleData: {fileID: 11400000, guid: 3a40ac8b87ace404db8a62d4c1a25521, type: 2}
+  lightImbuementCircleData: {fileID: 0}
+  fireImbuementCircleData: {fileID: 0}
+  waterImbuementCircleData: {fileID: 0}
+  iceImbuementCircleData: {fileID: 0}
+  earthImbuementCircleData: {fileID: 0}
