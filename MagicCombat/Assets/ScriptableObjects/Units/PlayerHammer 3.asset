@@ -16,7 +16,7 @@ MonoBehaviour:
   maxHP: 8
   attack: 5
   speed: 9
-  color: {r: 1, g: 0.34439367, b: 0, a: 1}
+  color: {r: 0.5, g: 0.2, b: 0, a: 1}
   sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
   element: 4
   moves:
