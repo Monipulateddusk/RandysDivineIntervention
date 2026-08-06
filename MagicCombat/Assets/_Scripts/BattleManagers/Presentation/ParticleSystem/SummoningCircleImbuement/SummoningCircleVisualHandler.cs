@@ -29,13 +29,14 @@ public class SummoningCircleVisualHandler : MonoBehaviour
     }
 
 
-    public void RunSummoningCircleVisual(SummoningCircleImbutentData data, System.Collections.Generic.List<Vector3> circlePositions)
+    public async System.Threading.Tasks.Task RunSummoningCircleVisual(SummoningCircleImbutentData data)
     {
+        this.summoningCircleImbutentData = data;
         DestroyParticleSystem();
         InstanciateParticleSystem();
 
-        InitaliseSummoningCircleVisual(summoningCircleImbutentData);
-        _ = PlaySummoningCircleAnimation();
+        InitaliseSummoningCircleVisual(data);
+        await PlaySummoningCircleAnimation();
     }
 
     public void InitaliseSummoningCircleVisual(SummoningCircleImbutentData data)
@@ -46,13 +47,13 @@ public class SummoningCircleVisualHandler : MonoBehaviour
 
         if (this.summoningCirclePlaneMeshRenderer == null || this.glowLight == null || this.summoningCircleImbutentData == null) { return; }
   
-        this.summoningCirclePlaneMeshRenderer.sharedMaterial = SummoningCircleMaterialPrefab;
+        this.summoningCirclePlaneMeshRenderer.material = SummoningCircleMaterialPrefab;
         this.glowLight.intensity = this.summoningCircleImbutentData.lightGlowIntensity;
         this.glowLight.color = this.summoningCircleImbutentData.lightColour;
         this.SummoningCircleTransform.transform.localRotation = Quaternion.Euler(0, this.summoningCircleImbutentData.rotateCircleAngle, 0);
         this.SummoningCircleTransform.transform.localScale = new Vector3(1, 1, 1);
 
-        var summoningCircleMaterialInstance = summoningCirclePlaneMeshRenderer.sharedMaterial;
+        var summoningCircleMaterialInstance = summoningCirclePlaneMeshRenderer.material;
 
         summoningCircleMaterialInstance.SetTexture("_SummoningCircleTexture2D", this.summoningCircleImbutentData.summoningCircleTexture2D);
         summoningCircleMaterialInstance.SetColor("_Color", this.summoningCircleImbutentData.materialColour);
@@ -98,6 +99,13 @@ public class SummoningCircleVisualHandler : MonoBehaviour
         
     }
 
+    public void ChangeMaterialColour(UnityEngine.Color newColor, UnityEngine.Color newAccentColor)
+    {
+        var summoningCircleMaterialInstance = this.summoningCirclePlaneMeshRenderer.material;
+        summoningCircleMaterialInstance.SetColor("_Color", newColor);
+        summoningCircleMaterialInstance.SetColor("_ColorEmission", newAccentColor);
+    }
+
     private async System.Threading.Tasks.Task PlaySummoningCircleAnimation()
     {
         if (this.instanciatedParticleSystem == null || this.summoningCircleImbutentData == null) { return; }
@@ -120,7 +128,7 @@ public class SummoningCircleVisualHandler : MonoBehaviour
         this.SummoningCircleTransform.transform.localRotation = Quaternion.identity;
         this.SummoningCircleTransform.transform.localScale = Vector3.zero;
 
-        var summoningCircleMaterialInstance = this.summoningCirclePlaneMeshRenderer.sharedMaterial;
+        var summoningCircleMaterialInstance = this.summoningCirclePlaneMeshRenderer.material;
         summoningCircleMaterialInstance.SetFloat("_Exposure", 0);
         summoningCircleMaterialInstance.SetFloat("_EmissionIntensity", 0);
 
@@ -130,8 +138,8 @@ public class SummoningCircleVisualHandler : MonoBehaviour
         {
             float t = (Time.time - startTime) / this.summoningCircleImbutentData.growCircleDuration;
 
-            this.SummoningCircleTransform.transform.localRotation = Quaternion.Euler(0, Mathf.Lerp(0, this.summoningCircleImbutentData.rotateCircleAngle, t), 0);
-            this.SummoningCircleTransform.transform.localScale = new Vector3(Mathf.Lerp(0, 1, t), Mathf.Lerp(0, 1, t), Mathf.Lerp(0, 1, t));
+            this.SummoningCircleTransform.transform.localRotation = Quaternion.Euler(0, Mathf.SmoothStep(0, this.summoningCircleImbutentData.rotateCircleAngle, t), 0);
+            this.SummoningCircleTransform.transform.localScale = new Vector3(Mathf.SmoothStep(0, 1, t), Mathf.SmoothStep(0, 1, t), Mathf.SmoothStep(0, 1, t));
 
             await System.Threading.Tasks.Task.Yield();
         }
@@ -148,7 +156,7 @@ public class SummoningCircleVisualHandler : MonoBehaviour
     {
         if (this.summoningCirclePlaneMeshRenderer == null || this.glowLight == null || this.summoningCircleImbutentData == null) { return; }
 
-        var summoningCircleMaterialInstance = this.summoningCirclePlaneMeshRenderer.sharedMaterial;
+        var summoningCircleMaterialInstance = this.summoningCirclePlaneMeshRenderer.material;
         summoningCircleMaterialInstance.SetColor("_ColorEmission", this.summoningCircleImbutentData.materialEmissionColour);
 
         StartParticleSystemPlaying();
@@ -159,11 +167,11 @@ public class SummoningCircleVisualHandler : MonoBehaviour
         {
             float t = (Time.time - startTime) / this.summoningCircleImbutentData.glowLightDuration;
 
-            summoningCircleMaterialInstance.SetFloat("_Exposure", Mathf.Lerp(0, this.summoningCircleImbutentData.materialEmissionExposure, t));
-            summoningCircleMaterialInstance.SetFloat("_EmissionIntensity", Mathf.Lerp(0, this.summoningCircleImbutentData.materialEmissionIntensity, t));
+            summoningCircleMaterialInstance.SetFloat("_Exposure", Mathf.SmoothStep(0, this.summoningCircleImbutentData.materialEmissionExposure, t));
+            summoningCircleMaterialInstance.SetFloat("_EmissionIntensity", Mathf.SmoothStep(0, this.summoningCircleImbutentData.materialEmissionIntensity, t));
 
-            this.glowLight.intensity = Mathf.Lerp(0, this.summoningCircleImbutentData.lightGlowIntensity, t);
-            this.glowLight.color = new Color(Mathf.Lerp(0, this.summoningCircleImbutentData.lightColour.r, t), Mathf.Lerp(0, this.summoningCircleImbutentData.lightColour.g, t), Mathf.Lerp(0, this.summoningCircleImbutentData.lightColour.b, t));
+            this.glowLight.intensity = Mathf.SmoothStep(0, this.summoningCircleImbutentData.lightGlowIntensity, t);
+            this.glowLight.color = new Color(Mathf.SmoothStep(0, this.summoningCircleImbutentData.lightColour.r, t), Mathf.SmoothStep(0, this.summoningCircleImbutentData.lightColour.g, t), Mathf.SmoothStep(0, this.summoningCircleImbutentData.lightColour.b, t));
 
             await System.Threading.Tasks.Task.Yield();
         }
@@ -185,13 +193,17 @@ public class SummoningCircleVisualHandler : MonoBehaviour
         {
             float t = (Time.time - startTime) / this.summoningCircleImbutentData.circleMoveDuration;
 
-            Vector3 position = new Vector3(Mathf.Lerp(startPosition.x, endPosition.x, t), Mathf.Lerp(startPosition.y, endPosition.y, t), Mathf.Lerp(startPosition.y, endPosition.y, t));
+            Vector3 position = new(Mathf.SmoothStep(startPosition.x, endPosition.x, t), Mathf.SmoothStep(startPosition.y, endPosition.y, t), Mathf.SmoothStep(startPosition.z, endPosition.z, t));
 
             this.gameObject.transform.SetPositionAndRotation(position, this.transform.rotation);
             await System.Threading.Tasks.Task.Yield();
         }
         this.gameObject.transform.SetPositionAndRotation(endPosition, this.transform.rotation);
     }
+
+    public Color GetPrimaryColour() => this.summoningCircleImbutentData.materialColour;
+    public Color GetSecondaryColour() => this.summoningCircleImbutentData.materialEmissionColour;
+
 
     public bool TryGetTotalDuration(out float totalDuration)
     {
@@ -206,14 +218,14 @@ public class SummoningCircleVisualHandler : MonoBehaviour
 
     private void StopParticleSystemPlaying()
     {
-        if (this.instanciatedParticleSystem.TryGetComponent(out ParticleSystemController particleSystemManager))
+        if (this.instanciatedParticleSystem != null && this.instanciatedParticleSystem.TryGetComponent(out ParticleSystemController particleSystemManager))
         {
             particleSystemManager.StopAllParticleSystems();
         }
     }
     private void StartParticleSystemPlaying()
     {
-        if (this.instanciatedParticleSystem.TryGetComponent(out ParticleSystemController particleSystemManager))
+        if (this.instanciatedParticleSystem != null && this.instanciatedParticleSystem.TryGetComponent(out ParticleSystemController particleSystemManager))
         {
             particleSystemManager.PlayAllParticleSystems();
         }

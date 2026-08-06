@@ -78,7 +78,7 @@ namespace TurnBased.Presentation
             }
 
             await AwaitTriggerFlagDuration(source);
-            await AwaitParticleEffectsForTargets(source, attackEventList);
+            await AwaitParticleEffectsForTargets(source, action, attackEventList);
 
             if (IsEndingAnimation(resolvingStatesCount, resolvingStateIndex, timelineCount, timelineIndex))
             {
@@ -131,7 +131,7 @@ namespace TurnBased.Presentation
             await System.Threading.Tasks.Task.Delay((int)(triggerFlagDuration * 1000));
         }
 
-        private async System.Threading.Tasks.Task AwaitParticleEffectsForTargets(Intention.ResolvingSource source, System.Collections.Generic.List<AttackResolution.AttackEvent> attackEventList)
+        private async System.Threading.Tasks.Task AwaitParticleEffectsForTargets(Intention.ResolvingSource source, AttackResolution.AttackAction action, System.Collections.Generic.List<AttackResolution.AttackEvent> attackEventList)
         {
             // Depending if it is imbuing or anything else, we want different particle systems
             MoveAnimationType animationType = source.SourceUnitMove.GetAnimationType();
@@ -140,7 +140,7 @@ namespace TurnBased.Presentation
             {
                 // As we are imbuing the environment, we want to spawn some summoning circles of the imbuement
                 case MoveAnimationType.Imbuement:
-                    this.environmentPresentationManagerRef.CreateImbuementSummoningCircleFromUnit(source);
+                    await this.environmentPresentationManagerRef.CreateImbuementSummoningCircleFromUnit(source, action);
                     break;
                 default:
                     /*  For each target in the attackEventList, spawn a particle and wait until the last one has resolved.  */

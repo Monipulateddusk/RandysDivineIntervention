@@ -19,8 +19,8 @@ MonoBehaviour:
   CollisionParticlePrefab: {fileID: 4843139774226262036, guid: 9b87ef8ae38c09b4c8912bd6ce2c7a45, type: 3}
   summoningCircleImbuementPrefab: {fileID: 4381881182893606627, guid: abab2596a0b53d14a8c6a7fd2bea8b59, type: 3}
   darkImbuementCircleData: {fileID: 11400000, guid: 3a40ac8b87ace404db8a62d4c1a25521, type: 2}
-  lightImbuementCircleData: {fileID: 0}
-  fireImbuementCircleData: {fileID: 0}
-  waterImbuementCircleData: {fileID: 0}
-  iceImbuementCircleData: {fileID: 0}
-  earthImbuementCircleData: {fileID: 0}
+  lightImbuementCircleData: {fileID: 11400000, guid: 9113cd1bed7f10b4b82e8c664781d358, type: 2}
+  fireImbuementCircleData: {fileID: 11400000, guid: 97c2318f2f547aa41abf8ab096c2ebb7, type: 2}
+  waterImbuementCircleData: {fileID: 11400000, guid: e59255265b6736e4e98843eaeb096640, type: 2}
+  iceImbuementCircleData: {fileID: 11400000, guid: a4e444b9c5826974a91ae638500daef5, type: 2}
+  earthImbuementCircleData: {fileID: 11400000, guid: b660d054e36729247a7ed66487d24127, type: 2}

@@ -10,15 +10,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5a70537c79c94749958ff40d998d76f, type: 3}
-  m_Name: PlayerHammer 1
+  m_Name: PlayerHammer 2
   m_EditorClassIdentifier: 
   name: Fire Hammer
   maxHP: 8
   attack: 5
   speed: 9
-  color: {r: 0, g: 0.0035750866, b: 1, a: 1}
+  color: {r: 0, g: 0.98154783, b: 1, a: 1}
   sprite: {fileID: 21300000, guid: 8eb97ebc5e8335342aa526e9c51af10f, type: 3}
-  element: 2
+  element: 3
   moves:
   - rid: 5066282868326531073
   - rid: 5303009918508859394

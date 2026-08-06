@@ -119,12 +119,12 @@ namespace TurnBased.AttackResolution
         {
             return ElementEffect switch
             {
-                Element.FIRE => $"<color=red>Fire</color>",
-                Element.WATER => $"<color=blue>Water</color>",
-                Element.ICE => $"<color=aqua>Ice</color>",
-                Element.EARTH => $"<color=brown>Earth</color>",
-                Element.LIGHT => $"<color=yellow>Light</color>",
-                Element.DARKNESS => $"<color=grey>Dark</color>",
+                Element.FIRE => "<color=red>Fire</color>",
+                Element.WATER => "<color=blue>Water</color>",
+                Element.ICE => "<color=#00ffffff>Ice</color>",
+                Element.EARTH => "<color=#803300>Earth</color>",
+                Element.LIGHT => "<color=yellow>Light</color>",
+                Element.DARKNESS => "<color=purple>Dark</color>",
                 _ => $"Non-Elemental",
             };
         }

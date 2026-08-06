@@ -50,8 +50,8 @@ Material:
     - _QueueOffset: 0
     - _Smoothness: 0.5
     m_Colors:
-    - _Color: {r: 0.6981132, g: 0.40747142, b: 0.19428623, a: 1}
-    - _ColorEmission: {r: 0.3773585, g: 0.18182142, b: 0.033819854, a: 1}
+    - _Color: {r: 1, g: 0.12481457, b: 0, a: 1}
+    - _ColorEmission: {r: 0.4509804, g: 0.054820884, b: 0.050980397, a: 1}
     - _PerlinScrollSpeed: {r: 0.1, g: 0.1, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &856769632324717581
