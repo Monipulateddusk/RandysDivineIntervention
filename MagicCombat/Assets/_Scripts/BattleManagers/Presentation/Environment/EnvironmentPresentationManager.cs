@@ -79,17 +79,10 @@ namespace TurnBased.Presentation
             // Instanciate two sets of imbuement circles at these positions
             foreach (UnityEngine.Vector3 position in positions)
             {
-                UnityEngine.GameObject gO = UnityEngine.GameObject.Instantiate(this._ParticlesData.summoningCircleImbuementPrefab.gameObject);
-                if (gO != null && gO.TryGetComponent(out SummoningCircleVisualHandler visualHandler))
-                {
-                    EnvironmentPresentationData data = new(visualHandler, team, position, imbueElementAction.ElementEffect);
-
-                    this.instancatedImbuementSummoningCircles.Add(data);
-                    gO.transform.SetPositionAndRotation(sourcePosition, UnityEngine.Quaternion.identity);
-                    _ = visualHandler.RunSummoningCircleVisual(imbutentData);
-                    _ = visualHandler.MoveSummoningCircleToPosition(position);
-                    visualHandler.TryGetTotalDuration(out duration);
-                }
+                if (TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) { continue; }
+                _ = visualHandler.RunSummoningCircleVisual(imbutentData);
+                _ = visualHandler.MoveSummoningCircleToPosition(position);
+                visualHandler.TryGetTotalDuration(out duration);
             }
 
             await System.Threading.Tasks.Task.Delay((int)(duration * 1000));
@@ -103,28 +96,49 @@ namespace TurnBased.Presentation
             SummoningCircleImbutentData imbutentData = GetImbuementDataOfElement(imbueElementAction.ElementEffect);
             if (imbutentData == null) { return; }
 
-            // Instanciate one summoning circle of this new imbued type. Play its animation, then after its done, move the prior circles to the source position for combining.
-            UnityEngine.GameObject gO = UnityEngine.GameObject.Instantiate(this._ParticlesData.summoningCircleImbuementPrefab.gameObject);
-            if (gO == null || !gO.TryGetComponent(out SummoningCircleVisualHandler visualHandler)) { return; }
-            
-            EnvironmentPresentationData data = new(visualHandler, team, sourcePosition, imbueElementAction.ElementEffect);
-            this.instancatedImbuementSummoningCircles.Add(data);
-            gO.transform.SetPositionAndRotation(sourcePosition, UnityEngine.Quaternion.identity);
+            if (TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) {  return; }
             await visualHandler.RunSummoningCircleVisual(imbutentData);
 
-            // After the animation is done, move the previous circles back to the centre
+            // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+            // Move Summoning Circles to the source position.
+            //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+            // Get the duration of the Movement
             float duration = 0;
-            foreach (var circle in existingSummoningCircles)
+            if (existingSummoningCircles.Count > 0)
             {
-                _ = circle.Handler.MoveSummoningCircleToPosition(sourcePosition);
-                circle.Handler.TryGetTotalDuration(out duration);
+                existingSummoningCircles[0].Handler.TryGetTotalDuration(out duration);
+            }
+            foreach (EnvironmentPresentationData circleData in existingSummoningCircles)
+            {
+                _ = circleData.Handler.MoveSummoningCircleToPosition(sourcePosition);
             }
 
-            existingSummoningCircles.Add(data);
+            await BlendExistingSummoningCircles(existingSummoningCircles, data, duration);
+        }
+
+        private bool TryInstanciateSummoningCircleAtSourcePosition(UnitTeam team, UnityEngine.Vector3 sourcePosition, AttackResolution.ImbueEnvironmentAttackAction imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)
+        {
+            visualHandler = default;
+            data = default; 
+
+            // Instanciate one summoning circle of this new imbued type. Play its animation, then after its done, move the prior circles to the source position for combining.
+            UnityEngine.GameObject gO = UnityEngine.GameObject.Instantiate(this._ParticlesData.summoningCircleImbuementPrefab.gameObject);
+            if (gO == null || !gO.TryGetComponent(out visualHandler)) { return false; }
+
+            data = new(visualHandler, team, sourcePosition, imbueElementAction.ElementEffect);
+            this.instancatedImbuementSummoningCircles.Add(data);
+            gO.transform.SetPositionAndRotation(sourcePosition, UnityEngine.Quaternion.identity);
+            return true;
+        }
+
+        private async System.Threading.Tasks.Task BlendExistingSummoningCircles(System.Collections.Generic.List<EnvironmentPresentationData> existingSummoningCircles, EnvironmentPresentationData otherColourSummoningCircleData, float duration)
+        {
+            existingSummoningCircles.Add(otherColourSummoningCircleData);
 
             float startTime = Time.time;
-            UnityEngine.Color blendedPrimaryColor   = GetBlendedColour(existingSummoningCircles[0].Handler.GetPrimaryColour(), visualHandler.GetPrimaryColour());
-            UnityEngine.Color blendedSecondaryColor = GetBlendedColour(existingSummoningCircles[0].Handler.GetSecondaryColour(), visualHandler.GetSecondaryColour());
+            UnityEngine.Color blendedPrimaryColor = GetBlendedColour(existingSummoningCircles[0].Handler.GetPrimaryColour(), otherColourSummoningCircleData.Handler.GetPrimaryColour());
+            UnityEngine.Color blendedSecondaryColor = GetBlendedColour(existingSummoningCircles[0].Handler.GetSecondaryColour(), otherColourSummoningCircleData.Handler.GetSecondaryColour());
             while (Time.time < startTime + duration)
             {
                 float t = (Time.time - startTime) / duration;
@@ -133,8 +147,8 @@ namespace TurnBased.Presentation
                 {
                     UnityEngine.Color primary = existingSummoningCircles[i].Handler.GetPrimaryColour();
                     UnityEngine.Color secondary = existingSummoningCircles[i].Handler.GetSecondaryColour();
-                    UnityEngine.Color newPrimaryColour = new (  Mathf.SmoothStep(primary.r, blendedPrimaryColor.r, t),      Mathf.SmoothStep(primary.g, blendedPrimaryColor.g, t),      Mathf.SmoothStep(primary.b, blendedPrimaryColor.b, t));
-                    UnityEngine.Color newSecondaryColour = new (Mathf.SmoothStep(secondary.r, blendedSecondaryColor.r, t),  Mathf.SmoothStep(secondary.g, blendedSecondaryColor.g, t),  Mathf.SmoothStep(secondary.b, blendedSecondaryColor.b, t));
+                    UnityEngine.Color newPrimaryColour = new(Mathf.SmoothStep(primary.r, blendedPrimaryColor.r, t), Mathf.SmoothStep(primary.g, blendedPrimaryColor.g, t), Mathf.SmoothStep(primary.b, blendedPrimaryColor.b, t));
+                    UnityEngine.Color newSecondaryColour = new(Mathf.SmoothStep(secondary.r, blendedSecondaryColor.r, t), Mathf.SmoothStep(secondary.g, blendedSecondaryColor.g, t), Mathf.SmoothStep(secondary.b, blendedSecondaryColor.b, t));
 
                     existingSummoningCircles[i].Handler.ChangeMaterialColour(newPrimaryColour, newSecondaryColour);
                 }
@@ -142,8 +156,6 @@ namespace TurnBased.Presentation
             }
 
             await System.Threading.Tasks.Task.Delay((int)(1500));
-
-
         }
 
         private void DestroyAllInstanciatedSummoningCircles()
