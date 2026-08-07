@@ -1,11 +1,8 @@
-using TurnBased.Combat;
 using UnityEngine;
-
 namespace TurnBased.Presentation
 {
     public class BattlePresentationManager : MonoBehaviour
     {
-
         private static BattlePresentationManager instance;
         public static BattlePresentationManager Instance
         {
@@ -49,8 +46,8 @@ namespace TurnBased.Presentation
 
             StationManager.OnDeployUnit += StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange += StationSelectorManager_OnSelectionChange;
-            IntentionCombatResolver.OnUnitResolvingState_BeforeAttack += IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
-            IntentionCombatResolver.OnUnitResolvingState_AfterAttack += IntentionCombatResolver_OnUnitResolvingState_AfterAttack; 
+            Combat.IntentionCombatResolver.OnUnitResolvingState_BeforeAttack += IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
+            Combat.IntentionCombatResolver.OnUnitResolvingState_AfterAttack += IntentionCombatResolver_OnUnitResolvingState_AfterAttack; 
 
 
             this.particleSystemManager = new();
@@ -76,8 +73,8 @@ namespace TurnBased.Presentation
             }
             StationManager.OnDeployUnit -= StationManager_OnDeployUnit;
             StationSelectorManager.OnSelectionChange -= StationSelectorManager_OnSelectionChange;
-            IntentionCombatResolver.OnUnitResolvingState_BeforeAttack -= IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
-            IntentionCombatResolver.OnUnitResolvingState_AfterAttack -= IntentionCombatResolver_OnUnitResolvingState_AfterAttack;
+            Combat.IntentionCombatResolver.OnUnitResolvingState_BeforeAttack -= IntentionCombatResolver_OnUnitResolvingState_BeforeAttack;
+            Combat.IntentionCombatResolver.OnUnitResolvingState_AfterAttack -= IntentionCombatResolver_OnUnitResolvingState_AfterAttack;
 
             this.particleSystemManager.OnDestroy();
             this.particleSystemManager = null;

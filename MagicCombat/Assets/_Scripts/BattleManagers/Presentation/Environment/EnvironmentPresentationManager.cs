@@ -1,5 +1,5 @@
-using UnityEngine;
-using UnityEngine.UIElements;
+using System;
+using TurnBased.AttackResolution;
 
 namespace TurnBased.Presentation
 {
@@ -20,9 +20,6 @@ namespace TurnBased.Presentation
                 this.Element = element;
             }
         }
-
-        private ParticlesCollection_SO _ParticlesData;
-
         private System.Collections.Generic.List<EnvironmentPresentationData> instancatedImbuementSummoningCircles;
 
         private readonly System.Collections.Generic.List<UnityEngine.Vector3> IMBUEMENT_CIRCLE_POSITIONS_ALLY = new()
@@ -34,16 +31,45 @@ namespace TurnBased.Presentation
             new UnityEngine.Vector3(-4, 0, -6), new UnityEngine.Vector3(6, 0, -8),
         };
 
+        private ParticlesCollection_SO _ParticlesData;
+
+
+
+
         public void Awake(ParticlesCollection_SO data)
         {
+            EventHookSystem.OnDamageRequestResolved += EventHookSystem_OnDamageRequestResolved;
+            EventHookSystem.OnApplyStatusRequestResolved += EventHookSystem_OnApplyStatusRequestResolved;
+
             this._ParticlesData = data;
             this.instancatedImbuementSummoningCircles = new();
         }
 
         public void OnDestroy()
         {
+            EventHookSystem.OnDamageRequestResolved -= EventHookSystem_OnDamageRequestResolved;
+            EventHookSystem.OnApplyStatusRequestResolved -= EventHookSystem_OnApplyStatusRequestResolved;
+
             DestroyAllInstanciatedSummoningCircles();
         }
+
+        private void EventHookSystem_OnDamageRequestResolved(RequestTaskCompletionManager manager, DamageRequest request)
+        {
+            if (request.ResolvingSource.Type == DamageOriginType.Environment)
+            {
+                UnityEngine.Debug.LogError("AHHAH");
+            }
+        }
+
+        private void EventHookSystem_OnApplyStatusRequestResolved(RequestTaskCompletionManager manager, ApplyStatusRequest request)
+        {
+            if (request.ResolvingSource.Type == DamageOriginType.Environment)
+            {
+                UnityEngine.Debug.LogError("AHHAH");
+            }
+        }
+
+
 
         public async System.Threading.Tasks.Task CreateImbuementSummoningCircleFromUnit(Intention.ResolvingSource source, AttackResolution.AttackAction action)
         {
@@ -79,7 +105,7 @@ namespace TurnBased.Presentation
             // Instanciate two sets of imbuement circles at these positions
             foreach (UnityEngine.Vector3 position in positions)
             {
-                if (TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) { continue; }
+                if (!TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) { continue; }
                 _ = visualHandler.RunSummoningCircleVisual(imbutentData);
                 _ = visualHandler.MoveSummoningCircleToPosition(position);
                 visualHandler.TryGetTotalDuration(out duration);
@@ -96,7 +122,7 @@ namespace TurnBased.Presentation
             SummoningCircleImbutentData imbutentData = GetImbuementDataOfElement(imbueElementAction.ElementEffect);
             if (imbutentData == null) { return; }
 
-            if (TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) {  return; }
+            if (!TryInstanciateSummoningCircleAtSourcePosition(team, sourcePosition, imbueElementAction, out SummoningCircleVisualHandler visualHandler, out EnvironmentPresentationData data)) {  return; }
             await visualHandler.RunSummoningCircleVisual(imbutentData);
 
             // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -136,19 +162,19 @@ namespace TurnBased.Presentation
         {
             existingSummoningCircles.Add(otherColourSummoningCircleData);
 
-            float startTime = Time.time;
+            float startTime = UnityEngine.Time.time;
             UnityEngine.Color blendedPrimaryColor = GetBlendedColour(existingSummoningCircles[0].Handler.GetPrimaryColour(), otherColourSummoningCircleData.Handler.GetPrimaryColour());
             UnityEngine.Color blendedSecondaryColor = GetBlendedColour(existingSummoningCircles[0].Handler.GetSecondaryColour(), otherColourSummoningCircleData.Handler.GetSecondaryColour());
-            while (Time.time < startTime + duration)
+            while (UnityEngine.Time.time < startTime + duration)
             {
-                float t = (Time.time - startTime) / duration;
+                float t = (UnityEngine.Time.time - startTime) / duration;
 
                 for (int i = 0; i < existingSummoningCircles.Count; i++)
                 {
                     UnityEngine.Color primary = existingSummoningCircles[i].Handler.GetPrimaryColour();
                     UnityEngine.Color secondary = existingSummoningCircles[i].Handler.GetSecondaryColour();
-                    UnityEngine.Color newPrimaryColour = new(Mathf.SmoothStep(primary.r, blendedPrimaryColor.r, t), Mathf.SmoothStep(primary.g, blendedPrimaryColor.g, t), Mathf.SmoothStep(primary.b, blendedPrimaryColor.b, t));
-                    UnityEngine.Color newSecondaryColour = new(Mathf.SmoothStep(secondary.r, blendedSecondaryColor.r, t), Mathf.SmoothStep(secondary.g, blendedSecondaryColor.g, t), Mathf.SmoothStep(secondary.b, blendedSecondaryColor.b, t));
+                    UnityEngine.Color newPrimaryColour = new(UnityEngine.Mathf.SmoothStep(primary.r, blendedPrimaryColor.r, t), UnityEngine.Mathf.SmoothStep(primary.g, blendedPrimaryColor.g, t), UnityEngine.Mathf.SmoothStep(primary.b, blendedPrimaryColor.b, t));
+                    UnityEngine.Color newSecondaryColour = new(UnityEngine.Mathf.SmoothStep(secondary.r, blendedSecondaryColor.r, t), UnityEngine.Mathf.SmoothStep(secondary.g, blendedSecondaryColor.g, t), UnityEngine.Mathf.SmoothStep(secondary.b, blendedSecondaryColor.b, t));
 
                     existingSummoningCircles[i].Handler.ChangeMaterialColour(newPrimaryColour, newSecondaryColour);
                 }

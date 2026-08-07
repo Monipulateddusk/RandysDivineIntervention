@@ -2,7 +2,7 @@ namespace TurnBased.Presentation
 {
     public class StatusPresentationManager
     {
-        private ParticleSystemManager particleSystemManager;
+        private ParticleSystemManager particleSystemManagerRef;
         private System.Collections.Generic.Dictionary<TurnBased.Status.BaseStatus, ParticleSystemController> StatusEffects;
         private ParticlesCollection_SO _ParticlesData;
 
@@ -13,7 +13,7 @@ namespace TurnBased.Presentation
             EventHookSystem.OnApplyStatusRequestResolved    += EventHookSystem_OnApplyStatusRequestResolved; 
 
             this._ParticlesData = particlesData;
-            this.particleSystemManager = particleManager;
+            this.particleSystemManagerRef = particleManager;
 
             this.StatusEffects = new() {
                 { new Status.PoisonStatus(),    particlesData.PoisonParticlePrefab  },
@@ -69,7 +69,7 @@ namespace TurnBased.Presentation
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ResolvingSource.SourceStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
+            await this.particleSystemManagerRef.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
         }
 
         private async System.Threading.Tasks.Task VisualiseStatusRequest(AttackResolution.RequestTaskCompletionManager completionManager, AttackResolution.ApplyStatusRequest request, BaseBattleUnit battleUnit)
@@ -77,7 +77,7 @@ namespace TurnBased.Presentation
             if (!TryGetParticleSystemOfStatusChildSubClass(request.ApplingStatus, out ParticleSystemController particleSystemController)) { return; }
             if (particleSystemController == null) { return; }
 
-            await this.particleSystemManager.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
+            await this.particleSystemManagerRef.SpawnParticleSystem(completionManager, particleSystemController, battleUnit.transform.position);
         }
     }
 }

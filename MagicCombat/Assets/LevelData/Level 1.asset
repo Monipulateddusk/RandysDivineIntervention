@@ -16,10 +16,6 @@ MonoBehaviour:
   AllyUnitsInLevel:
   - {fileID: 11400000, guid: 3f54f22117c18ba4daf1eb1585334239, type: 2}
   - {fileID: 11400000, guid: 0bb35d664fa4672418471253686c2c6b, type: 2}
-  - {fileID: 11400000, guid: c7d2bd5bf68af9840a19862f8af3a031, type: 2}
-  - {fileID: 11400000, guid: 6f65c4d3eeca65f4b97058cfe4e09eb1, type: 2}
-  - {fileID: 11400000, guid: 920573c3e957c0d408472c866b7f1b08, type: 2}
-  - {fileID: 11400000, guid: 3db9599a6f65d5f45bf0b7fb70aab559, type: 2}
   EnemyUnitsInLevel:
   - {fileID: 11400000, guid: ebd2545781b24e945af8639dcbb3c654, type: 2}
   - {fileID: 11400000, guid: 5c689d3e41c43ab46b9490532791c6d6, type: 2}
